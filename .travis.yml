@@ -1,0 +1,12 @@
+language: java
+
+jdk:
+  - openjdk7
+  
+script:
+  - mvn clean verify -Pcoverage-per-test
+
+sudo: false
+
+notifications:
+  email: false
