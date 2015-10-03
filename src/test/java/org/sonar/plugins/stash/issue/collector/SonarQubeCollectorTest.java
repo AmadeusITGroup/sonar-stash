@@ -142,4 +142,24 @@ public class SonarQubeCollectorTest {
     assertTrue(report.countIssues("severity1") == 0);
     assertTrue(report.countIssues("severity2") == 1);
   }
+  
+  @Test
+  public void testExtractIssueReportWithOneIssueWithoutInputFile(){
+    when(inputFileCache.getInputFile("component1")).thenReturn(null);
+    
+    ArrayList<Issue> issues = new ArrayList<Issue>();
+    issues.add(issue1);
+    issues.add(issue2);
+    when(projectIssues.issues()).thenReturn(issues);
+    
+    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    assertTrue(report.countIssues() == 1);
+    assertTrue(report.countIssues("severity1") == 0);
+    assertTrue(report.countIssues("severity2") == 1);
+    
+    SonarQubeIssue sqIssue = report.getIssues().get(0);
+    assertTrue(StringUtils.equals(sqIssue.getMessage(), "message2"));
+    assertTrue(StringUtils.equals(sqIssue.getPath(), "project/path2"));
+    assertTrue(sqIssue.getLine() == 2);
+  }
 }

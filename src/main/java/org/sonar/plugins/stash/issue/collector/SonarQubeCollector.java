@@ -43,11 +43,15 @@ public final class SonarQubeCollector {
         }
   
         InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
-        String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
-           
-        // Create the issue and Add to report
-        SonarQubeIssue stashIssue = new SonarQubeIssue(key, severity, message, rule, path, line);
-        result.add(stashIssue);
+        if (inputFile == null){
+          LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
+        } else {
+          String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
+             
+          // Create the issue and Add to report
+          SonarQubeIssue stashIssue = new SonarQubeIssue(key, severity, message, rule, path, line);
+          result.add(stashIssue);
+        } 
       }
     }
 
