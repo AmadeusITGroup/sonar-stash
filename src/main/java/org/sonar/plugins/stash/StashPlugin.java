@@ -19,7 +19,7 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
-	
+
   private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "General";
   
   public static final String INCREMENTAL_MODE = "incremental";
@@ -39,7 +39,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
   
-  
+  @Override
   public List getExtensions() {
     return Arrays.asList(
         StashIssueReportingPostJob.class,

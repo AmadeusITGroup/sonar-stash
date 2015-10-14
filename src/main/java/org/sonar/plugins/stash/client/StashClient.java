@@ -51,7 +51,7 @@ public class StashClient {
     JSONObject json = new JSONObject();
     json.put("text", report);
 
-    AsyncHttpClient httpClient = new AsyncHttpClient();
+    AsyncHttpClient httpClient = createHttpClient();
     BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
     requestBuilder.setBody(json.toString());
 
@@ -73,7 +73,7 @@ public class StashClient {
       throws StashClientException {
     StashCommentReport result = new StashCommentReport();
     
-    AsyncHttpClient httpClient = new AsyncHttpClient();
+    AsyncHttpClient httpClient = createHttpClient();
     
     long start = 0;
     boolean isLastPage = false; 
@@ -110,7 +110,7 @@ public class StashClient {
       throws StashClientException {
     StashDiffReport result = new StashDiffReport();
     
-    AsyncHttpClient httpClient = new AsyncHttpClient();
+    AsyncHttpClient httpClient = createHttpClient();
     
     try {
       String request = MessageFormat.format(DIFF_PULL_REQUEST_API + "?withComments=true", baseUrl + REST_API, project, repository, pullRequestId);
@@ -156,7 +156,7 @@ public class StashClient {
     json.put("text", message);
     json.put("anchor", anchor);
 
-    AsyncHttpClient httpClient = new AsyncHttpClient();
+    AsyncHttpClient httpClient = createHttpClient();
     BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
     requestBuilder.setBody(json.toString());
     
@@ -174,17 +174,20 @@ public class StashClient {
     }
   }
 
-  private Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
+  Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
       ExecutionException, TimeoutException {
     addAuthorization(requestBuilder);
     requestBuilder.addHeader("Content-Type", "application/json");
     return requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);
   }
 
-  private void addAuthorization(final BoundRequestBuilder requestBuilder) {
+  void addAuthorization(final BoundRequestBuilder requestBuilder) {
     Realm realm = new Realm.RealmBuilder().setPrincipal(credentials.getLogin()).setPassword(credentials.getPassword())
         .setUsePreemptiveAuth(true).setScheme(AuthScheme.BASIC).build();
     requestBuilder.setRealm(realm);
   }
-
+  
+  AsyncHttpClient createHttpClient(){
+    return new AsyncHttpClient();
+  }
 }

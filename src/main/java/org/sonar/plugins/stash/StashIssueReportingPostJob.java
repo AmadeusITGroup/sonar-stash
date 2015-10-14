@@ -28,6 +28,7 @@ public class StashIssueReportingPostJob implements PostJob {
     this.stashRequestFacade = stashRequestFacade;
   }
 
+  @Override
   public void executeOn(Project project, SensorContext context) {
     try {
       boolean notifyStash = config.hasToNotifyStash();
