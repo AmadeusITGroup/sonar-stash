@@ -1,7 +1,7 @@
-# Stash plugin for SonarQube
+# SonarQube Stash (BitBucket) plugin [![Build Status](https://travis-ci.org/AmadeusITGroup/sonar-stash.svg)](https://travis-ci.org/AmadeusITGroup/sonar-stash)
 
 **SonarQube is now a real reviewer!**
-Stash plugin for SonarQube is a pull-request decorator which allows to integrate SonarQube violations directly into your pull-request.
+SonarQube Stash (BitBucket) plugin is a pull-request decorator which allows to integrate SonarQube violations directly into your pull-request.
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-issues.PNG)
 
@@ -17,7 +17,7 @@ After every run, in addition of the diff view, you may access to an overview of 
 - Maven 3.0.5
 - JDK 1.7
 - SonarQube 4.5.4 (LTS)
-- Stash 3.x
+- Stash (BitBucket) 3.x
 
 #### To build the plugin
 This command generates a jar file.

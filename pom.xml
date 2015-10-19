@@ -6,7 +6,7 @@
   <artifactId>sonar-stash-plugin</artifactId>
   <version>1.0.0</version>
   <packaging>sonar-plugin</packaging>
-  <description>Integration between Atlassian Stash and SonarQube</description>
+  <description>Integration between Atlassian Stash (BitBucket) and SonarQube</description>
   <name>Stash</name>
 
   <properties>
