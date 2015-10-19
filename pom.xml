@@ -8,6 +8,30 @@
   <packaging>sonar-plugin</packaging>
   <description>Integration between Atlassian Stash (BitBucket) and SonarQube</description>
   <name>Stash</name>
+  <url>https://github.com/AmadeusITGroup/sonar-stash</url>
+  
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <scm>
+    <connection>scm:git:git@github.com:AmadeusITGroup/sonar-stash.git</connection>
+    <developerConnection>scm:git:git@github.com:AmadeusITGroup/sonar-stash.git</developerConnection>
+    <url>https://github.com/AmadeusITGroup/sonar-stash</url>
+    <tag>HEAD</tag>
+  </scm>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/AmadeusITGroup/sonar-stash/issues</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Travis</system>
+    <url>https://travis-ci.org/AmadeusITGroup/sonar-stash</url>
+  </ciManagement>
 
   <properties>
     <sonar.version>4.5.4</sonar.version>
