@@ -20,6 +20,7 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
+  private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "Stash";
   
@@ -39,8 +40,9 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
-  
-  @Override
+  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.analysis.overview";
+
+    @Override
   public List getExtensions() {
     return Arrays.asList(
             StashIssueReportingPostJob.class,
@@ -81,7 +83,15 @@ public class StashPlugin extends SonarPlugin {
                 .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
                 .onQualifiers(Qualifiers.PROJECT)
                 .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE)
-                .index(4).build());
+                .index(4).build(),
+            PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
+                .name("Include Analysis Overview Comment")
+                .description("Set to false to prevent creation of the analysis overview comment.")
+                .type(PropertyType.BOOLEAN)
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+                .onQualifiers(Qualifiers.PROJECT)
+                .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW))
+                .index(5).build());
   }
 
 }
