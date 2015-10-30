@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
+import org.sonar.api.PropertyType;
 import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
@@ -62,7 +63,8 @@ public class StashPlugin extends SonarPlugin {
                 .index(1).build(),
             PropertyDefinition.builder(STASH_PASSWORD)
                 .name("Stash User Password")
-                .description("Password for the user to push data to Stash")
+                .description("Password for the user pushing data to Stash")
+                .type(PropertyType.PASSWORD)
                 .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
                 .onQualifiers(Qualifiers.PROJECT)
                 .index(2).build(),
