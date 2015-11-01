@@ -36,7 +36,7 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash base URL** (sonar.stash.url): To define Stash instance.
 
-**Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User needs to have expected permissions to access to the repository.
+**Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository.
 **Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password in commandline**.
 
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
