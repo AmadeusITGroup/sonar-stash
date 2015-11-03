@@ -18,7 +18,7 @@ public class StashDiffReport {
   private List<StashDiff> diffs;
 
   public StashDiffReport() {
-    this.diffs = new ArrayList<StashDiff>();
+    this.diffs = new ArrayList<>();
   }
 
   public List<StashDiff> getDiffs() {

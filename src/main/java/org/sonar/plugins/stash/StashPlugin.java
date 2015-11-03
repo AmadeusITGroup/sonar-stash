@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
+import org.sonar.api.PropertyType;
 import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
@@ -35,6 +36,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_URL = "sonar.stash.url";
   public static final String STASH_LOGIN = "sonar.stash.login";
   public static final String STASH_PASSWORD = "sonar.stash.password";
+  public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
@@ -64,6 +66,13 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE).build(),
+        PropertyDefinition.builder(STASH_REVIEWER_APPROVAL)
+            .name("Stash reviewer approval")
+            .description("Does SonarQube approve the pull-request if there is no new issues?")
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+            .onQualifiers(Qualifiers.PROJECT)
+            .type(PropertyType.BOOLEAN)
+            .defaultValue("false").build(),
         PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
             .name("Stash issue Threshold")
             .description("Threshold to limit the number of issues pushed to Stash server")

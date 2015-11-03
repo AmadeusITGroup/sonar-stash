@@ -11,6 +11,8 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiff;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashUser;
 
 public final class StashCollector {
 
@@ -50,6 +52,50 @@ public final class StashCollector {
     return result;
   }
 
+  public static StashPullRequest extractPullRequest(String project, String repository, String pullRequestId, String jsonBody) throws StashReportExtractionException {
+    StashPullRequest result = new StashPullRequest(project, repository, pullRequestId);
+    
+    try {
+      JSONObject jsonPullRequest = (JSONObject) new JSONParser().parse(jsonBody);
+
+      long version = (long) jsonPullRequest.get("version");
+      result.setVersion(version);
+    
+      JSONArray jsonReviewers = (JSONArray) jsonPullRequest.get("reviewers");
+      if (jsonReviewers != null) {
+        for (Object objReviewer : jsonReviewers.toArray()) {
+          JSONObject jsonReviewer = (JSONObject) objReviewer;
+          
+          JSONObject jsonUser = (JSONObject) jsonReviewer.get("user");
+          if (jsonUser != null){
+            StashUser reviewer = extractUser(jsonUser.toJSONString());
+            result.addReviewer(reviewer);
+          }
+        }
+      }
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+    
+    return result;
+  }
+  
+  public static StashUser extractUser(String jsonBody) throws StashReportExtractionException {
+    try {
+      JSONObject jsonUser = (JSONObject) new JSONParser().parse(jsonBody);
+
+      long id = (long) jsonUser.get("id");
+      String name = (String) jsonUser.get("name");
+      String slug = (String) jsonUser.get("slug");
+      String email = (String) jsonUser.get("emailAddress");
+              
+      return new StashUser(id, name, slug, email);
+    
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+  }
+  
   public static StashDiffReport extractDiffs(String jsonBody) throws StashReportExtractionException {
     StashDiffReport result = new StashDiffReport();
 
