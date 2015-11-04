@@ -63,27 +63,20 @@ public class StashPlugin extends SonarPlugin {
                 .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
                 .onQualifiers(Qualifiers.PROJECT)
                 .index(1).build(),
-            PropertyDefinition.builder(STASH_PASSWORD)
-                .name("Stash User Password")
-                .description("Password for the user pushing data to Stash")
-                .type(PropertyType.PASSWORD)
-                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
-                .onQualifiers(Qualifiers.PROJECT)
-                .index(2).build(),
             PropertyDefinition.builder(STASH_TIMEOUT)
                 .name("Stash Issue Timeout")
                 .description("Timeout when pushing a new issue to Stash (in ms)")
                 .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
                 .onQualifiers(Qualifiers.PROJECT)
                 .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE)
-                .index(3).build(),
+                .index(2).build(),
             PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
                 .name("Stash Issue Threshold")
                 .description("Threshold to limit the number of issues pushed to Stash")
                 .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
                 .onQualifiers(Qualifiers.PROJECT)
                 .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE)
-                .index(4).build(),
+                .index(3).build(),
             PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
                 .name("Include Analysis Overview Comment")
                 .description("Set to false to prevent creation of the analysis overview comment.")
@@ -91,7 +84,7 @@ public class StashPlugin extends SonarPlugin {
                 .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
                 .onQualifiers(Qualifiers.PROJECT)
                 .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW))
-                .index(5).build());
+                .index(4).build());
   }
 
 }
