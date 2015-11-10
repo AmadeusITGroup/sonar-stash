@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
+import org.sonar.api.PropertyType;
 import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
@@ -19,8 +20,9 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
+  private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
 
-  private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "General";
+  private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "Stash";
   
   public static final String INCREMENTAL_MODE = "incremental";
 
@@ -38,38 +40,51 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
-  
-  @Override
+  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.analysis.overview";
+
+    @Override
   public List getExtensions() {
     return Arrays.asList(
-        StashIssueReportingPostJob.class,
-        StashPluginConfiguration.class,
-        InputFileCache.class,
-        InputFileCacheSensor.class,
-        StashProjectBuilder.class,
-        StashRequestFacade.class,
-        PropertyDefinition.builder(STASH_URL)
-            .name("Stash base URL")
-            .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")
-            .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
-            .onQualifiers(Qualifiers.PROJECT).build(),
-        PropertyDefinition.builder(STASH_LOGIN)
-            .name("Stash base User")
-            .description("User to push data on Stash instance")
-            .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
-            .onQualifiers(Qualifiers.PROJECT).build(),
-        PropertyDefinition.builder(STASH_TIMEOUT)
-            .name("Stash issue Timeout")
-            .description("Timeout when pushing a new issue to Stash (in ms)")
-            .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
-            .onQualifiers(Qualifiers.PROJECT)
-            .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE).build(),
-        PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
-            .name("Stash issue Threshold")
-            .description("Threshold to limit the number of issues pushed to Stash server")
-            .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
-            .onQualifiers(Qualifiers.PROJECT)
-            .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE).build());
+            StashIssueReportingPostJob.class,
+            StashPluginConfiguration.class,
+            InputFileCache.class,
+            InputFileCacheSensor.class,
+            StashProjectBuilder.class,
+            StashRequestFacade.class,
+            PropertyDefinition.builder(STASH_URL)
+                .name("Stash URL")
+                .description("HTTP URL of Stash, such as http://yourhost.yourdomain/stash")
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+                .onQualifiers(Qualifiers.PROJECT)
+                .index(0).build(),
+            PropertyDefinition.builder(STASH_LOGIN)
+                .name("Stash User Name")
+                .description("User to push data to Stash")
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+                .onQualifiers(Qualifiers.PROJECT)
+                .index(1).build(),
+            PropertyDefinition.builder(STASH_TIMEOUT)
+                .name("Stash Issue Timeout")
+                .description("Timeout when pushing a new issue to Stash (in ms)")
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+                .onQualifiers(Qualifiers.PROJECT)
+                .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE)
+                .index(2).build(),
+            PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
+                .name("Stash Issue Threshold")
+                .description("Threshold to limit the number of issues pushed to Stash")
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+                .onQualifiers(Qualifiers.PROJECT)
+                .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE)
+                .index(3).build(),
+            PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
+                .name("Include Analysis Overview Comment")
+                .description("Set to false to prevent creation of the analysis overview comment.")
+                .type(PropertyType.BOOLEAN)
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+                .onQualifiers(Qualifiers.PROJECT)
+                .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW))
+                .index(4).build());
   }
 
 }

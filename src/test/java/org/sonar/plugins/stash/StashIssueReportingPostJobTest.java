@@ -73,14 +73,15 @@ public class StashIssueReportingPostJobTest {
   @Test
   public void testExecuteOn() throws Exception {
     when(config.hasToNotifyStash()).thenReturn(true);
-    
+    when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
+
     SonarQubeIssuesReport report = mock(SonarQubeIssuesReport.class);
     when(report.countIssues()).thenReturn(10);
     when(stashRequestFacade.extractIssueReport(projectIssues, inputFileCache)).thenReturn(report);
     
     int issueThreshold = 100;
     when(stashRequestFacade.getIssueThreshold()).thenReturn(issueThreshold);
-    
+
     myJob = new StashIssueReportingPostJob(config, projectIssues, inputFileCache, stashRequestFacade);
     myJob.executeOn(project, context);
     
@@ -91,7 +92,8 @@ public class StashIssueReportingPostJobTest {
   @Test
   public void testExecuteOnWithReachedThreshold() throws Exception {
     when(config.hasToNotifyStash()).thenReturn(true);
-    
+    when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
+
     SonarQubeIssuesReport report = mock(SonarQubeIssuesReport.class);
     when(report.countIssues()).thenReturn(101);
     when(stashRequestFacade.extractIssueReport(projectIssues, inputFileCache)).thenReturn(report);
@@ -104,6 +106,24 @@ public class StashIssueReportingPostJobTest {
     
     verify(stashRequestFacade, times(0)).postCommentPerIssue(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(SONARQUBE_URL), eq(report), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(1)).postAnalysisOverview(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(SONARQUBE_URL), eq(issueThreshold), eq(report), (StashClient) Mockito.anyObject());
+  }
+
+  @Test
+  public void testExecuteOnWithoutAnalyisComment() throws Exception {
+    when(config.hasToNotifyStash()).thenReturn(true);
+    when(config.includeAnalysisOverview()).thenReturn(Boolean.FALSE);
+
+    SonarQubeIssuesReport report = mock(SonarQubeIssuesReport.class);
+    when(report.countIssues()).thenReturn(101);
+    when(stashRequestFacade.extractIssueReport(projectIssues, inputFileCache)).thenReturn(report);
+
+    int issueThreshold = 100;
+    when(stashRequestFacade.getIssueThreshold()).thenReturn(issueThreshold);
+
+    myJob = new StashIssueReportingPostJob(config, projectIssues, inputFileCache, stashRequestFacade);
+    myJob.executeOn(project, context);
+
+    verify(stashRequestFacade, times(0)).postAnalysisOverview(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(SONARQUBE_URL), eq(issueThreshold), eq(report), (StashClient) Mockito.anyObject());
   }
   
   @Test
