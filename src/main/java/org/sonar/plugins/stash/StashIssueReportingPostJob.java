@@ -10,6 +10,8 @@ import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashUser;
 
 public class StashIssueReportingPostJob implements PostJob {
 
@@ -49,16 +51,34 @@ public class StashIssueReportingPostJob implements PostJob {
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
         StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
-          
-        // if threshold exceeded, do not push issue list to Stash
-        if (issueReport.countIssues() >= issueThreshold) {
-          LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
-        } else {
-          stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL, issueReport, stashClient);
+        
+        StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+        if (stashUser == null) {
+          LOGGER.error("Process stopped: no SonarQube reviewer identified to publish to Stash the SQ analysis"); 
         }
-
-        stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
-
+        else {
+          
+          // Get all changes exposed from Stash differential view of the pull-request
+          StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(stashProject, repository, stashPullRequestId, stashClient);
+          if (diffReport == null) {
+            LOGGER.error("Process stopped: No Stash differential report available to process the SQ analysis"); 
+          } else {
+          
+            // if requested, reset all comments linked to the pull-request
+            if (config.resetComments()) {
+              stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId, diffReport, stashUser, stashClient);
+            }
+            
+            // if threshold exceeded, do not push issue list to Stash
+            if (issueReport.countIssues() >= issueThreshold) {
+              LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
+            } else {
+              stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL, issueReport, diffReport, stashClient);
+            }
+    
+            stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
+          }
+        }
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());

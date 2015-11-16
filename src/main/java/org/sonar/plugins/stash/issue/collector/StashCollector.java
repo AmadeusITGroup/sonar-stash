@@ -11,6 +11,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiff;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashUser;
 
 public final class StashCollector {
 
@@ -39,7 +40,17 @@ public final class StashCollector {
           // can be null if comment is attached to the global file
           Long line = (Long) jsonAnchor.get("line");
           
-          StashComment comment = new StashComment(id, message, path, line);
+          long version = (long) jsonComment.get("version");
+          
+          JSONObject jsonAuthor = (JSONObject) jsonComment.get("author");
+          long authorId = (long) jsonAuthor.get("id");
+          String name = (String) jsonAuthor.get("name");
+          String slug = (String) jsonAuthor.get("slug");
+          String email = (String) jsonAuthor.get("email");
+          
+          StashUser stashUser = new StashUser(authorId, name, slug, email);
+          
+          StashComment comment = new StashComment(id, message, path, line, stashUser, version);
           result.add(comment);
         }
       }
@@ -49,7 +60,23 @@ public final class StashCollector {
     
     return result;
   }
+  
+  public static StashUser extractUser(String jsonBody) throws StashReportExtractionException {
+    try {
+      JSONObject jsonUser = (JSONObject) new JSONParser().parse(jsonBody);
 
+      long id = (long) jsonUser.get("id");
+      String name = (String) jsonUser.get("name");
+      String slug = (String) jsonUser.get("slug");
+      String email = (String) jsonUser.get("emailAddress");
+              
+      return new StashUser(id, name, slug, email);
+    
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+  }
+  
   public static StashDiffReport extractDiffs(String jsonBody) throws StashReportExtractionException {
     StashDiffReport result = new StashDiffReport();
 

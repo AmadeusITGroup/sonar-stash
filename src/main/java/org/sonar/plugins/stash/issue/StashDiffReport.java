@@ -1,7 +1,9 @@
 package org.sonar.plugins.stash.issue;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sonar.plugins.stash.StashPlugin;
@@ -18,7 +20,7 @@ public class StashDiffReport {
   private List<StashDiff> diffs;
 
   public StashDiffReport() {
-    this.diffs = new ArrayList<StashDiff>();
+    this.diffs = new ArrayList<>();
   }
 
   public List<StashDiff> getDiffs() {
@@ -87,6 +89,19 @@ public class StashDiffReport {
       }
     }
 
+    return result;
+  }
+  
+  /**
+   * Get all file paths of the Stash differential view.
+   */
+  public Set<String> getPaths() {
+    Set<String> result = new HashSet<>();
+    
+    for (StashDiff diff: this.diffs) {
+      result.add(diff.getPath());
+    }
+    
     return result;
   }
 }

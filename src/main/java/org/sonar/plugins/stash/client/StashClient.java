@@ -12,8 +12,10 @@ import org.json.simple.JSONObject;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
+import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 import com.ning.http.client.AsyncHttpClient;
@@ -29,14 +31,20 @@ public class StashClient {
   private final int stashTimeout;
 
   private static final String REST_API = "/rest/api/1.0/";
+  
+  private static final String USER_API = "{0}users/{1}";
   private static final String REPO_API = "{0}projects/{1}/repos/{2}/";
   private static final String PULL_REQUESTS_API = REPO_API + "pull-requests/";
   private static final String PULL_REQUEST_API = PULL_REQUESTS_API + "{3}";
   private static final String COMMENTS_PULL_REQUEST_API = PULL_REQUEST_API + "/comments";
+  private static final String COMMENT_PULL_REQUEST_API = COMMENTS_PULL_REQUEST_API + "/{4}?version={5}";
   private static final String DIFF_PULL_REQUEST_API = PULL_REQUEST_API + "/diff";
   
   private static final String CONNECTION_POST_ERROR_MESSAGE = "Unable to post a comment to {0} #{1}. Received {2} with message {3}.";  
   private static final String CONNECTION_GET_ERROR_MESSAGE = "Unable to get comment linked to {0} #{1}. Received {2} with message {3}.";  
+  private static final String COMMENT_DELETION_ERROR_MESSAGE = "Unable to delete comment {0} from pull-request {1} #{2}. Received {3} with message {4}.";  
+  private static final String USER_GET_ERROR_MESSAGE = "Unable to retrieve user {0}. Received {1} with message {2}.";  
+  
   
   public StashClient(String url, StashCredentials credentials, int stashTimeout) {
     this.baseUrl = url;
@@ -106,6 +114,29 @@ public class StashClient {
     return result;
   } 
   
+  public void deletePullRequestComment(String project, String repository, String pullRequestId, StashComment comment)
+      throws StashClientException {
+
+    String request = MessageFormat.format(COMMENT_PULL_REQUEST_API, baseUrl + REST_API,
+                      project, repository, pullRequestId, Long.toString(comment.getId()), Long.toString(comment.getVersion()));
+
+    AsyncHttpClient httpClient = createHttpClient();
+    BoundRequestBuilder requestBuilder = httpClient.prepareDelete(request);
+    
+    try {
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), repository, pullRequestId, responseCode, responseMessage));
+      }
+    } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
+      throw new StashClientException(e);
+    } finally{
+      httpClient.close();
+    }
+  }
+  
   public StashDiffReport getPullRequestDiffs(String project, String repository, String pullRequestId)
       throws StashClientException {
     StashDiffReport result = new StashDiffReport();
@@ -173,7 +204,32 @@ public class StashClient {
       httpClient.close();
     }
   }
+  
+  public StashUser getUser(String project, String repository, String pullRequestId, String userSlug)
+      throws StashClientException {
+    
+    AsyncHttpClient httpClient = createHttpClient();
+    
+    try {
+      String request = MessageFormat.format(USER_API, baseUrl + REST_API, userSlug);
+      BoundRequestBuilder requestBuilder = httpClient.prepareGet(request);
 
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_OK) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(USER_GET_ERROR_MESSAGE, userSlug, responseCode, responseMessage));
+      } else {
+        String jsonUser = response.getResponseBody();
+        return StashCollector.extractUser(jsonUser);
+      }
+    } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
+      throw new StashClientException(e);
+    } finally {
+      httpClient.close();
+    }
+  }
+  
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
       ExecutionException, TimeoutException {
     addAuthorization(requestBuilder);

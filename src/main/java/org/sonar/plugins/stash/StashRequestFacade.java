@@ -16,8 +16,10 @@ import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
@@ -61,13 +63,10 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Post one comment by found issue on Stash.
    */
-  public void postCommentPerIssue(String project, String repository, String pullRequestId, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashClient stashClient){
+  public void postCommentPerIssue(String project, String repository, String pullRequestId, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient){
     try {
-      // get all diff associated to current pull-request
-      StashDiffReport diffReport = stashClient.getPullRequestDiffs(project, repository, pullRequestId);
-      
       // to optimize request to Stash, builds comment match ordered by filepath
-      Map<String,StashCommentReport> commentsByFile = new HashMap<String, StashCommentReport>();
+      Map<String,StashCommentReport> commentsByFile = new HashMap<>();
       for (SonarQubeIssue issue : issueReport.getIssues()) {
         if (commentsByFile.get(issue.getPath()) == null){
           StashCommentReport comments = stashClient.getPullRequestComments(project, repository, pullRequestId, issue.getPath());
@@ -188,6 +187,67 @@ public class StashRequestFacade implements BatchComponent {
     return result;
   }
   
+  /**
+   * Get user who published the SQ analysis in Stash.
+   */
+  public StashUser getSonarQubeReviewer(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+    StashUser result = null;
+    
+    try {
+      result = stashClient.getUser(project, repository, pullRequestId, user);
+      
+      LOGGER.debug("SonarQube reviewer {} identified in Stash", user);
+      
+    } catch(StashClientException e){
+      LOGGER.error("Unable to get SonarQube reviewer from Stash: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+    
+    return result;
+  }
   
+  /**
+   * Get all changes exposed through the Stash pull-request.
+   */
+  public StashDiffReport getPullRequestDiffReport(String project, String repository, String pullRequestId, StashClient stashClient){
+    StashDiffReport result = null;
+    
+    try {
+      result = stashClient.getPullRequestDiffs(project, repository, pullRequestId);
+      
+      LOGGER.debug("Stash differential report retrieved from pull request {} #{}", repository, pullRequestId);
+      
+    } catch(StashClientException e){
+      LOGGER.error("Unable to get Stash differential report from Stash: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+    
+    return result;
+  }
   
+  /**
+   * Reset all comments linked to a pull-request.
+   */
+  public void resetComments(String project, String repository, String pullRequestId, StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
+    try {
+      for (String path : diffReport.getPaths()) {
+        StashCommentReport comments = stashClient.getPullRequestComments(project, repository, pullRequestId, path);
+        
+        for (StashComment comment: comments.getComments()){
+          // delete comment if published by the current SQ user
+          if (sonarUser.getId() == comment.getAuthor().getId()) {
+            stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
+          }
+        }
+      }
+      
+      LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset", sonarUser.getName());
+      
+    } catch (StashClientException e){
+      LOGGER.error("Unable to reset comment list, {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+
+ 
 }

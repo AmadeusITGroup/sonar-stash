@@ -19,7 +19,7 @@ public class StashDiff {
     this.path = path;
     this.source = source;
     this.destination = destination;
-    this.commentIds = new ArrayList<Long>();
+    this.commentIds = new ArrayList<>();
   }
 
   public void addComment(long commentId){

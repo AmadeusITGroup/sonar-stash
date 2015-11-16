@@ -55,3 +55,9 @@ sonar-runner -Dsonar.analysis.mode=incremental -Dsonar.stash.notification -Dsona
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-logs.PNG)
 
+#### Reset comments of previous SonarQube analysis
+
+If needed, you can reset comments published during the previous SonarQube analysis of your pull-request. Please add **sonar.stash.comments.reset** option to your SonarQube analysis. Please notice only comments linked to the **sonar.stash.login** user will be deleted. This reset will be the first action performed by the plugin.
+ ```
+sonar-runner -Dsonar.analysis.mode=incremental -Dsonar.stash.notification -Dsonar.stash.comments.reset -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
+```

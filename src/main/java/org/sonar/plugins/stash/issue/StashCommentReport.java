@@ -14,7 +14,7 @@ public class StashCommentReport {
   private List<StashComment> comments;
 
   public StashCommentReport() {
-    this.comments = new ArrayList<StashComment>();
+    this.comments = new ArrayList<>();
   }
 
   public List<StashComment> getComments() {

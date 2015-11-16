@@ -1,6 +1,9 @@
 package org.sonar.plugins.stash.issue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -100,4 +103,22 @@ public class StashDiffReportTest {
     StashDiff diff2 = report1.getDiffByComment(123456);
     assertEquals(diff2, null);
   }
+  
+  @Test
+  public void testGetPaths() {
+    Set<String> paths = report1.getPaths();
+    
+    assertEquals(paths.size(), 3);
+    assertTrue(paths.contains("path/to/diff1"));
+    assertTrue(paths.contains("path/to/diff2"));
+    assertTrue(paths.contains("path/to/diff3"));
+  }
+  
+  @Test
+  public void testGetPathsWithoutAnyIssues() {
+    StashDiffReport report = new StashDiffReport();
+    Set<String> paths = report.getPaths();
+    assertEquals(paths.size(), 0);
+  } 
+  
 }
