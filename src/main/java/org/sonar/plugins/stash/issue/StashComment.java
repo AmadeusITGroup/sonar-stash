@@ -52,4 +52,20 @@ public class StashComment {
   public long getVersion() {
     return version;
   }
+  
+  @Override
+  public boolean equals(Object object) {
+    boolean result = false;
+    if (object instanceof StashComment) {
+      StashComment stashComment = (StashComment) object;
+      result = this.getId() == stashComment.getId();
+    }
+    
+    return result;
+  }
+  
+  @Override
+  public int hashCode() {
+    return (int) this.getId();
+  }
 }

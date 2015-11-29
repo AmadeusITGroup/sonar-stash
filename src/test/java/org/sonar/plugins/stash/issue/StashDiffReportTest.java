@@ -1,9 +1,10 @@
 package org.sonar.plugins.stash.issue;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.util.Set;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,11 +20,17 @@ public class StashDiffReportTest {
   
   @Before
   public void setUp(){
+    StashComment comment1 = mock(StashComment.class);
+    when(comment1.getId()).thenReturn((long) 12345);
+    
+    StashComment comment2 = mock(StashComment.class);
+    when(comment2.getId()).thenReturn((long) 54321);
+    
     diff1 = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, "path/to/diff1", (long) 10, (long) 20);
-    diff1.addComment(12345);
+    diff1.addComment(comment1);
     
     diff2 = new StashDiff(StashPlugin.ADDED_ISSUE_TYPE, "path/to/diff2", (long) 20, (long) 30);
-    diff2.addComment(54321);
+    diff2.addComment(comment2);
     
     diff3 = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, "path/to/diff3", (long) 30, (long) 40);
     
@@ -105,20 +112,37 @@ public class StashDiffReportTest {
   }
   
   @Test
-  public void testGetPaths() {
-    Set<String> paths = report1.getPaths();
+  public void testGetComments() {
+    List<StashComment> comments = report1.getComments();
     
-    assertEquals(paths.size(), 3);
-    assertTrue(paths.contains("path/to/diff1"));
-    assertTrue(paths.contains("path/to/diff2"));
-    assertTrue(paths.contains("path/to/diff3"));
+    assertEquals(comments.size(), 2);
+    assertEquals(comments.get(0).getId(), 12345);
+    assertEquals(comments.get(1).getId(), 54321);
   }
   
   @Test
-  public void testGetPathsWithoutAnyIssues() {
+  public void testGetCommentsWithoutAnyIssues() {
     StashDiffReport report = new StashDiffReport();
-    Set<String> paths = report.getPaths();
-    assertEquals(paths.size(), 0);
-  } 
+    List<StashComment> comments = report.getComments();
+    assertEquals(comments.size(), 0);
+  }
+  
+  @Test
+  public void testGetCommentsWithDuplicatedComments() {
+    StashComment comment1 = new StashComment((long) 12345, "message", "path", (long) 1, mock(StashUser.class), (long) 1) ;
+    diff1.addComment(comment1);
+    
+    StashComment comment2 = new StashComment((long) 12345, "message", "path", (long) 1, mock(StashUser.class), (long) 1) ;
+    diff2.addComment(comment2);
+    
+    StashComment comment3 = new StashComment((long) 54321, "message", "path", (long) 1, mock(StashUser.class), (long) 1) ;
+    diff3.addComment(comment3);
+    
+    List<StashComment> comments = report1.getComments();
+    
+    assertEquals(comments.size(), 2);
+    assertEquals(comments.get(0).getId(), 12345);
+    assertEquals(comments.get(1).getId(), 54321);
+  }
   
 }

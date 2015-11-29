@@ -54,4 +54,5 @@ public class SonarQubeIssuesReport {
     
     return result;
   }
+
 }

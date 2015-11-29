@@ -1,9 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.sonar.plugins.stash.StashPlugin;
@@ -93,13 +91,19 @@ public class StashDiffReport {
   }
   
   /**
-   * Get all file paths of the Stash differential view.
+   * Get all comments from the Stash differential report.
    */
-  public Set<String> getPaths() {
-    Set<String> result = new HashSet<>();
+  public List<StashComment> getComments() {
+    List<StashComment> result = new ArrayList<>();
     
     for (StashDiff diff: this.diffs) {
-      result.add(diff.getPath());
+      List<StashComment> comments = diff.getComments();
+      
+      for (StashComment comment: comments) {
+        if (! result.contains(comment)) {
+          result.add(comment);
+        }
+      }
     }
     
     return result;

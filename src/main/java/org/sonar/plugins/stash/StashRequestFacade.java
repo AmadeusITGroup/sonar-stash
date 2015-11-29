@@ -230,14 +230,11 @@ public class StashRequestFacade implements BatchComponent {
    */
   public void resetComments(String project, String repository, String pullRequestId, StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
     try {
-      for (String path : diffReport.getPaths()) {
-        StashCommentReport comments = stashClient.getPullRequestComments(project, repository, pullRequestId, path);
+      for (StashComment comment : diffReport.getComments()) {
         
-        for (StashComment comment: comments.getComments()){
-          // delete comment if published by the current SQ user
-          if (sonarUser.getId() == comment.getAuthor().getId()) {
-            stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
-          }
+        // delete comment if published by the current SQ user
+        if (sonarUser.getId() == comment.getAuthor().getId()) {
+          stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
         }
       }
       

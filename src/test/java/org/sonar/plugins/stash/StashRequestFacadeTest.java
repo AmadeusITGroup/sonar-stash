@@ -13,8 +13,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -85,11 +83,6 @@ public class StashRequestFacadeTest {
     
     diffReport = mock(StashDiffReport.class);
     
-    Set<String> paths = new HashSet<String>();
-    paths.add(FILE_PATH_1);
-    paths.add(FILE_PATH_2);
-    when(diffReport.getPaths()).thenReturn(paths);
-    
     when(diffReport.getType(anyString(), anyLong())).thenReturn(STASH_DIFF_TYPE);
     when(diffReport.getLine(FILE_PATH_1, 1)).thenReturn((long) 1);
     when(diffReport.getLine(FILE_PATH_1, 2)).thenReturn((long) 2);
@@ -117,6 +110,8 @@ public class StashRequestFacadeTest {
     
     ArrayList<StashComment> comments = new ArrayList<>();
     comments.add(comment);
+    
+    when(diffReport.getComments()).thenReturn(comments);
     
     stashCommentsReport1 = mock(StashCommentReport.class);
     when(stashCommentsReport1.getComments()).thenReturn(comments);
@@ -342,7 +337,7 @@ public class StashRequestFacadeTest {
     ArrayList<StashComment> comments = new ArrayList<>();
     comments.add(comment);
     
-    when(stashCommentsReport1.getComments()).thenReturn(comments);
+    when(diffReport.getComments()).thenReturn(comments);
     
     myFacade.resetComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, diffReport, stashUser, stashClient);
     
@@ -351,16 +346,7 @@ public class StashRequestFacadeTest {
   
   @Test
   public void testResetCommentsWithoutAnyComments() throws Exception {
-    when(stashCommentsReport1.getComments()).thenReturn(new ArrayList<StashComment>());
-    
-    myFacade.resetComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, diffReport, stashUser, stashClient);
-    
-    verify(stashClient, times(0)).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
-  }
-  
-  @Test
-  public void testResetCommentsWithoutAnyPaths() throws Exception {
-    when(diffReport.getPaths()).thenReturn(new HashSet<String>());
+    when(diffReport.getComments()).thenReturn(new ArrayList<StashComment>());
     
     myFacade.resetComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, diffReport, stashUser, stashClient);
     
