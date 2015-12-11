@@ -20,7 +20,7 @@ public class StashPlugin extends SonarPlugin {
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
 
-  private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "General";
+  private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "Stash";
 
   public static final String CONTEXT_ISSUE_TYPE = "CONTEXT";
   public static final String REMOVED_ISSUE_TYPE = "REMOVED";
