@@ -48,9 +48,9 @@ public class StashPluginConfiguration implements BatchComponent {
   public int getIssueThreshold() {
     return settings.getInt(StashPlugin.STASH_ISSUE_THRESHOLD);
   }
-  
+
   public int getStashTimeout() {
     return settings.getInt(StashPlugin.STASH_TIMEOUT);
   }
-  
+
 }

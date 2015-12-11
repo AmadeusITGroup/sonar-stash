@@ -8,21 +8,21 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 public class SonarQubeIssuesReport {
-  
+
   private final List<SonarQubeIssue> issues;
 
   public SonarQubeIssuesReport() {
     this.issues = new ArrayList<SonarQubeIssue>();
   }
-  
+
   public void add(SonarQubeIssue issue) {
     issues.add(issue);
   }
 
-  public List<SonarQubeIssue> getIssues(){
+  public List<SonarQubeIssue> getIssues() {
     return issues;
   }
-  
+
   public List<SonarQubeIssue> getIssuesBySeverity(String severity) {
     List<SonarQubeIssue> result = new ArrayList<SonarQubeIssue>();
     for (SonarQubeIssue issue : issues) {
@@ -30,7 +30,7 @@ public class SonarQubeIssuesReport {
         result.add(issue);
       }
     }
-    
+
     return result;
   }
 
@@ -51,7 +51,7 @@ public class SonarQubeIssuesReport {
     for (SonarQubeIssue issue : getIssuesBySeverity(severity)) {
       result.put(issue.getRule(), issue);
     }
-    
+
     return result;
   }
 

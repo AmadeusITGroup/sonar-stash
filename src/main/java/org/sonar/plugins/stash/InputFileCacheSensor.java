@@ -14,7 +14,7 @@ public class InputFileCacheSensor implements Sensor {
   private final InputFileCache inputFileCache;
 
   public InputFileCacheSensor(StashPluginConfiguration stashPluginConfiguration, FileSystem fileSystem,
-      InputFileCache inputFileCache) {
+    InputFileCache inputFileCache) {
     this.stashPluginConfiguration = stashPluginConfiguration;
     this.fileSystem = fileSystem;
     this.inputFileCache = inputFileCache;
@@ -37,8 +37,8 @@ public class InputFileCacheSensor implements Sensor {
     return stashPluginConfiguration.hasToNotifyStash();
   }
 
-  private FilePredicate getAllPredicateFiles(){
+  private FilePredicate getAllPredicateFiles() {
     return fileSystem.predicates().all();
   }
-  
+
 }
