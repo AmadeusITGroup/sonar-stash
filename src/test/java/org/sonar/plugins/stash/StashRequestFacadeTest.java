@@ -68,6 +68,8 @@ public class StashRequestFacadeTest {
     when(diffReport.getLine(FILE_PATH_1, 1)).thenReturn((long) 1);
     when(diffReport.getLine(FILE_PATH_1, 2)).thenReturn((long) 2);
     when(diffReport.getLine(FILE_PATH_2, 1)).thenReturn((long) 1);
+    when(diffReport.getPath(FILE_PATH_1)).thenReturn(FILE_PATH_1);
+    when(diffReport.getPath(FILE_PATH_2)).thenReturn(FILE_PATH_2);
     when(stashClient.getPullRequestDiffs(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID)).thenReturn(diffReport);
 
     issueReport = new SonarQubeIssuesReport();

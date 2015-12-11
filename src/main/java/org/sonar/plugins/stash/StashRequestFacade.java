@@ -56,58 +56,51 @@ public class StashRequestFacade implements BatchComponent {
   }
 
   /**
-   * Post one comment by found issue on Stash.
+   * Create Stash comments for SonarQube issues.
    */
-  public void postCommentPerIssue(String project, String repository, String pullRequestId, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashClient stashClient) {
+  public void postCommentPerIssue(String project, String repository, String pullRequestId, String sonarQubeURL, SonarQubeIssuesReport issuesReport, StashClient stashClient) {
     try {
-      // get all diff associated to current pull-request
       StashDiffReport diffReport = stashClient.getPullRequestDiffs(project, repository, pullRequestId);
+      Map<String, StashCommentReport> commentsBySonarQubeFilePath = getStashCommentsBySonarQubeFilePath(project, repository, pullRequestId, issuesReport, stashClient, diffReport);
+      String issueSonarQubeFilePath;
+      String issueStashFilePath;
 
-      // to optimize request to Stash, builds comment match ordered by filepath
-      Map<String, StashCommentReport> commentsByFile = new HashMap<String, StashCommentReport>();
-      for (SonarQubeIssue issue : issueReport.getIssues()) {
-        if (commentsByFile.get(issue.getPath()) == null) {
-          StashCommentReport comments = stashClient.getPullRequestComments(project, repository, pullRequestId, issue.getPath());
+      for (SonarQubeIssue issue : issuesReport.getIssues()) {
+        issueSonarQubeFilePath = issue.getPath();
+        issueStashFilePath = diffReport.getPath(issue.getPath());
 
-          // According to the type of the comment
-          // if type == CONTEXT, comment.line is set to source line instead of destination line
-          comments.applyDiffReport(diffReport);
+        StashCommentReport comments = commentsBySonarQubeFilePath.get(issueSonarQubeFilePath);
 
-          commentsByFile.put(issue.getPath(), comments);
+        // If the Stash comment (SonarQube issue) is already present in the pull request (from previous analysis), do not create again this
+        // Stash comment.
+        if (comments != null
+          && comments.contains(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL), issueStashFilePath, issue.getLine())) {
+          LOGGER.debug("Stash comment for SonarQube issue \"{}\" is already present on file \"{}\" at line {}.", issue.getRule(), issueStashFilePath, issue.getLine());
+          continue;
         }
+
+        // If the SonarQube issue does not belong to the Stash diff view, do not create a Stash comment for this issue.
+        if (diffReport.getType(issueStashFilePath, issue.getLine()) == null) {
+          LOGGER.debug("Stash comment for SonarQube issue \"{}\" cannot be created because the issue does not belong to diff view \"{}\", line {})", issue.getRule(),
+            issueSonarQubeFilePath, issue.getLine());
+          continue;
+        }
+
+        // Create the Stash comments for the SonarQube issues.
+        stashClient.postCommentLineOnPullRequest(
+          project,
+          repository,
+          pullRequestId,
+          MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
+          issueStashFilePath,
+          diffReport.getLine(issueStashFilePath, issue.getLine()),
+          diffReport.getType(issueStashFilePath, issue.getLine())
+          );
+        LOGGER.debug("Stash comment \"{}\" has been created ({}) on file \"{}\" at line {}", issue.getRule(), diffReport.getType(issueStashFilePath, issue.getLine()),
+          issueStashFilePath, diffReport.getLine(issueStashFilePath, issue.getLine()));
       }
 
-      for (SonarQubeIssue issue : issueReport.getIssues()) {
-        StashCommentReport comments = commentsByFile.get(issue.getPath());
-
-        // if comment not already pushed to Stash
-        if ((comments != null) &&
-          (comments.contains(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL), issue.getPath(), issue.getLine()))) {
-          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getRule(), issue.getPath(), issue.getLine());
-        } else {
-
-          // check if issue belongs to the Stash diff view
-          String type = diffReport.getType(issue.getPath(), issue.getLine());
-          if (type == null) {
-            LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})", issue.getRule(), issue.getPath(), issue.getLine());
-          } else {
-
-            long line = diffReport.getLine(issue.getPath(), issue.getLine());
-
-            stashClient.postCommentLineOnPullRequest(project,
-              repository,
-              pullRequestId,
-              MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
-              issue.getPath(),
-              line,
-              type);
-
-            LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getRule(), type, issue.getPath(), line);
-          }
-        }
-      }
-
-      LOGGER.info("New SonarQube issues have been reported to Stash.");
+      LOGGER.info("All Stash comments for SonarQube issues have been created.");
 
     } catch (StashClientException e) {
       LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
@@ -124,7 +117,7 @@ public class StashRequestFacade implements BatchComponent {
    * @throws StashConfigurationException if unable to get parameter as Integer
    */
   public int getIssueThreshold() throws StashConfigurationException {
-    int result = 0;
+    int result;
     try {
       result = config.getIssueThreshold();
     } catch (NumberFormatException e) {
@@ -142,7 +135,6 @@ public class StashRequestFacade implements BatchComponent {
     if (result == null) {
       throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_URL + " from plugin configuration (value is null)");
     }
-
     return result;
   }
 
@@ -155,7 +147,6 @@ public class StashRequestFacade implements BatchComponent {
     if (result == null) {
       throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_PROJECT + " (value is null)");
     }
-
     return result;
   }
 
@@ -168,7 +159,6 @@ public class StashRequestFacade implements BatchComponent {
     if (result == null) {
       throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_REPOSITORY + " (value is null)");
     }
-
     return result;
   }
 
@@ -181,8 +171,27 @@ public class StashRequestFacade implements BatchComponent {
     if (result == null) {
       throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_PULL_REQUEST_ID + ": value is null");
     }
-
     return result;
+  }
+
+  /**
+   * To optimize requests to Stash, group Stash comments by SonarQube file path.
+   */
+  private static Map<String, StashCommentReport> getStashCommentsBySonarQubeFilePath(String project, String repository, String pullRequestId, SonarQubeIssuesReport issuesReport,
+    StashClient stashClient, StashDiffReport diffReport) throws StashClientException {
+    Map<String, StashCommentReport> commentsBySonarQubeFilePath = new HashMap();
+    String issueSonarQubeFilePath;
+    String issueStashFilePath;
+    for (SonarQubeIssue issue : issuesReport.getIssues()) {
+      issueSonarQubeFilePath = issue.getPath();
+      issueStashFilePath = diffReport.getPath(issueSonarQubeFilePath);
+      if (commentsBySonarQubeFilePath.get(issueSonarQubeFilePath) == null) {
+        StashCommentReport comments = stashClient.getPullRequestComments(project, repository, pullRequestId, issueStashFilePath);
+        comments.applyDiffReport(diffReport);
+        commentsBySonarQubeFilePath.put(issueSonarQubeFilePath, comments);
+      }
+    }
+    return commentsBySonarQubeFilePath;
   }
 
 }

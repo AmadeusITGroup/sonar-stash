@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +16,7 @@ public class StashCommentReport {
   private List<StashComment> comments;
 
   public StashCommentReport() {
-    this.comments = new ArrayList<StashComment>();
+    this.comments = new ArrayList();
   }
 
   public List<StashComment> getComments() {
@@ -32,36 +34,31 @@ public class StashCommentReport {
   }
 
   public boolean contains(String message, String path, long line) {
-    boolean result = false;
     for (StashComment comment : comments) {
-      if (StringUtils.equals(comment.getMessage(), message) &&
-        StringUtils.equals(comment.getPath(), path) &&
-        (comment.getLine() == line)) {
-        result = true;
-        break;
+      if (StringUtils.equals(comment.getMessage(), message)
+        && StringUtils.equals(comment.getPath(), path)
+        && comment.getLine() == line) {
+        return true;
       }
     }
-
-    return result;
+    return false;
   }
 
   public StashCommentReport applyDiffReport(StashDiffReport diffReport) {
     for (StashComment comment : comments) {
       StashDiff diff = diffReport.getDiffByComment(comment.getId());
-      if ((diff != null) && diff.isTypeOfContext()) {
-
+      if (diff != null && diff.isTypeOfContext()) {
         // By default comment line, with type == CONTEXT, is set to FROM value.
         // Set comment line to TO value to be compared with SonarQube issue.
         long destination = diff.getDestination();
         comment.setLine(destination);
-
         LOGGER.debug("Update Stash comment \"{}\": set comment line to destination diff line ({})", comment.getId(), comment.getLine());
       }
     }
-
     return this;
   }
 
+  @VisibleForTesting
   public int size() {
     return comments.size();
   }

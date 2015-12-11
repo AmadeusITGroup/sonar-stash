@@ -18,10 +18,6 @@ public class SonarQubeIssue {
     this.line = line;
   }
 
-  public String getKey() {
-    return key;
-  }
-
   public String getSeverity() {
     return severity;
   }

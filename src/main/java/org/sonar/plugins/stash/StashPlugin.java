@@ -22,8 +22,6 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_GENERAL = "General";
 
-  public static final String INCREMENTAL_MODE = "incremental";
-
   public static final String CONTEXT_ISSUE_TYPE = "CONTEXT";
   public static final String REMOVED_ISSUE_TYPE = "REMOVED";
   public static final String ADDED_ISSUE_TYPE = "ADDED";
