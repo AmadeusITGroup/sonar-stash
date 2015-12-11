@@ -60,7 +60,7 @@ public class StashPlugin extends SonarPlugin {
         .build(),
       PropertyDefinition.builder(STASH_LOGIN)
         .name("Stash Base User")
-        .description("User who pushes data to Stash instance")
+        .description("User who pushes data to Stash instance. User must have REPO_READ permission on the Stash repository. Note that Stash password must be provided to the scanner via the \"sonar.stash.password\" property.")
         .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
         .onQualifiers(Qualifiers.PROJECT)
         .index(1)
