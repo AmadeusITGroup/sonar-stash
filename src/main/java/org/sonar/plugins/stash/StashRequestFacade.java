@@ -42,15 +42,30 @@ public class StashRequestFacade implements BatchComponent {
   public void postAnalysisOverview(String project, String repository, String pullRequestId, String sonarQubeURL, int issueThreshold, SonarQubeIssuesReport issueReport,
     StashClient stashClient) {
     try {
-      stashClient.postCommentOnPullRequest(project,
+      stashClient.postCommentOnPullRequest(
+        project,
         repository,
         pullRequestId,
-        MarkdownPrinter.printReportMarkdown(issueReport, sonarQubeURL, issueThreshold));
-
+        MarkdownPrinter.printOverviewReportMarkdown(issueReport, sonarQubeURL, issueThreshold)
+        );
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
-
     } catch (StashClientException e) {
       LOGGER.error("Unable to push SonarQube analysis overview to Stash: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+
+  public void postAnalysisSummary(String project, String repository, String pullRequestId, int issueThreshold, SonarQubeIssuesReport issueReport, StashClient stashClient) {
+    try {
+      stashClient.postCommentOnPullRequest(
+        project,
+        repository,
+        pullRequestId,
+        MarkdownPrinter.printSummaryReportMarkdown(issueReport, issueThreshold)
+        );
+      LOGGER.info("SonarQube analysis summary has been reported to Stash.");
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to push SonarQube summary report to Stash: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
     }
   }

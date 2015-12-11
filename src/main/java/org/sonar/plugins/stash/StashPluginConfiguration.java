@@ -57,4 +57,8 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getBoolean(StashPlugin.STASH_DISPLAY_ANALYSIS_OVERVIEW);
   }
 
+  public boolean hasToDisplayAnalysisSummary() {
+    return settings.getBoolean(StashPlugin.STASH_DISPLAY_ANALYSIS_SUMMARY);
+  }
+
 }

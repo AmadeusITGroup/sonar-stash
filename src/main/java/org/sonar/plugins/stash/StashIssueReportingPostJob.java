@@ -61,10 +61,15 @@ public class StashIssueReportingPostJob implements PostJob {
           stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
         }
 
+        if (config.hasToDisplayAnalysisSummary()) {
+          stashRequestFacade.postAnalysisSummary(stashProject, repository, stashPullRequestId, issueThreshold, issueReport, stashClient);
+        }
+
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
     }
   }
+
 }

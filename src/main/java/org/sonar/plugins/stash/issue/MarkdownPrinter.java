@@ -51,8 +51,8 @@ public final class MarkdownPrinter {
   /**
    * Get issue report.
    */
-  public static String printReportMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, int issueThreshold) {
-    StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
+  public static String printOverviewReportMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, int issueThreshold) {
+    StringBuilder sb = new StringBuilder("## SonarQube Analysis Overview");
     sb.append(NEW_LINE);
 
     if ((report.getIssues() == null) || (report.getIssues().isEmpty())) {
@@ -86,6 +86,22 @@ public final class MarkdownPrinter {
 
     }
 
+    return sb.toString();
+  }
+
+  public static String printSummaryReportMarkdown(SonarQubeIssuesReport report, int issueThreshold) {
+    StringBuilder sb = new StringBuilder("#### SonarQube Analysis Summary");
+    sb.append(NEW_LINE);
+    if (report.getIssues() == null || report.getIssues().isEmpty()) {
+      sb.append("No new issue raised!");
+    } else if (report.countIssues() >= issueThreshold) {
+      sb.append("Too many new issues raised ");
+      sb.append("(").append(report.countIssues()).append(" > ").append(issueThreshold).append(")");
+      sb.append(": New issues are not displayed in Diff view.");
+    } else {
+      sb.append("New issues raised: ").append(report.countIssues());
+    }
+    sb.append(NEW_LINE);
     return sb.toString();
   }
 

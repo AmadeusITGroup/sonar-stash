@@ -58,8 +58,8 @@ public class MarkdownPrinterTest {
     String sonarQubeURL = "sonarqube/URL";
     int issueThreshold = 100;
 
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(issueReport, sonarQubeURL, issueThreshold);
-    String reportString = "## SonarQube analysis Overview\n"
+    String issueReportMarkdown = MarkdownPrinter.printOverviewReportMarkdown(issueReport, sonarQubeURL, issueThreshold);
+    String reportString = "## SonarQube Analysis Overview\n"
       + "| Total New Issues | 3 |\n"
       + "|-----------------|------|\n"
       + "| BLOCKER | 1 |\n"
@@ -81,8 +81,8 @@ public class MarkdownPrinterTest {
     String sonarQubeURL = "sonarqube/URL";
     int issueThreshold = 2;
 
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(issueReport, sonarQubeURL, issueThreshold);
-    String reportString = "## SonarQube analysis Overview\n"
+    String issueReportMarkdown = MarkdownPrinter.printOverviewReportMarkdown(issueReport, sonarQubeURL, issueThreshold);
+    String reportString = "## SonarQube Analysis Overview\n"
       + "### Too many issues detected (3/2): Issues cannot be displayed in Diff view.\n\n"
       + "| Total New Issues | 3 |\n"
       + "|-----------------|------|\n"
@@ -106,11 +106,33 @@ public class MarkdownPrinterTest {
     int issueThreshold = 100;
     SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
 
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(issueReport, sonarQubeURL, issueThreshold);
-    String reportString = "## SonarQube analysis Overview\n"
+    String issueReportMarkdown = MarkdownPrinter.printOverviewReportMarkdown(issueReport, sonarQubeURL, issueThreshold);
+    String reportString = "## SonarQube Analysis Overview\n"
       + "### No new issues detected!";
 
     assertTrue(StringUtils.equals(issueReportMarkdown, reportString));
+  }
+
+  @Test
+  public void should_display_summary_report_with_no_new_issue_raised() {
+    String summaryReportMarkdown = MarkdownPrinter.printSummaryReportMarkdown(new SonarQubeIssuesReport(), 100);
+    String reportString = "#### SonarQube Analysis Summary\nNo new issue raised!\n";
+    assertTrue(StringUtils.equals(summaryReportMarkdown, reportString));
+  }
+
+  @Test
+  public void should_display_summary_report_with_three_new_issues_raised() {
+    String summaryReportMarkdown = MarkdownPrinter.printSummaryReportMarkdown(issueReport, 100);
+    String reportString = "#### SonarQube Analysis Summary\nNew issues raised: 3\n";
+    assertTrue(StringUtils.equals(summaryReportMarkdown, reportString));
+  }
+
+
+  @Test
+  public void should_display_summary_report_with_too_many_issues_raised() {
+    String summaryReportMarkdown = MarkdownPrinter.printSummaryReportMarkdown(issueReport, 2);
+    String reportString = "#### SonarQube Analysis Summary\nToo many new issues raised (3 > 2): New issues are not displayed in Diff view.\n";
+    assertTrue(StringUtils.equals(summaryReportMarkdown, reportString));
   }
 
 }
