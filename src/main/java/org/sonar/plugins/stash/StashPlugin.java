@@ -50,34 +50,44 @@ public class StashPlugin extends SonarPlugin {
       StashProjectBuilder.class,
       StashRequestFacade.class,
       PropertyDefinition.builder(STASH_URL)
-        .name("Stash base URL")
+        .name("Stash Base URL")
         .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")
         .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
-        .onQualifiers(Qualifiers.PROJECT).build(),
+        .onQualifiers(Qualifiers.PROJECT)
+        .index(0)
+        .build(),
       PropertyDefinition.builder(STASH_LOGIN)
-        .name("Stash base User")
-        .description("User to push data on Stash instance")
+        .name("Stash Base User")
+        .description("User who pushes data to Stash instance")
         .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
-        .onQualifiers(Qualifiers.PROJECT).build(),
+        .onQualifiers(Qualifiers.PROJECT)
+        .index(1)
+        .build(),
       PropertyDefinition.builder(STASH_TIMEOUT)
-        .name("Stash issue Timeout")
+        .name("Stash Issue Timeout")
         .description("Timeout when pushing a new issue to Stash (in ms)")
         .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
         .onQualifiers(Qualifiers.PROJECT)
-        .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE).build(),
+        .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE)
+        .index(2)
+        .build(),
       PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
-        .name("Stash issue Threshold")
-        .description("Threshold to limit the number of issues pushed to Stash server")
+        .name("Stash Issues Threshold")
+        .description("Maximum number of issues to display on pull request")
         .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
         .onQualifiers(Qualifiers.PROJECT)
-        .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE).build(),
+        .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE)
+        .index(3)
+        .build(),
       PropertyDefinition.builder(STASH_DISPLAY_ANALYSIS_OVERVIEW)
         .name("Display Analysis Overview")
         .description("Set to true to display the analysis overview on pull requests, set to false otherwise.")
         .type(PropertyType.BOOLEAN)
         .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
         .onQualifiers(Qualifiers.PROJECT)
-        .defaultValue(Boolean.toString(DEFAULT_STASH_DISPLAY_ANALYSIS_OVERVIEW)).build());
+        .defaultValue(Boolean.toString(DEFAULT_STASH_DISPLAY_ANALYSIS_OVERVIEW))
+        .index(4)
+        .build());
   }
 
 }
