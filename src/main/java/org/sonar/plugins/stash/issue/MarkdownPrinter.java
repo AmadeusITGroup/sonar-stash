@@ -39,10 +39,8 @@ public final class MarkdownPrinter {
   public static String printIssueListBySeverityMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, String severity) {
     StringBuilder sb = new StringBuilder();
 
-    Map<String, SonarQubeIssue> rules = report.getUniqueRulesBySeverity(severity);
-    for (String rule : rules.keySet()) {
-      SonarQubeIssue issue = rules.get(rule);
-      sb.append("| ").append(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL)).append(" |").append(NEW_LINE);
+    for (Map.Entry<String, SonarQubeIssue> rule : report.getUniqueRulesBySeverity(severity).entrySet()) {
+      sb.append("| ").append(MarkdownPrinter.printIssueMarkdown(rule.getValue(), sonarQubeURL)).append(" |").append(NEW_LINE);
     }
 
     return sb.toString();

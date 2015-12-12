@@ -32,7 +32,6 @@ public final class SonarQubeCollector {
       if (!issue.isNew()) {
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
       } else {
-        String key = issue.key();
         String severity = issue.severity();
         String rule = issue.ruleKey().toString();
         String message = issue.message();
@@ -49,7 +48,7 @@ public final class SonarQubeCollector {
           String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
 
           // Create the issue and Add to report
-          SonarQubeIssue stashIssue = new SonarQubeIssue(key, severity, message, rule, path, line);
+          SonarQubeIssue stashIssue = new SonarQubeIssue(severity, message, rule, path, line);
           result.add(stashIssue);
         }
       }

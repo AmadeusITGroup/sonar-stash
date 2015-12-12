@@ -11,7 +11,7 @@ import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 
 @Properties({
-  @Property(key = StashPlugin.STASH_NOTIFICATION, name = "Stash Notification", defaultValue = "false", description = "Analysis result will be issued in Stash pull request",
+  @Property(key = StashPlugin.STASH_NOTIFICATION, defaultValue = "false", name = "Stash Notification", description = "Analysis result will be issued in Stash pull request",
     global = false),
   @Property(key = StashPlugin.STASH_PROJECT, name = "Stash Project", description = "Stash project of current pull-request", global = false),
   @Property(key = StashPlugin.STASH_REPOSITORY, name = "Stash Repository", description = "Stash project of current pull-request", global = false),

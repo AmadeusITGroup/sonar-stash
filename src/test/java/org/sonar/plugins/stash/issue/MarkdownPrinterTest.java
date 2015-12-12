@@ -12,9 +12,9 @@ public class MarkdownPrinterTest {
 
   @Before
   public void setUp() {
-    SonarQubeIssue issueBlocker = new SonarQubeIssue("key1", "BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
-    SonarQubeIssue issueCritical = new SonarQubeIssue("key2", "CRITICAL", "messageCritical", "RuleCritical", "pathCritical", 1);
-    SonarQubeIssue issueMajor = new SonarQubeIssue("key3", "MAJOR", "messageMajor", "RuleMajor", "pathMajor", 1);
+    SonarQubeIssue issueBlocker = new SonarQubeIssue("BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
+    SonarQubeIssue issueCritical = new SonarQubeIssue("CRITICAL", "messageCritical", "RuleCritical", "pathCritical", 1);
+    SonarQubeIssue issueMajor = new SonarQubeIssue("MAJOR", "messageMajor", "RuleMajor", "pathMajor", 1);
 
     issueReport.add(issueBlocker);
     issueReport.add(issueCritical);
@@ -24,7 +24,7 @@ public class MarkdownPrinterTest {
   @Test
   public void testPrintIssueMarkdown() {
     String sonarQubeURL = "sonarqube/URL";
-    SonarQubeIssue issueBlocker = new SonarQubeIssue("key1", "BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
+    SonarQubeIssue issueBlocker = new SonarQubeIssue("BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
 
     String issueMarkdown = MarkdownPrinter.printIssueMarkdown(issueBlocker, sonarQubeURL);
     assertTrue(StringUtils.equals(issueMarkdown, "*BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)]"));

@@ -74,15 +74,15 @@ public class StashRequestFacadeTest {
 
     issueReport = new SonarQubeIssuesReport();
 
-    SonarQubeIssue issue1 = new SonarQubeIssue("key1", "severity1", "message1", "rule1", FILE_PATH_1, 1);
+    SonarQubeIssue issue1 = new SonarQubeIssue("severity1", "message1", "rule1", FILE_PATH_1, 1);
     stashCommentMessage1 = MarkdownPrinter.printIssueMarkdown(issue1, SONARQUBE_URL);
     issueReport.add(issue1);
 
-    SonarQubeIssue issue2 = new SonarQubeIssue("key2", "severity2", "message2", "rule2", FILE_PATH_1, 2);
+    SonarQubeIssue issue2 = new SonarQubeIssue("severity2", "message2", "rule2", FILE_PATH_1, 2);
     stashCommentMessage2 = MarkdownPrinter.printIssueMarkdown(issue2, SONARQUBE_URL);
     issueReport.add(issue2);
 
-    SonarQubeIssue issue3 = new SonarQubeIssue("key3", "severity3", "message3", "rule3", FILE_PATH_2, 1);
+    SonarQubeIssue issue3 = new SonarQubeIssue("severity3", "message3", "rule3", FILE_PATH_2, 1);
     stashCommentMessage3 = MarkdownPrinter.printIssueMarkdown(issue3, SONARQUBE_URL);
     issueReport.add(issue3);
 
