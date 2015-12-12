@@ -9,19 +9,19 @@ public final class MarkdownPrinter {
 
   private static final String NEW_LINE = "\n";
   private static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
-  
-  private MarkdownPrinter(){
+
+  private MarkdownPrinter() {
     // DO NOTHING
   }
-  
+
   public static String printIssueMarkdown(SonarQubeIssue issue, String sonarQubeURL) {
     StringBuilder sb = new StringBuilder();
     sb.append(printSeverityMarkdown(issue.getSeverity())).append(issue.getMessage()).append(" [[").append(issue.getRule())
-        .append("]").append("(").append(sonarQubeURL).append("/").append(CODING_RULES_RULE_KEY).append(issue.getRule()).append(")]");
+      .append("]").append("(").append(sonarQubeURL).append("/").append(CODING_RULES_RULE_KEY).append(issue.getRule()).append(")]");
 
     return sb.toString();
   }
-  
+
   public static String printSeverityMarkdown(String severity) {
     StringBuilder sb = new StringBuilder();
     sb.append("*").append(StringUtils.upperCase(severity)).append("*").append(" - ");
@@ -39,10 +39,8 @@ public final class MarkdownPrinter {
   public static String printIssueListBySeverityMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, String severity) {
     StringBuilder sb = new StringBuilder();
 
-    Map<String, SonarQubeIssue> rules = report.getUniqueRulesBySeverity(severity);
-    for (String rule : rules.keySet()) {
-      SonarQubeIssue issue = rules.get(rule);
-      sb.append("| ").append(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL)).append(" |").append(NEW_LINE);
+    for (Map.Entry<String, SonarQubeIssue> rule : report.getUniqueRulesBySeverity(severity).entrySet()) {
+      sb.append("| ").append(MarkdownPrinter.printIssueMarkdown(rule.getValue(), sonarQubeURL)).append(" |").append(NEW_LINE);
     }
 
     return sb.toString();
@@ -51,20 +49,20 @@ public final class MarkdownPrinter {
   /**
    * Get issue report.
    */
-  public static String printReportMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, int issueThreshold) {
-    StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
+  public static String printOverviewReportMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, int issueThreshold) {
+    StringBuilder sb = new StringBuilder("## SonarQube Analysis Overview");
     sb.append(NEW_LINE);
 
     if ((report.getIssues() == null) || (report.getIssues().isEmpty())) {
       sb.append("### No new issues detected!");
     } else {
-      
+
       if (report.countIssues() >= issueThreshold) {
         sb.append("### Too many issues detected ");
         sb.append("(").append(report.countIssues()).append("/").append(issueThreshold).append(")");
         sb.append(": Issues cannot be displayed in Diff view.").append(NEW_LINE).append(NEW_LINE);
       }
-      
+
       // Number of issue per severity
       sb.append("| Total New Issues | ").append(report.countIssues()).append(" |").append(NEW_LINE);
       sb.append("|-----------------|------|").append(NEW_LINE);
@@ -83,9 +81,25 @@ public final class MarkdownPrinter {
       sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.MAJOR));
       sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.MINOR));
       sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.INFO));
-      
+
     }
 
+    return sb.toString();
+  }
+
+  public static String printSummaryReportMarkdown(SonarQubeIssuesReport report, int issueThreshold) {
+    StringBuilder sb = new StringBuilder("#### SonarQube Analysis Summary");
+    sb.append(NEW_LINE);
+    if (report.getIssues() == null || report.getIssues().isEmpty()) {
+      sb.append("No new issue raised!");
+    } else if (report.countIssues() >= issueThreshold) {
+      sb.append("Too many new issues raised ");
+      sb.append("(").append(report.countIssues()).append(" > ").append(issueThreshold).append(")");
+      sb.append(": New issues are not displayed in Diff view.");
+    } else {
+      sb.append("New issues raised: ").append(report.countIssues());
+    }
+    sb.append(NEW_LINE);
     return sb.toString();
   }
 

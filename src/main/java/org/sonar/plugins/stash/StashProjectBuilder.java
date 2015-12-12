@@ -11,7 +11,7 @@ public class StashProjectBuilder extends ProjectBuilder {
   public StashProjectBuilder(StashRequestFacade stashRequestFacade) {
     this.stashRequestFacade = stashRequestFacade;
   }
-  
+
   @Override
   public void build(Context context) {
     File projectBaseDir = context.projectReactor().getRoot().getBaseDir();

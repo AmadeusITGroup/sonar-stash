@@ -15,7 +15,7 @@ import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 public final class SonarQubeCollector {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SonarQubeCollector.class);
-  
+
   private SonarQubeCollector() {
     // NOTHING TO DO
     // Pure static class
@@ -29,29 +29,28 @@ public final class SonarQubeCollector {
     SonarQubeIssuesReport result = new SonarQubeIssuesReport();
 
     for (Issue issue : projectIssues.issues()) {
-      if (! issue.isNew()){
+      if (!issue.isNew()) {
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
       } else {
-        String key = issue.key();
         String severity = issue.severity();
         String rule = issue.ruleKey().toString();
         String message = issue.message();
-  
+
         int line = 0;
         if (issue.line() != null) {
           line = issue.line();
         }
-  
+
         InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
-        if (inputFile == null){
+        if (inputFile == null) {
           LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
         } else {
           String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
-             
+
           // Create the issue and Add to report
-          SonarQubeIssue stashIssue = new SonarQubeIssue(key, severity, message, rule, path, line);
+          SonarQubeIssue stashIssue = new SonarQubeIssue(severity, message, rule, path, line);
           result.add(stashIssue);
-        } 
+        }
       }
     }
 

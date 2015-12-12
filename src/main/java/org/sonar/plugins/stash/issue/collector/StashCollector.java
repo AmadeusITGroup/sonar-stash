@@ -35,10 +35,10 @@ public final class StashCollector {
 
           JSONObject jsonAnchor = (JSONObject) jsonComment.get("anchor");
           String path = (String) jsonAnchor.get("path");
-          
+
           // can be null if comment is attached to the global file
           Long line = (Long) jsonAnchor.get("line");
-          
+
           StashComment comment = new StashComment(id, message, path, line);
           result.add(comment);
         }
@@ -46,7 +46,7 @@ public final class StashCollector {
     } catch (ParseException e) {
       throw new StashReportExtractionException(e);
     }
-    
+
     return result;
   }
 
@@ -60,46 +60,46 @@ public final class StashCollector {
       if (jsonDiffs != null) {
         for (Object objDiff : jsonDiffs.toArray()) {
           JSONObject jsonDiff = (JSONObject) objDiff;
-          
+
           // destination path in diff view
           // if status of the file is deleted, destination == null
           JSONObject destinationPath = (JSONObject) jsonDiff.get("destination");
-          if (destinationPath != null){
+          if (destinationPath != null) {
             String path = (String) destinationPath.get("toString");
-            
+
             JSONArray jsonHunks = (JSONArray) jsonDiff.get("hunks");
             if (jsonHunks != null) {
               for (Object objHunk : jsonHunks.toArray()) {
                 JSONObject jsonHunk = (JSONObject) objHunk;
-                
+
                 JSONArray jsonSegments = (JSONArray) jsonHunk.get("segments");
                 if (jsonSegments != null) {
                   for (Object objSegment : jsonSegments.toArray()) {
                     JSONObject jsonSegment = (JSONObject) objSegment;
-                    
+
                     // type of the diff in diff view
                     // We filter REMOVED type, like useless for SQ analysis
                     String type = (String) jsonSegment.get("type");
-                    if (!StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)){
-                    
+                    if (!StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)) {
+
                       JSONArray jsonLines = (JSONArray) jsonSegment.get("lines");
                       if (jsonLines != null) {
                         for (Object objLine : jsonLines.toArray()) {
                           JSONObject jsonLine = (JSONObject) objLine;
-                          
+
                           // destination line in diff view
                           long source = (long) jsonLine.get("source");
                           long destination = (long) jsonLine.get("destination");
-                          
+
                           StashDiff diff = new StashDiff(type, path, source, destination);
-                          
+
                           JSONArray jsonCommentIds = (JSONArray) jsonLine.get("commentIds");
                           if (jsonCommentIds != null) {
-                            for (Object objCommentId: jsonCommentIds.toArray()) {
+                            for (Object objCommentId : jsonCommentIds.toArray()) {
                               diff.addComment((long) objCommentId);
                             }
                           }
-                          
+
                           result.add(diff);
                         }
                       }
@@ -114,10 +114,10 @@ public final class StashCollector {
     } catch (ParseException e) {
       throw new StashReportExtractionException(e);
     }
-    
+
     return result;
   }
-  
+
   public static boolean isLastPage(String jsonBody) throws StashReportExtractionException {
     boolean result = true;
 

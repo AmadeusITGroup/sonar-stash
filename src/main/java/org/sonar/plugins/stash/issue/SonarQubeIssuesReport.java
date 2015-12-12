@@ -8,29 +8,29 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 public class SonarQubeIssuesReport {
-  
+
   private final List<SonarQubeIssue> issues;
 
   public SonarQubeIssuesReport() {
-    this.issues = new ArrayList<SonarQubeIssue>();
+    this.issues = new ArrayList<>();
   }
-  
+
   public void add(SonarQubeIssue issue) {
     issues.add(issue);
   }
 
-  public List<SonarQubeIssue> getIssues(){
+  public List<SonarQubeIssue> getIssues() {
     return issues;
   }
-  
+
   public List<SonarQubeIssue> getIssuesBySeverity(String severity) {
-    List<SonarQubeIssue> result = new ArrayList<SonarQubeIssue>();
+    List<SonarQubeIssue> result = new ArrayList<>();
     for (SonarQubeIssue issue : issues) {
       if (StringUtils.equals(severity, issue.getSeverity())) {
         result.add(issue);
       }
     }
-    
+
     return result;
   }
 
@@ -46,12 +46,12 @@ public class SonarQubeIssuesReport {
    * Extract rule list according to a severity.
    */
   public Map<String, SonarQubeIssue> getUniqueRulesBySeverity(String severity) {
-    Map<String, SonarQubeIssue> result = new HashMap<String, SonarQubeIssue>();
+    Map<String, SonarQubeIssue> result = new HashMap<>();
 
     for (SonarQubeIssue issue : getIssuesBySeverity(severity)) {
       result.put(issue.getRule(), issue);
     }
-    
+
     return result;
   }
 
