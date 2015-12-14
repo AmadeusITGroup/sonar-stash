@@ -1,20 +1,32 @@
 package org.sonar.plugins.stash;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.*;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import org.sonar.plugins.stash.issue.MarkdownPrinter;
+import org.sonar.plugins.stash.issue.SonarQubeIssue;
+import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
 
 public class StashRequestFacadeTest {
 
@@ -74,15 +86,15 @@ public class StashRequestFacadeTest {
 
     issueReport = new SonarQubeIssuesReport();
 
-    SonarQubeIssue issue1 = new SonarQubeIssue("severity1", "message1", "rule1", FILE_PATH_1, 1);
+    SonarQubeIssue issue1 = new SonarQubeIssue(Severity.MAJOR, "message1", "rule1", FILE_PATH_1, 1);
     stashCommentMessage1 = MarkdownPrinter.printIssueMarkdown(issue1, SONARQUBE_URL);
     issueReport.add(issue1);
 
-    SonarQubeIssue issue2 = new SonarQubeIssue("severity2", "message2", "rule2", FILE_PATH_1, 2);
+    SonarQubeIssue issue2 = new SonarQubeIssue(Severity.CRITICAL, "message2", "rule2", FILE_PATH_1, 2);
     stashCommentMessage2 = MarkdownPrinter.printIssueMarkdown(issue2, SONARQUBE_URL);
     issueReport.add(issue2);
 
-    SonarQubeIssue issue3 = new SonarQubeIssue("severity3", "message3", "rule3", FILE_PATH_2, 1);
+    SonarQubeIssue issue3 = new SonarQubeIssue(Severity.INFO, "message3", "rule3", FILE_PATH_2, 1);
     stashCommentMessage3 = MarkdownPrinter.printIssueMarkdown(issue3, SONARQUBE_URL);
     issueReport.add(issue3);
 
@@ -97,6 +109,8 @@ public class StashRequestFacadeTest {
     doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+
+    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
   }
 
   @Test
@@ -192,6 +206,19 @@ public class StashRequestFacadeTest {
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+  }
+
+  @Test
+  public void testIssuesBelowSeverityThreshold() throws Exception {
+    initConfigForPostCommentLineOnPullRequest();
+
+    when(config.getIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+
+    myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, stashClient);
+
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
   }
 
   @Test

@@ -9,6 +9,7 @@ import org.sonar.api.PropertyType;
 import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.rule.Severity;
 
 @Properties({
   @Property(key = StashPlugin.STASH_NOTIFICATION, defaultValue = "false", name = "Stash Notification", description = "Analysis result will be issued in Stash pull request",
@@ -20,6 +21,7 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
+  private static final String DEFAUTL_SEVERITY_THRESHOLD = Severity.INFO;
   private static final boolean DEFAULT_STASH_DISPLAY_ANALYSIS_OVERVIEW = true;
   private static final boolean DEFAULT_STASH_DISPLAY_ANALYSIS_SUMMARY = false;
 
@@ -40,6 +42,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String STASH_DISPLAY_ANALYSIS_OVERVIEW = "sonar.stash.analysis.overview.display";
   public static final String STASH_DISPLAY_ANALYSIS_SUMMARY = "sonar.stash.analysis.summary.display";
+  public static final String STASH_SEVERITY_THRESHOLD = "sonar.stash.issue.severity.thershold";
   public static final String SONARQUBE_URL = "sonar.host.url";
 
   @Override
@@ -90,15 +93,25 @@ public class StashPlugin extends SonarPlugin {
         .defaultValue(Boolean.toString(DEFAULT_STASH_DISPLAY_ANALYSIS_OVERVIEW))
         .index(4)
         .build(),
-      PropertyDefinition.builder(STASH_DISPLAY_ANALYSIS_SUMMARY)
-        .name("Display Analysis Summary")
-        .description("Set to true to display the analysis summary on pull requests, set to false otherwise.")
-        .type(PropertyType.BOOLEAN)
-        .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
-        .onQualifiers(Qualifiers.PROJECT)
-        .defaultValue(Boolean.toString(DEFAULT_STASH_DISPLAY_ANALYSIS_SUMMARY))
-        .index(5)
-        .build());
+	  PropertyDefinition.builder(STASH_DISPLAY_ANALYSIS_SUMMARY)
+		.name("Display Analysis Summary")
+		.description("Set to true to display the analysis summary on pull requests, set to false otherwise.")
+		.type(PropertyType.BOOLEAN)
+		.subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+		.onQualifiers(Qualifiers.PROJECT)
+		.defaultValue(Boolean.toString(DEFAULT_STASH_DISPLAY_ANALYSIS_SUMMARY))
+		.index(5)
+		.build(),
+	  PropertyDefinition.builder(STASH_SEVERITY_THRESHOLD)
+		.name("Severity threshold")
+		.description("Only post comments for issues with the same or higher severity")
+		.type(PropertyType.SINGLE_SELECT_LIST)
+		.subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+		.onQualifiers(Qualifiers.PROJECT)
+		.defaultValue(DEFAUTL_SEVERITY_THRESHOLD)
+		.options(Severity.ALL)
+		.index(6)
+		.build());
   }
 
 }

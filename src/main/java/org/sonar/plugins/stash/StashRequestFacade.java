@@ -1,7 +1,9 @@
 package org.sonar.plugins.stash;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -9,11 +11,16 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.*;
+import org.sonar.plugins.stash.issue.MarkdownPrinter;
+import org.sonar.plugins.stash.issue.SonarQubeIssue;
+import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
@@ -80,7 +87,11 @@ public class StashRequestFacade implements BatchComponent {
       String issueSonarQubeFilePath;
       String issueStashFilePath;
 
+      List<String> severities = getPossibleSeverities();
       for (SonarQubeIssue issue : issuesReport.getIssues()) {
+        if(!severities.contains(issue.getSeverity())){
+          continue;
+        }
         issueSonarQubeFilePath = issue.getPath();
         issueStashFilePath = diffReport.getPath(issue.getPath());
 
@@ -121,6 +132,11 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
     }
+  }
+
+  private boolean shouldSkip(SonarQubeIssue issue) {
+
+    return false;
   }
 
   public StashCredentials getCredentials() {
@@ -209,4 +225,19 @@ public class StashRequestFacade implements BatchComponent {
     return commentsBySonarQubeFilePath;
   }
 
+  public List<String> getPossibleSeverities()
+  {
+    List<String> possibleSeverities = new ArrayList<>();
+    String issueSeverityThreshold = config.getIssueSeverityThreshold();
+
+    boolean hit = false;
+    for (String severity : Severity.ALL)
+    {
+      if(hit || severity.equals(issueSeverityThreshold)){
+        possibleSeverities.add(severity);
+		hit = true;
+      }
+    }
+    return possibleSeverities;
+  }
 }
