@@ -53,4 +53,8 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getInt(StashPlugin.STASH_TIMEOUT);
   }
   
+  public boolean canApprovePullRequest() {
+    return settings.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL);
+  }
+  
 }

@@ -49,7 +49,12 @@ public class StashIssueReportingPostJob implements PostJob {
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
         StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
-          
+        
+        boolean canApprovePullrequest = config.canApprovePullRequest();
+        if (canApprovePullrequest) {
+          stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+        }
+        
         // if threshold exceeded, do not push issue list to Stash
         if (issueReport.countIssues() >= issueThreshold) {
           LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
@@ -58,7 +63,16 @@ public class StashIssueReportingPostJob implements PostJob {
         }
 
         stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
-
+       
+        if (canApprovePullrequest) {
+       
+          // if no new issues, plugin approves the pull-request 
+          if (issueReport.countIssues() == 0) {
+            stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+          } else {
+            stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+          }
+        }
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
