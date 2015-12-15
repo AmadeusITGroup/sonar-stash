@@ -5,6 +5,15 @@ import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.Realm;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Response;
+import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
+import org.sonar.plugins.stash.StashPlugin;
+import org.sonar.plugins.stash.exceptions.StashClientException;
+import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -12,15 +21,6 @@ import java.text.MessageFormat;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONObject;
-import org.sonar.plugins.stash.StashPlugin;
-import org.sonar.plugins.stash.exceptions.StashClientException;
-import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
-import org.sonar.plugins.stash.issue.StashCommentReport;
-import org.sonar.plugins.stash.issue.StashDiffReport;
-import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 public class StashClient {
 
@@ -34,8 +34,10 @@ public class StashClient {
   private static final String PULL_REQUEST_API = PULL_REQUESTS_API + "{3}";
   private static final String COMMENTS_PULL_REQUEST_API = PULL_REQUEST_API + "/comments";
   private static final String DIFF_PULL_REQUEST_API = PULL_REQUEST_API + "/diff";
+  private static final String TASKS_API = REST_API + "tasks";
 
   private static final String CONNECTION_POST_ERROR_MESSAGE = "Unable to post a comment to {0} #{1}. Received {2} with message {3}.";
+  private static final String CONNECTION_POST_TASK_ERROR_MESSAGE = "Unable to post a task to commentId #{0}. Received {1} with message {2}.";
   private static final String CONNECTION_GET_ERROR_MESSAGE = "Unable to get comment linked to {0} #{1}. Received {2} with message {3}.";
 
   public StashClient(String url, StashCredentials credentials, int stashTimeout) {
@@ -134,7 +136,7 @@ public class StashClient {
     return result;
   }
 
-  public void postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
+  public Long postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
     throws StashClientException {
 
     String request = MessageFormat.format(COMMENTS_PULL_REQUEST_API, baseUrl + REST_API, project, repository,
@@ -167,11 +169,48 @@ public class StashClient {
         String responseMessage = response.getStatusText();
         throw new StashClientException(MessageFormat.format(CONNECTION_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, responseMessage));
       }
+      JSONObject object = (JSONObject) JSONValue.parse(response.getResponseBody());
+      if (object.containsKey("id")) {
+        return (Long) object.get("id");
+      }
+      else {
+        return null;
+      }
     } catch (ExecutionException | TimeoutException | IOException | InterruptedException e) {
       throw new StashClientException(e);
     } finally {
       httpClient.close();
     }
+  }
+
+  public void postTaskOnComment(String message, Long commentId)
+  		throws StashClientException {
+
+  	String request = baseUrl + TASKS_API;
+
+  	JSONObject anchor = new JSONObject();
+  	anchor.put("id", commentId);
+  	anchor.put("type", "COMMENT");
+
+  	JSONObject json = new JSONObject();
+	json.put("anchor", anchor);
+	json.put("text", message);
+
+
+  	try(AsyncHttpClient httpClient = createHttpClient()) {
+
+		BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
+		requestBuilder.setBody(json.toString());
+
+		Response response = executeRequest(requestBuilder);
+  		int responseCode = response.getStatusCode();
+  		if (responseCode != HttpURLConnection.HTTP_CREATED) {
+  			String responseMessage = response.getStatusText();
+  			throw new StashClientException(MessageFormat.format(CONNECTION_POST_TASK_ERROR_MESSAGE, commentId, responseCode, responseMessage));
+  		}
+  	} catch (ExecutionException | TimeoutException | IOException | InterruptedException e) {
+  		throw new StashClientException(e);
+  	}
   }
 
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,

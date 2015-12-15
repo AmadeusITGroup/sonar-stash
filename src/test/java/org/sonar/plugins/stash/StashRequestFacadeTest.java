@@ -1,17 +1,5 @@
 package org.sonar.plugins.stash;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,6 +15,19 @@ import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class StashRequestFacadeTest {
 
@@ -65,6 +66,7 @@ public class StashRequestFacadeTest {
 
   private static final String FILE_PATH_1 = "path/to/file1";
   private static final String FILE_PATH_2 = "path/to/file2";
+  private static final long COMMENT_ID = 100L;
 
   @Before
   public void setUp() {
@@ -106,11 +108,12 @@ public class StashRequestFacadeTest {
     when(stashComments2.applyDiffReport(diffReport)).thenReturn(stashComments2);
     when(stashClient.getPullRequestComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, FILE_PATH_2)).thenReturn(stashComments2);
 
-    doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
-    doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
-    doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    doReturn(COMMENT_ID).when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    doReturn(COMMENT_ID).when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    doReturn(COMMENT_ID).when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
 
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
+    when(config.getCommentIssueSeverityThreshold()).thenReturn(Severity.INFO);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
   }
 
   @Test
@@ -212,13 +215,14 @@ public class StashRequestFacadeTest {
   public void testIssuesBelowSeverityThreshold() throws Exception {
     initConfigForPostCommentLineOnPullRequest();
 
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    when(config.getCommentIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
 
     myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, stashClient);
 
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(2)).postTaskOnComment(anyString(), eq(COMMENT_ID));
   }
 
   @Test

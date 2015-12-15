@@ -4,11 +4,7 @@ import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.ListenableFuture;
 import com.ning.http.client.Response;
-
-import java.net.HttpURLConnection;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -18,11 +14,24 @@ import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
-import static org.junit.Assert.*;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class StashClientTest {
 
@@ -257,8 +266,21 @@ public class StashClientTest {
   @Test
   public void testPostCommentLineOnPullRequest() throws Exception {
     when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+	StringWriter stringWriter = new StringWriter();
+	IOUtils.copy(getClass().getResourceAsStream("CommentCreatedResponse.json"), stringWriter);
+	when(response.getResponseBody()).thenReturn(stringWriter.toString());
 
-    spyClient.postCommentLineOnPullRequest("Project", "Repository", "1", "message", "path", 5, "type");
+    Long commentId = spyClient.postCommentLineOnPullRequest("Project", "Repository", "1", "message", "path", 5, "type");
+    assertEquals(Long.valueOf(100L), commentId);
+    verify(requestBuilder, times(1)).execute();
+    verify(httpClient, times(1)).close();
+  }
+
+  @Test
+  public void testTaskOnComment() throws Exception {
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+
+    spyClient.postTaskOnComment("Task Message",100L);
     verify(requestBuilder, times(1)).execute();
     verify(httpClient, times(1)).close();
   }

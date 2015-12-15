@@ -61,8 +61,12 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getBoolean(StashPlugin.STASH_DISPLAY_ANALYSIS_SUMMARY);
   }
 
-  public String getIssueSeverityThreshold(){
-    return settings.getString(StashPlugin.STASH_SEVERITY_THRESHOLD);
+  public String getCommentIssueSeverityThreshold(){
+    return settings.getString(StashPlugin.STASH_COMMENT_SEVERITY_THRESHOLD);
+  }
+
+  public String getTaskIssueSeverityThreshold(){
+    return settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
   }
 
 }
