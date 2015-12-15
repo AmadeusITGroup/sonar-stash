@@ -9,6 +9,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiff;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashUser;
 
 public class StashCollectorTest {
@@ -364,6 +365,93 @@ public class StashCollectorTest {
     assertEquals(diff2.getDestination(),(long) 40);
     assertEquals(diff2.getPath(),"stash-plugin/Test2.java");
     assertEquals(diff2.getType(),"ADDED");
+  }
+  
+  @Test
+  public void testExtractPullRequest() throws Exception {
+    String project = "project";
+    String repository = "repository";
+    String pullRequestId = "123";
+    long pullRequestVersion = 1;
+    
+    long reviewerId = 1;
+    String reviewerName = "SonarQube";
+    String reviewerSlug = "sonarqube";
+    String reviewerEmail = "sq@email.com";
+    
+    String jsonBody = "{\"id\": " + pullRequestId + ", \"version\": " + pullRequestVersion + ", \"title\": \"PR-Test\","
+        + "\"description\": \"PR-test\", \"reviewers\": ["
+          + "{\"user\": { \"name\":\"" + reviewerName + "\", \"emailAddress\": \"" + reviewerEmail + "\","
+          + "\"id\": " + reviewerId + ", \"slug\": \"" + reviewerSlug + "\"}, \"role\": \"REVIEWER\", \"approved\": false}]}";
+    
+    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, jsonBody);
+    
+    assertEquals(project, pullRequest.getProject());
+    assertEquals(repository, pullRequest.getRepository());
+    assertEquals(pullRequestId, pullRequest.getId());
+    assertEquals(pullRequestVersion, pullRequest.getVersion());
+    
+    StashUser reviewer = new StashUser(reviewerId, reviewerName, reviewerSlug, reviewerEmail);
+    assertEquals(pullRequest.getReviewers().size(), 1);
+    assertTrue(pullRequest.containsReviewer(reviewer));
+  }
+  
+  @Test
+  public void testExtractPullRequestWithSeveralReviewer() throws Exception {
+    String project = "project";
+    String repository = "repository";
+    String pullRequestId = "123";
+    long pullRequestVersion = 1;
+    
+    long reviewerId1 = 1;
+    String reviewerName1 = "SonarQube1";
+    String reviewerSlug1 = "sonarqube1";
+    String reviewerEmail1 = "sq1@email.com";
+    
+    long reviewerId2 = 1;
+    String reviewerName2 = "SonarQube2";
+    String reviewerSlug2 = "sonarqube2";
+    String reviewerEmail2 = "sq2@email.com";
+    
+    String jsonBody = "{\"id\": " + pullRequestId + ", \"version\": " + pullRequestVersion + ", \"title\": \"PR-Test\","
+        + "\"description\": \"PR-test\", \"reviewers\": ["
+          + "{\"user\": { \"name\":\"" + reviewerName1 + "\", \"emailAddress\": \"" + reviewerEmail1 + "\","
+            + "\"id\": " + reviewerId1 + ", \"slug\": \"" + reviewerSlug1 + "\"}, \"role\": \"REVIEWER\", \"approved\": false},"
+          + "{\"user\": { \"name\":\"" + reviewerName2 + "\", \"emailAddress\": \"" + reviewerEmail2 + "\","
+            + "\"id\": " + reviewerId2 + ", \"slug\": \"" + reviewerSlug2 + "\"}, \"role\": \"REVIEWER\", \"approved\": false}]}";
+    
+    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, jsonBody);
+    
+    assertEquals(project, pullRequest.getProject());
+    assertEquals(repository, pullRequest.getRepository());
+    assertEquals(pullRequestId, pullRequest.getId());
+    assertEquals(pullRequestVersion, pullRequest.getVersion());
+    
+    StashUser reviewer1 = new StashUser(reviewerId1, reviewerName1, reviewerSlug1, reviewerEmail1);
+    StashUser reviewer2 = new StashUser(reviewerId2, reviewerName2, reviewerSlug2, reviewerEmail2);
+    assertEquals(pullRequest.getReviewers().size(), 2);
+    assertTrue(pullRequest.containsReviewer(reviewer1));
+    assertTrue(pullRequest.containsReviewer(reviewer2));
+  }
+  
+  @Test
+  public void testExtractPullRequestWithNoReviewer() throws Exception {
+    String project = "project";
+    String repository = "repository";
+    String pullRequestId = "123";
+    long pullRequestVersion = 1;
+    
+    String jsonBody = "{\"id\": " + pullRequestId + ", \"version\": " + pullRequestVersion + ", \"title\": \"PR-Test\","
+        + "\"description\": \"PR-test\", \"reviewers\": []}";
+    
+    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, jsonBody);
+    
+    assertEquals(project, pullRequest.getProject());
+    assertEquals(repository, pullRequest.getRepository());
+    assertEquals(pullRequestId, pullRequest.getId());
+    assertEquals(pullRequestVersion, pullRequest.getVersion());
+    
+    assertEquals(pullRequest.getReviewers().size(), 0);
   }
   
   @Test

@@ -11,6 +11,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiff;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashUser;
 
 public final class StashCollector {
@@ -52,6 +53,34 @@ public final class StashCollector {
           
           StashComment comment = new StashComment(id, message, path, line, stashUser, version);
           result.add(comment);
+        }
+      }
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+    
+    return result;
+  }
+
+  public static StashPullRequest extractPullRequest(String project, String repository, String pullRequestId, String jsonBody) throws StashReportExtractionException {
+    StashPullRequest result = new StashPullRequest(project, repository, pullRequestId);
+    
+    try {
+      JSONObject jsonPullRequest = (JSONObject) new JSONParser().parse(jsonBody);
+
+      long version = (long) jsonPullRequest.get("version");
+      result.setVersion(version);
+    
+      JSONArray jsonReviewers = (JSONArray) jsonPullRequest.get("reviewers");
+      if (jsonReviewers != null) {
+        for (Object objReviewer : jsonReviewers.toArray()) {
+          JSONObject jsonReviewer = (JSONObject) objReviewer;
+          
+          JSONObject jsonUser = (JSONObject) jsonReviewer.get("user");
+          if (jsonUser != null){
+            StashUser reviewer = extractUser(jsonUser.toJSONString());
+            result.addReviewer(reviewer);
+          }
         }
       }
     } catch (ParseException e) {

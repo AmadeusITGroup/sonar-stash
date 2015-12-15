@@ -34,6 +34,8 @@ Just copy the sonar-stash-plugin jar file to the plugin folder of the expected S
 #### Configuration on SonarQube server
 Go to Stash general settings screen on SonarQube server to fill:
 
+![Screenshot SonarQube plugin](resources/Sonar-plugin-configuration.PNG)
+
 **Stash base URL** (sonar.stash.url): To define Stash instance.
 
 **Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository.
@@ -41,9 +43,12 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
 
-**Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected. 
+**Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
 
-![Screenshot SonarQube plugin](resources/Sonar-plugin-configuration.PNG)
+**Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change.   
+By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
+
+![Screenshot SonarQube plugin](resources/Sonar-plugin-approver.PNG)
 
 
 ## How to run the plugin?

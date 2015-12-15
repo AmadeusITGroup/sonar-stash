@@ -52,7 +52,7 @@ public class StashIssueReportingPostJob implements PostJob {
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
         StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
         
-        StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+        StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
         if (stashUser == null) {
           LOGGER.error("Process stopped: no SonarQube reviewer identified to publish to Stash the SQ analysis"); 
         }
@@ -69,14 +69,29 @@ public class StashIssueReportingPostJob implements PostJob {
               stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId, diffReport, stashUser, stashClient);
             }
             
+            boolean canApprovePullrequest = config.canApprovePullRequest();
+            if (canApprovePullrequest) {
+              stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+            }
+            
             // if threshold exceeded, do not push issue list to Stash
             if (issueReport.countIssues() >= issueThreshold) {
               LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
             } else {
               stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL, issueReport, diffReport, stashClient);
             }
-    
+
             stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
+           
+            if (canApprovePullrequest) {
+           
+              // if no new issues, plugin approves the pull-request 
+              if (issueReport.countIssues() == 0) {
+                stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+              } else {
+                stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+              }
+            }
           }
         }
       }

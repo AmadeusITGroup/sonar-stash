@@ -39,7 +39,7 @@ public class StashCommentReportTest {
     report.add(comment1);
     
     assertTrue(report.contains("message1", "path1", 1));
-    
+
     report = new StashCommentReport();
     report.add(comment2);
     

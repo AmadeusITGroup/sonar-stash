@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
@@ -56,6 +58,59 @@ public class StashRequestFacade implements BatchComponent {
       
     } catch(StashClientException e){
       LOGGER.error("Unable to push SonarQube analysis overview to Stash: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+  
+  /**
+   * Approve pull-request
+   */
+  public void approvePullRequest(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+    try {
+      stashClient.approvePullRequest(project, repository, pullRequestId);
+      
+      LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"", pullRequestId, project, repository, user);
+      
+    } catch(StashClientException e){
+      LOGGER.error("Unable to approve pull-request: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+  
+  /**
+   * Reset pull-request approval
+   */
+  public void resetPullRequestApproval(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+    try {
+      stashClient.resetPullRequestApproval(project, repository, pullRequestId);
+      
+      LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"", pullRequestId, project, repository, user);
+      
+    } catch(StashClientException e){
+      LOGGER.error("Unable to reset pull-request approval: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+  
+  /**
+   * Add a reviewer to the current pull-request.
+   */
+  public void addPullRequestReviewer(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+    try {
+      StashPullRequest pullRequest = stashClient.getPullRequest(project, repository, pullRequestId);
+      
+      // user not yet in reviewer list
+      StashUser reviewer = pullRequest.getReviewer(user);
+      if (reviewer == null) {
+        ArrayList<StashUser> reviewers = new ArrayList<>(pullRequest.getReviewers());
+        reviewers.add(stashClient.getUser(user));
+        
+        stashClient.addPullRequestReviewer(project, repository, pullRequestId, pullRequest.getVersion(), reviewers);
+      
+        LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", user, pullRequestId, project, repository);
+      }
+    } catch(StashClientException e){
+      LOGGER.error("Unable to add a new reviewer to the pull-request: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
     }
   }
@@ -186,15 +241,15 @@ public class StashRequestFacade implements BatchComponent {
     
     return result;
   }
-  
+
   /**
    * Get user who published the SQ analysis in Stash.
    */
-  public StashUser getSonarQubeReviewer(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+  public StashUser getSonarQubeReviewer(String user, StashClient stashClient){
     StashUser result = null;
     
     try {
-      result = stashClient.getUser(project, repository, pullRequestId, user);
+      result = stashClient.getUser(user);
       
       LOGGER.debug("SonarQube reviewer {} identified in Stash", user);
       
@@ -245,6 +300,4 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.debug("Exception stack trace", e);
     }
   }
-
- 
 }
