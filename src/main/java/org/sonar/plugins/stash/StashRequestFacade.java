@@ -139,11 +139,6 @@ public class StashRequestFacade implements BatchComponent {
     }
   }
 
-  private boolean shouldSkip(SonarQubeIssue issue) {
-
-    return false;
-  }
-
   public StashCredentials getCredentials() {
     return new StashCredentials(config.getStashLogin(), config.getStashPassword());
   }
