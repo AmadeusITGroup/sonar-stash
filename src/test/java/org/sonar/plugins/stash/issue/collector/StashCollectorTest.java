@@ -461,7 +461,7 @@ public class StashCollectorTest {
     String userSlug = "sonarqube";
     String userEmail = "sq@email.com";
     
-    String jsonBody = "{ \"name\":\"" + userName + "\", \"emailAddress\": \"" + userEmail + "\","
+    String jsonBody = "{ \"name\":\"" + userName + "\", \"email\": \"" + userEmail + "\","
         + "\"id\": " + userId + ", \"slug\": \"" + userSlug + "\"}";
     
     StashUser user = StashCollector.extractUser(jsonBody);

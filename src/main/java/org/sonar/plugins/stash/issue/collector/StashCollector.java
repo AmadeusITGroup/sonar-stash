@@ -44,12 +44,7 @@ public final class StashCollector {
           long version = (long) jsonComment.get("version");
           
           JSONObject jsonAuthor = (JSONObject) jsonComment.get("author");
-          long authorId = (long) jsonAuthor.get("id");
-          String name = (String) jsonAuthor.get("name");
-          String slug = (String) jsonAuthor.get("slug");
-          String email = (String) jsonAuthor.get("email");
-          
-          StashUser stashUser = new StashUser(authorId, name, slug, email);
+          StashUser stashUser = extractUser(jsonAuthor.toJSONString());
           
           StashComment comment = new StashComment(id, message, path, line, stashUser, version);
           result.add(comment);
@@ -97,7 +92,7 @@ public final class StashCollector {
       long id = (long) jsonUser.get("id");
       String name = (String) jsonUser.get("name");
       String slug = (String) jsonUser.get("slug");
-      String email = (String) jsonUser.get("emailAddress");
+      String email = (String) jsonUser.get("email");
               
       return new StashUser(id, name, slug, email);
     
@@ -170,13 +165,8 @@ public final class StashCollector {
                                     JSONObject objAuthor = (JSONObject) jsonLineComment.get("author");
                                     if (objAuthor != null) {
                                       
-                                      long authorId = (long) objAuthor.get("id");
-                                      String authorName = (String) objAuthor.get("name");
-                                      String authorSlug = (String) objAuthor.get("slug");
-                                      String authorEmail = (String) objAuthor.get("email");
-                                    
-                                      StashUser author = new StashUser(authorId, authorName, authorSlug, authorEmail);
-                                    
+                                      StashUser author = extractUser(objAuthor.toJSONString());
+                                      
                                       StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path, destination, author, lineCommentVersion);
                                       diff.addComment(comment);
                                     }
@@ -209,13 +199,8 @@ public final class StashCollector {
                               
                   JSONObject objAuthor = (JSONObject) jsonLineComment.get("author");
                   if (objAuthor != null) {
-                                  
-                    long authorId = (long) objAuthor.get("id");
-                    String authorName = (String) objAuthor.get("name");
-                    String authorSlug = (String) objAuthor.get("slug");
-                    String authorEmail = (String) objAuthor.get("email");
                     
-                    StashUser author = new StashUser(authorId, authorName, authorSlug, authorEmail);
+                    StashUser author = extractUser(objAuthor.toJSONString());
                                 
                     StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path, (long) 0, author, lineCommentVersion);
                     initialDiff.addComment(comment);

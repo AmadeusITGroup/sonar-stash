@@ -288,7 +288,7 @@ public class StashClientTest {
   public void testGetUser() throws Exception {
     when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_OK);
     
-    String jsonUser = "{\"name\":\"SonarQube\", \"emailAddress\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
+    String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
     when(response.getResponseBody()).thenReturn(jsonUser);
     
     StashUser user = spyClient.getUser("sonarqube");
