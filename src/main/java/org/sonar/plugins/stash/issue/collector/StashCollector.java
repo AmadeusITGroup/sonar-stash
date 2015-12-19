@@ -12,6 +12,7 @@ import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiff;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 
 public final class StashCollector {
@@ -32,21 +33,8 @@ public final class StashCollector {
 
         for (Object obj : jsonValues.toArray()) {
           JSONObject jsonComment = (JSONObject) obj;
-          long id = (long) jsonComment.get("id");
-          String message = (String) jsonComment.get("text");
 
-          JSONObject jsonAnchor = (JSONObject) jsonComment.get("anchor");
-          String path = (String) jsonAnchor.get("path");
-          
-          // can be null if comment is attached to the global file
-          Long line = (Long) jsonAnchor.get("line");
-          
-          long version = (long) jsonComment.get("version");
-          
-          JSONObject jsonAuthor = (JSONObject) jsonComment.get("author");
-          StashUser stashUser = extractUser(jsonAuthor.toJSONString());
-          
-          StashComment comment = new StashComment(id, message, path, line, stashUser, version);
+          StashComment comment = extractComment(jsonComment.toJSONString());
           result.add(comment);
         }
       }
@@ -56,7 +44,55 @@ public final class StashCollector {
     
     return result;
   }
+  
+  public static StashComment extractComment(String jsonBody, String path, Long line) throws StashReportExtractionException {
+    StashComment result = null;
+    
+    try {
+      JSONObject jsonComment = (JSONObject) new JSONParser().parse(jsonBody);
+      
+      long id = (long) jsonComment.get("id");
+      String message = (String) jsonComment.get("text");
+      
+      long version = (long) jsonComment.get("version");
+      
+      JSONObject jsonAuthor = (JSONObject) jsonComment.get("author");
+      StashUser stashUser = extractUser(jsonAuthor.toJSONString());
+      
+      result = new StashComment(id, message, path, line, stashUser, version);
 
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+    
+    return result;
+  }
+  
+  public static StashComment extractComment(String jsonBody) throws StashReportExtractionException {
+    StashComment result = null;
+    
+    try {
+      JSONObject jsonComment = (JSONObject) new JSONParser().parse(jsonBody);
+      
+      JSONObject jsonAnchor = (JSONObject) jsonComment.get("anchor");
+      if (jsonAnchor == null) {
+        throw new StashReportExtractionException("JSON Comment does not contain any \"anchor\" tag to describe comment \"line\" and \"path\"");
+      }
+      
+      String path = (String) jsonAnchor.get("path");
+        
+      // can be null if comment is attached to the global file
+      Long line = (Long) jsonAnchor.get("line");
+
+      result = extractComment(jsonBody, path, line);
+      
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+    
+    return result;
+  }
+  
   public static StashPullRequest extractPullRequest(String project, String repository, String pullRequestId, String jsonBody) throws StashReportExtractionException {
     StashPullRequest result = new StashPullRequest(project, repository, pullRequestId);
     
@@ -169,6 +205,16 @@ public final class StashCollector {
                                       
                                       StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path, destination, author, lineCommentVersion);
                                       diff.addComment(comment);
+                                  
+                                      // get the tasks linked to the current comment
+                                      JSONArray jsonTasks = (JSONArray) jsonLineComment.get("tasks");
+                                      if (jsonTasks != null) {
+                                        for (Object objTask : jsonTasks.toArray()) {
+                                          JSONObject jsonTask = (JSONObject) objTask;
+                                      
+                                          comment.addTask(extractTask(jsonTask.toString()));
+                                        }
+                                      }
                                     }
                                   }
                                 }
@@ -220,6 +266,28 @@ public final class StashCollector {
     return result;
   }
   
+  public static StashTask extractTask(String jsonBody) throws StashReportExtractionException {
+    try {
+      JSONObject jsonTask = (JSONObject) new JSONParser().parse(jsonBody);
+
+      long taskId = (long) jsonTask.get("id");
+      String taskText = (String) jsonTask.get("text");
+      String taskState = (String) jsonTask.get("state");
+      
+      boolean deletable = true;
+      
+      JSONObject objPermission = (JSONObject) jsonTask.get("permittedOperations");
+      if (objPermission != null) {
+        deletable = (boolean) objPermission.get("deletable"); 
+      }
+      
+      return new StashTask(taskId, taskText, taskState, deletable);
+        
+    } catch (ParseException e) {
+      throw new StashReportExtractionException(e);
+    }
+  }
+    
   public static boolean isLastPage(String jsonBody) throws StashReportExtractionException {
     boolean result = true;
 

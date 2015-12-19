@@ -38,18 +38,19 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash base URL** (sonar.stash.url): To define Stash instance.
 
-**Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository.
-**Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password in commandline**.
+**Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository. **Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password in commandline**.
 
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
 
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
 
-**Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change.   
-By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
+**Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change. By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
 
 ![Screenshot SonarQube plugin](resources/Sonar-plugin-approver.PNG)
 
+**Stash tasks severity threshold** (sonar.stash.task.issue.severity.threshold): SonarQube is able to create tasks for all issues with a severity higher to the threshold. By default, this feature is deactivated (threshold: NONE). 
+
+![Screenshot SonarQube plugin](resources/Stash-plugin-task.PNG)
 
 ## How to run the plugin?
 

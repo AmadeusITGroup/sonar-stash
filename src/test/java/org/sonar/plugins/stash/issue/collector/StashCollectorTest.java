@@ -5,11 +5,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiff;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 
 public class StashCollectorTest {
@@ -17,7 +19,7 @@ public class StashCollectorTest {
   private static final long STASH_USER_ID = 1;
  
   @Test
-  public void testExtractSimpleComment() throws Exception {
+  public void testExtractCommentReport() throws Exception {
     String commentString = "{\"values\": [{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}]}";
     StashCommentReport commentReport = StashCollector.extractComments(commentString);
@@ -34,7 +36,7 @@ public class StashCollectorTest {
   }
   
   @Test
-  public void testExtractCommentList() throws Exception {
+  public void testExtractCommentReportWithSeveralComment() throws Exception {
     String commentString = "{\"values\": ["
         + "{\"id\":1234, \"text\":\"message1\", \"anchor\": {\"path\":\"path1\", \"line\":1},"
           + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":1}, "
@@ -63,11 +65,56 @@ public class StashCollectorTest {
   }
   
   @Test
-  public void testExtractEmptyComment() throws Exception {
+  public void testExtractEmptyCommentReport() throws Exception {
     String commentString = "{\"values\": []}";
     StashCommentReport commentReport = StashCollector.extractComments(commentString);
 
     assertEquals(commentReport.size(), 0);
+  }
+  
+  @Test
+  public void testExtractComment() throws Exception {
+    String commentString = "{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
+        + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
+    
+    StashComment comment = StashCollector.extractComment(commentString);
+
+    assertEquals(comment.getId(), 1234);
+    assertEquals(comment.getMessage(), "message");
+    assertEquals(comment.getPath(), "path");
+    assertEquals(comment.getVersion(), 0);
+    assertEquals(comment.getAuthor().getId(), STASH_USER_ID);
+    assertEquals(comment.getLine(), 5);
+  }
+  
+  @Test
+  public void testExtractEmptyCommentWithNoAnchor() {
+    String commentString = "{\"id\":1234, \"text\":\"message\", "
+        + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
+    
+    try {
+      StashCollector.extractComment(commentString);
+    
+      assertFalse("No anchor tag: extraction should raised StashReportExtractionException exception", true);
+    
+    } catch (StashReportExtractionException e) {
+      assertTrue("No anchor tag: extraction has raised StashReportExtractionException exception as expected", true);
+    }
+  }
+  
+  @Test
+  public void testExtractCommentWithPathAndLineAsParameters() throws Exception {
+    String commentString = "{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
+        + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
+    
+    StashComment comment = StashCollector.extractComment(commentString, "pathAsParameter", (long) 1111);
+
+    assertEquals(comment.getId(), 1234);
+    assertEquals(comment.getMessage(), "message");
+    assertEquals(comment.getPath(), "pathAsParameter");
+    assertEquals(comment.getVersion(), 0);
+    assertEquals(comment.getAuthor().getId(), STASH_USER_ID);
+    assertEquals(comment.getLine(), 1111);
   }
   
   @Test
@@ -109,6 +156,16 @@ public class StashCollectorTest {
     assertEquals(comment1.getId(), 12345);
     assertEquals(comment1.getMessage(), "Test comment");
     assertEquals(comment1.getVersion(), 1);
+    
+    StashTask task1 = comment1.getTasks().get(0);
+    assertEquals(12345, (long) task1.getId());
+    assertEquals("Complete the task associated to this TODO comment.", task1.getText());
+    assertEquals("OPENED", task1.getState());
+    
+    StashTask task2 = comment1.getTasks().get(1);
+    assertEquals(54321, (long) task2.getId());
+    assertEquals("Complete the task associated to this TODO comment.", task2.getText());
+    assertEquals("OPENED", task2.getState());
     
     StashUser author1 = comment1.getAuthor();
     assertEquals(author1.getId(), 12345);
@@ -470,4 +527,39 @@ public class StashCollectorTest {
     assertEquals(user.getSlug(), userSlug);
     assertEquals(user.getEmail(), userEmail);
   }
+  
+  @Test
+  public void testExtractTask() throws Exception {
+    long id = 1111;
+    String text = "Text";
+    String state = "State";
+    boolean deletable = true;
+    
+    String jsonTask = "{ \"id\":" + id + ", \"text\":\"" + text + "\", \"state\":\"" + state + "\","
+        + "\"permittedOperations\": { \"deletable\":" + deletable + "}}";
+    
+    StashTask task = StashCollector.extractTask(jsonTask);
+    
+    assertEquals(id, (long) task.getId());
+    assertEquals(text, task.getText());
+    assertEquals(state, task.getState());
+    assertEquals(deletable, task.isDeletable());
+  }
+  
+  @Test
+  public void testExtractTaskWithoutPermittedOperation() throws Exception {
+    long id = 1111;
+    String text = "Text";
+    String state = "State";
+    
+    String jsonTask = "{ \"id\":" + id + ", \"text\":\"" + text + "\", \"state\": \"" + state + "\"}";
+    
+    StashTask task = StashCollector.extractTask(jsonTask);
+    
+    assertEquals(id, (long) task.getId());
+    assertEquals(text, task.getText());
+    assertEquals(state, task.getState());
+    assertEquals(true, task.isDeletable());
+  }
+  
 }
