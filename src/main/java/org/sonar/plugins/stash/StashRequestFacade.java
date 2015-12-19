@@ -1,20 +1,27 @@
 package org.sonar.plugins.stash;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.*;
+import org.sonar.plugins.stash.issue.MarkdownPrinter;
+import org.sonar.plugins.stash.issue.SonarQubeIssue;
+import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashRequestFacade implements BatchComponent {
@@ -80,7 +87,12 @@ public class StashRequestFacade implements BatchComponent {
       String issueSonarQubeFilePath;
       String issueStashFilePath;
 
+      List<String> commentSeverities = getPossibleSeverities(config.getCommentIssueSeverityThreshold());
+      List<String> taskSeverities = getPossibleSeverities(config.getTaskIssueSeverityThreshold());
       for (SonarQubeIssue issue : issuesReport.getIssues()) {
+        if(!commentSeverities.contains(issue.getSeverity())){
+          continue;
+        }
         issueSonarQubeFilePath = issue.getPath();
         issueStashFilePath = diffReport.getPath(issue.getPath());
 
@@ -102,7 +114,7 @@ public class StashRequestFacade implements BatchComponent {
         }
 
         // Create the Stash comments for the SonarQube issues.
-        stashClient.postCommentLineOnPullRequest(
+        Long commentId = stashClient.postCommentLineOnPullRequest(
           project,
           repository,
           pullRequestId,
@@ -111,8 +123,12 @@ public class StashRequestFacade implements BatchComponent {
           diffReport.getLine(issueStashFilePath, issue.getLine()),
           diffReport.getType(issueStashFilePath, issue.getLine())
           );
-        LOGGER.debug("Stash comment \"{}\" has been created ({}) on file \"{}\" at line {}", issue.getRule(), diffReport.getType(issueStashFilePath, issue.getLine()),
-          issueStashFilePath, diffReport.getLine(issueStashFilePath, issue.getLine()));
+        LOGGER.debug("Stash comment \"{}\" has been created ({}) on file \"{}\" at line {} with id {}", issue.getRule(), diffReport.getType(issueStashFilePath, issue.getLine()),
+          issueStashFilePath, diffReport.getLine(issueStashFilePath, issue.getLine()), commentId);
+
+        if(taskSeverities.contains(issue.getSeverity())){
+          stashClient.postTaskOnComment(issue.getMessage(), commentId);
+        }
       }
 
       LOGGER.info("All Stash comments for SonarQube issues have been created.");
@@ -209,4 +225,18 @@ public class StashRequestFacade implements BatchComponent {
     return commentsBySonarQubeFilePath;
   }
 
+  public List<String> getPossibleSeverities(String threshold)
+  {
+    List<String> possibleSeverities = new ArrayList<>();
+
+    boolean hit = false;
+    for (String severity : Severity.ALL)
+    {
+      if(hit || severity.equals(threshold)){
+        possibleSeverities.add(severity);
+		hit = true;
+      }
+    }
+    return possibleSeverities;
+  }
 }
