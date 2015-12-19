@@ -1,7 +1,7 @@
 # SonarQube Stash (BitBucket) Plugin [![Build Status](https://travis-ci.org/racodond/sonar-stash.svg)](https://travis-ci.org/racodond/sonar-stash)
 
 **SonarQube is now a real reviewer!**
-SonarQube Stash (BitBucket) plugin is a pull request decorator that displayes SonarQube issues on pull request.
+SonarQube Stash (BitBucket) plugin is a pull request decorator that displays SonarQube issues on pull request.
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-issues.PNG)
 
