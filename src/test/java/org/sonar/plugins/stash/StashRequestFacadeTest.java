@@ -208,6 +208,7 @@ public class StashRequestFacadeTest {
     initConfigForPostCommentLineOnPullRequest();
 
     when(config.getCommentIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    when(config.hasToCreateTasks()).thenReturn(true);
 
     myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, stashClient);
 
@@ -215,6 +216,18 @@ public class StashRequestFacadeTest {
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(2)).postTaskOnComment(anyString(), eq(COMMENT_ID));
+  }
+
+  @Test
+  public void should_not_create_any_task_as_the_related_property_is_set_to_false() throws Exception {
+    initConfigForPostCommentLineOnPullRequest();
+
+    when(config.getCommentIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    when(config.hasToCreateTasks()).thenReturn(false);
+
+    myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, stashClient);
+
+    verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
   }
 
   @Test

@@ -22,7 +22,8 @@ public class StashPlugin extends SonarPlugin {
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
   private static final String DEFAULT_COMMENT_SEVERITY_THRESHOLD = Severity.INFO;
-  private static final String DEFAULT_TASKS_SEVERITY_THRESHOLD = Severity.INFO;
+  private static final boolean DEFAULT_STASH_CREATE_TASKS = false;
+  private static final String DEFAULT_TASKS_SEVERITY_THRESHOLD = Severity.CRITICAL;
   private static final boolean DEFAULT_STASH_DISPLAY_ANALYSIS_OVERVIEW = true;
   private static final boolean DEFAULT_STASH_DISPLAY_ANALYSIS_SUMMARY = false;
 
@@ -44,6 +45,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_DISPLAY_ANALYSIS_OVERVIEW = "sonar.stash.analysis.overview.display";
   public static final String STASH_DISPLAY_ANALYSIS_SUMMARY = "sonar.stash.analysis.summary.display";
   public static final String STASH_COMMENT_SEVERITY_THRESHOLD = "sonar.stash.comment.issue.severity.threshold";
+  public static final String STASH_CREATE_TASKS = "sonar.stash.task.create";
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
   public static final String SONARQUBE_URL = "sonar.host.url";
 
@@ -64,8 +66,7 @@ public class StashPlugin extends SonarPlugin {
           .onQualifiers(Qualifiers.PROJECT)
           .index(0)
           .build(),
-        PropertyDefinition
-          .builder(STASH_LOGIN)
+        PropertyDefinition.builder(STASH_LOGIN)
           .name("Stash Base User")
           .description(
             "User who pushes data to Stash instance. User must have REPO_READ permission on the Stash repository. Note that Stash password must be provided to the scanner via the \"sonar.stash.password\" property.")
@@ -108,7 +109,7 @@ public class StashPlugin extends SonarPlugin {
           .index(5)
           .build(),
         PropertyDefinition.builder(STASH_COMMENT_SEVERITY_THRESHOLD)
-          .name("Comments severity threshold")
+          .name("Comments Severity Threshold")
           .description("Only post comments for issues with the same or higher severity")
           .type(PropertyType.SINGLE_SELECT_LIST)
           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
@@ -117,15 +118,24 @@ public class StashPlugin extends SonarPlugin {
           .options(Severity.ALL)
           .index(6)
           .build(),
+       PropertyDefinition.builder(STASH_CREATE_TASKS)
+          .name("Create Tasks")
+          .description("Set to true to create tasks on SonarQube issues, set to false otherwise.")
+          .type(PropertyType.BOOLEAN)
+          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+          .onQualifiers(Qualifiers.PROJECT)
+          .defaultValue(Boolean.toString(DEFAULT_STASH_CREATE_TASKS))
+          .index(7)
+          .build(),
         PropertyDefinition.builder(STASH_TASK_SEVERITY_THRESHOLD)
-          .name("Tasks severity threshold")
+          .name("Tasks Severity Threshold")
           .description("Only create tasks for issues with the same or higher severity")
           .type(PropertyType.SINGLE_SELECT_LIST)
           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
           .onQualifiers(Qualifiers.PROJECT)
           .defaultValue(DEFAULT_TASKS_SEVERITY_THRESHOLD)
           .options(Severity.ALL)
-          .index(7)
+          .index(8)
           .build());
   }
 

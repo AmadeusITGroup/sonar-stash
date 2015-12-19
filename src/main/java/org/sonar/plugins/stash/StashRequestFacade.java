@@ -122,7 +122,7 @@ public class StashRequestFacade implements BatchComponent {
         LOGGER.debug("Stash comment \"{}\" has been created ({}) on file \"{}\" at line {} with id {}", issue.getRule(), diffReport.getType(issueStashFilePath, issue.getLine()),
           issueStashFilePath, diffReport.getLine(issueStashFilePath, issue.getLine()), commentId);
 
-        if (taskSeverities.contains(issue.getSeverity())) {
+        if (config.hasToCreateTasks() && taskSeverities.contains(issue.getSeverity())) {
           stashClient.postTaskOnComment(issue.getMessage(), commentId);
         }
       }
