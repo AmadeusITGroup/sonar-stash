@@ -1,16 +1,16 @@
-# SonarQube Stash (BitBucket) plugin [![Build Status](https://travis-ci.org/AmadeusITGroup/sonar-stash.svg)](https://travis-ci.org/AmadeusITGroup/sonar-stash)
+# SonarQube Stash (BitBucket) Plugin [![Build Status](https://travis-ci.org/racodond/sonar-stash.svg)](https://travis-ci.org/racodond/sonar-stash)
 
 **SonarQube is now a real reviewer!**
-SonarQube Stash (BitBucket) plugin is a pull-request decorator which allows to integrate SonarQube violations directly into your pull-request.
+SonarQube Stash (BitBucket) plugin is a pull request decorator that displayes SonarQube issues on pull request.
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-issues.PNG)
 
-After every run, in addition of the diff view, you may access to an overview of your SQ analysis:
+After every run, in addition of the diff view, you may access an overview of the SonarQube analysis:
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-overview.PNG)
 
 
-## Getting started
+## Getting Started
 
 #### Prerequisites
 - Git client to checkout the code
@@ -28,7 +28,7 @@ mvn clean install
 #### To deploy the plugin
 Just copy the sonar-stash-plugin jar file to the plugin folder of the expected SonarQube server and restart the SonarQube server. For instance, on Linux platform:
 ```
-~> cp target/sonar-stash-plugin-1.0.jar $SONARQUBE_HOME/extensions/plugins
+~> cp target/sonar-stash-plugin-X.X.jar $SONARQUBE_HOME/extensions/plugins
 ```
 
 #### Configuration on SonarQube server
@@ -39,7 +39,7 @@ Go to Settings > Configuration > General Settings > Stash:
 
 ## How to run the plugin?
 
-To activate the plugin, just add the following options to the SonarQube runner (for instance with SonarQube Scanner):
+To activate the plugin, add the following options to the SonarQube runner (for instance with SonarQube Scanner):
 
 For SonarQube 5.2+:
 ```
