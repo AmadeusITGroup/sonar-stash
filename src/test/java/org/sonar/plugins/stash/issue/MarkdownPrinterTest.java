@@ -127,7 +127,6 @@ public class MarkdownPrinterTest {
     assertTrue(StringUtils.equals(summaryReportMarkdown, reportString));
   }
 
-
   @Test
   public void should_display_summary_report_with_too_many_issues_raised() {
     String summaryReportMarkdown = MarkdownPrinter.printSummaryReportMarkdown(issueReport, 2);

@@ -5,6 +5,14 @@ import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.Realm;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Response;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.text.MessageFormat;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -14,13 +22,6 @@ import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.text.MessageFormat;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class StashClient {
 
@@ -184,33 +185,32 @@ public class StashClient {
   }
 
   public void postTaskOnComment(String message, Long commentId)
-  		throws StashClientException {
+    throws StashClientException {
 
-  	String request = baseUrl + TASKS_API;
+    String request = baseUrl + TASKS_API;
 
-  	JSONObject anchor = new JSONObject();
-  	anchor.put("id", commentId);
-  	anchor.put("type", "COMMENT");
+    JSONObject anchor = new JSONObject();
+    anchor.put("id", commentId);
+    anchor.put("type", "COMMENT");
 
-  	JSONObject json = new JSONObject();
-	json.put("anchor", anchor);
-	json.put("text", message);
+    JSONObject json = new JSONObject();
+    json.put("anchor", anchor);
+    json.put("text", message);
 
+    try (AsyncHttpClient httpClient = createHttpClient()) {
 
-  	try(AsyncHttpClient httpClient = createHttpClient()) {
+      BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
+      requestBuilder.setBody(json.toString());
 
-		BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
-		requestBuilder.setBody(json.toString());
-
-		Response response = executeRequest(requestBuilder);
-  		int responseCode = response.getStatusCode();
-  		if (responseCode != HttpURLConnection.HTTP_CREATED) {
-  			String responseMessage = response.getStatusText();
-  			throw new StashClientException(MessageFormat.format(CONNECTION_POST_TASK_ERROR_MESSAGE, commentId, responseCode, responseMessage));
-  		}
-  	} catch (ExecutionException | TimeoutException | IOException | InterruptedException e) {
-  		throw new StashClientException(e);
-  	}
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_CREATED) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(CONNECTION_POST_TASK_ERROR_MESSAGE, commentId, responseCode, responseMessage));
+      }
+    } catch (ExecutionException | TimeoutException | IOException | InterruptedException e) {
+      throw new StashClientException(e);
+    }
   }
 
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
