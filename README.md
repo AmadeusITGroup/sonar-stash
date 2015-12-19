@@ -40,6 +40,7 @@ Go to Settings > Configuration > General Settings > Stash:
 ## How to run the plugin?
 
 To activate the plugin, just add the following options to the SonarQube runner (for instance with SonarQube Scanner):
+
 For SonarQube 5.2+:
 ```
 sonar-runner -Dsonar.analysis.mode=preview -Dsonar.stash.notification=true -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>
