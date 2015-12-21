@@ -14,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
+import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
@@ -39,6 +40,7 @@ public class StashClient {
   private static final String PULL_REQUESTS_API = REPO_API + "pull-requests/";
   private static final String PULL_REQUEST_API = PULL_REQUESTS_API + "{3}";
   private static final String COMMENTS_PULL_REQUEST_API = PULL_REQUEST_API + "/comments";
+  private static final String COMMENT_PULL_REQUEST_API = COMMENTS_PULL_REQUEST_API + "/{4}?version={5}";
   private static final String DIFF_PULL_REQUEST_API = PULL_REQUEST_API + "/diff";
   private static final String APPROVAL_PULL_REQUEST_API = PULL_REQUEST_API + "/approve";
   
@@ -48,6 +50,7 @@ public class StashClient {
   private static final String USER_GET_ERROR_MESSAGE = "Unable to retrieve user {0}. Received {1} with message {2}.";  
   private static final String COMMENT_POST_ERROR_MESSAGE = "Unable to post a comment to {0} #{1}. Received {2} with message {3}.";  
   private static final String COMMENT_GET_ERROR_MESSAGE = "Unable to get comment linked to {0} #{1}. Received {2} with message {3}.";  
+  private static final String COMMENT_DELETION_ERROR_MESSAGE = "Unable to delete comment {0} from pull-request {1} #{2}. Received {3} with message {4}.";  
   
   public StashClient(String url, StashCredentials credentials, int stashTimeout) {
     this.baseUrl = url;
@@ -117,6 +120,29 @@ public class StashClient {
     return result;
   } 
   
+  public void deletePullRequestComment(String project, String repository, String pullRequestId, StashComment comment)
+      throws StashClientException {
+
+    String request = MessageFormat.format(COMMENT_PULL_REQUEST_API, baseUrl + REST_API,
+                      project, repository, pullRequestId, Long.toString(comment.getId()), Long.toString(comment.getVersion()));
+
+    AsyncHttpClient httpClient = createHttpClient();
+    BoundRequestBuilder requestBuilder = httpClient.prepareDelete(request);
+    
+    try {
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), repository, pullRequestId, responseCode, responseMessage));
+      }
+    } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
+      throw new StashClientException(e);
+    } finally{
+      httpClient.close();
+    }
+  }
+  
   public StashDiffReport getPullRequestDiffs(String project, String repository, String pullRequestId)
       throws StashClientException {
     StashDiffReport result = new StashDiffReport();
@@ -185,7 +211,7 @@ public class StashClient {
     }
   }
   
-  public StashUser getUser(String project, String repository, String pullRequestId, String userSlug)
+  public StashUser getUser(String userSlug)
       throws StashClientException {
     
     AsyncHttpClient httpClient = createHttpClient();
@@ -314,6 +340,7 @@ public class StashClient {
     }
   }
 
+  
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
       ExecutionException, TimeoutException {
     addAuthorization(requestBuilder);

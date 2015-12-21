@@ -89,4 +89,23 @@ public class StashDiffReport {
 
     return result;
   }
+  
+  /**
+   * Get all comments from the Stash differential report.
+   */
+  public List<StashComment> getComments() {
+    List<StashComment> result = new ArrayList<>();
+    
+    for (StashDiff diff: this.diffs) {
+      List<StashComment> comments = diff.getComments();
+      
+      for (StashComment comment: comments) {
+        if (! result.contains(comment)) {
+          result.add(comment);
+        }
+      }
+    }
+    
+    return result;
+  }
 }

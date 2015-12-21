@@ -57,4 +57,7 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL);
   }
   
+  public boolean resetComments() {
+    return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
+  }
 }

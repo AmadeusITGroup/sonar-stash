@@ -12,18 +12,18 @@ public class StashDiff {
   private final String path;
   private final long source;
   private final long destination;
-  private final List<Long> commentIds;
+  private final List<StashComment> comments;
   
   public StashDiff(String type, String path, long source, long destination) {
     this.type = type;
     this.path = path;
     this.source = source;
     this.destination = destination;
-    this.commentIds = new ArrayList<>();
+    this.comments = new ArrayList<>();
   }
 
-  public void addComment(long commentId){
-    this.commentIds.add(commentId);
+  public void addComment(StashComment comment){
+    this.comments.add(comment);
   }
   
   public String getPath() {
@@ -42,13 +42,18 @@ public class StashDiff {
     return type;
   }
   
+  public List<StashComment> getComments(){
+    return comments;
+  }
+  
   public boolean isTypeOfContext(){
     return StringUtils.equals(StashPlugin.CONTEXT_ISSUE_TYPE, type);
   }
   
   public boolean containsComment(long commentId){
     boolean result = false;
-    for (long cid: commentIds){
+    for (StashComment comment: comments){
+      long cid = comment.getId();
       if (cid == commentId){
         result = true;
         break;
