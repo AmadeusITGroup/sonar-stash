@@ -23,6 +23,8 @@ import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.AsyncHttpClientConfig.Builder;
 import com.ning.http.client.Realm;
 import com.ning.http.client.Realm.AuthScheme;
 import com.ning.http.client.Response;
@@ -32,6 +34,7 @@ public class StashClient {
   private final String baseUrl;
   private final StashCredentials credentials;
   private final int stashTimeout;
+  private final boolean acceptAnyCertificate;
 
   private static final String REST_API = "/rest/api/1.0/";
   
@@ -52,10 +55,11 @@ public class StashClient {
   private static final String COMMENT_GET_ERROR_MESSAGE = "Unable to get comment linked to {0} #{1}. Received {2} with message {3}.";  
   private static final String COMMENT_DELETION_ERROR_MESSAGE = "Unable to delete comment {0} from pull-request {1} #{2}. Received {3} with message {4}.";  
   
-  public StashClient(String url, StashCredentials credentials, int stashTimeout) {
+  public StashClient(String url, StashCredentials credentials, int stashTimeout, boolean acceptAnyCertificate) {
     this.baseUrl = url;
     this.credentials = credentials;
     this.stashTimeout = stashTimeout;
+    this.acceptAnyCertificate = acceptAnyCertificate;
   }
 
   public void postCommentOnPullRequest(String project, String repository, String pullRequestId, String report)
@@ -354,7 +358,16 @@ public class StashClient {
     requestBuilder.setRealm(realm);
   }
   
-  AsyncHttpClient createHttpClient(){
-    return new AsyncHttpClient();
+  AsyncHttpClient createHttpClient() {
+	if (acceptAnyCertificate)
+	{
+	  Builder builder = new AsyncHttpClientConfig.Builder();
+      builder.setAcceptAnyCertificate(true);
+      return new AsyncHttpClient(builder.build());
+	}
+	else
+	{
+      return new AsyncHttpClient();
+	}
   }
 }

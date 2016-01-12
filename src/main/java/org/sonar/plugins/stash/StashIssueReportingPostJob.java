@@ -48,9 +48,10 @@ public class StashIssueReportingPostJob implements PostJob {
         String stashPullRequestId = stashRequestFacade.getStashPullRequestId();
           
         int stashTimeout = config.getStashTimeout();
+        boolean acceptAnyCertificate = config.acceptAnyCertificate();
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
-        StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
+        StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, acceptAnyCertificate);
         
         StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
         if (stashUser == null) {

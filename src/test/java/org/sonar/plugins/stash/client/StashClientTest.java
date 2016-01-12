@@ -74,7 +74,7 @@ public class StashClientTest {
     when(httpClient.preparePut(anyString())).thenReturn(requestBuilder);
     doNothing().when(httpClient).close();
     
-    StashClient client = new StashClient("baseUrl", new StashCredentials("login", "password"), 1000);
+    StashClient client = new StashClient("baseUrl", new StashCredentials("login", "password"), 1000, false);
     spyClient = spy(client);
     doNothing().when(spyClient).addAuthorization(requestBuilder);
     doReturn(httpClient).when(spyClient).createHttpClient();

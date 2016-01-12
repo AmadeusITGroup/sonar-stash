@@ -40,6 +40,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
+  public static final String STASH_CERTIFICATES_ACCEPTANCE = "sonar.stash.certificates.acceptance"; 
   public static final String SONARQUBE_URL = "sonar.host.url";
   
   @Override
@@ -56,6 +57,13 @@ public class StashPlugin extends SonarPlugin {
             .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
             .onQualifiers(Qualifiers.PROJECT).build(),
+        PropertyDefinition.builder(STASH_CERTIFICATES_ACCEPTANCE)
+        	.name("Stash SSL certificates")
+        	.description("Stash server SSL certificates acceptance")
+        	.subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+        	.onQualifiers(Qualifiers.PROJECT)
+        	.type(PropertyType.BOOLEAN)
+        	.defaultValue("false").build(),
         PropertyDefinition.builder(STASH_LOGIN)
             .name("Stash base User")
             .description("User to push data on Stash instance")
