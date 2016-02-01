@@ -28,6 +28,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
@@ -246,9 +247,15 @@ public class StashClientTest {
   
   @Test
   public void testPostCommentLineOnPullRequest() throws Exception {
-    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+    String stashJsonComment = "{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
+        + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}";
     
-    spyClient.postCommentLineOnPullRequest("Project", "Repository", "1", "message", "path", 5, "type");
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+    when(response.getResponseBody()).thenReturn(stashJsonComment);
+    
+    StashComment comment = spyClient.postCommentLineOnPullRequest("Project", "Repository", "1", "message", "path", 5, "type");
+    
+    assertEquals((long) 1234, comment.getId());
     verify(requestBuilder, times(1)).execute();
     verify(httpClient, times(1)).close(); 
   }
@@ -582,4 +589,97 @@ public class StashClientTest {
       verify(httpClient, times(1)).close();  
     }
   }
+  
+  @Test
+  public void testPostTaskOnComment() throws Exception {
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+    
+    spyClient.postTaskOnComment("message", (long) 1111);
+    
+    verify(requestBuilder, times(1)).execute();
+    verify(httpClient, times(1)).close(); 
+  }
+  
+  @Test
+  public void testPostTaskOnCommentWithWrongHTTPResult() throws Exception {
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_FORBIDDEN);
+    
+    try {
+      spyClient.postTaskOnComment("message", (long) 1111);
+      
+      assertFalse("Wrong HTTP result should raised StashClientException", true);
+      
+    } catch (StashClientException e) {
+      verify(response, times(1)).getStatusText();
+      verify(httpClient, times(1)).close();  
+    }
+  }
+  
+  @Test
+  public void testPostTaskOnCommentWithException() throws Exception {
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+    when(listenableFurture.get(anyLong(), eq(TimeUnit.MILLISECONDS))).thenThrow(new TimeoutException("TimeoutException for Test"));
+    
+    try {
+      spyClient.postTaskOnComment("message", (long) 1111);
+      
+      assertFalse("Exception failure should be catched and convert to StashClientException", true);
+      
+    } catch (StashClientException e) {
+      verify(response, times(0)).getStatusText();
+      verify(httpClient, times(1)).close();  
+    }
+  }
+  
+  @Test
+  public void testDeleteTaskOnComment() throws Exception {
+    StashTask task = mock(StashTask.class);
+    when(task.getId()).thenReturn((long) 1111);
+    
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_NO_CONTENT);
+    
+    spyClient.deleteTaskOnComment(task);
+    
+    verify(requestBuilder, times(1)).execute();
+    verify(httpClient, times(1)).close(); 
+  }
+  
+  @Test
+  public void testDeleteTaskOnCommentWithWrongHTTPResult() throws Exception {
+    StashTask task = mock(StashTask.class);
+    when(task.getId()).thenReturn((long) 1111);
+    
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_FORBIDDEN);
+    
+    try {
+      spyClient.deleteTaskOnComment(task);
+      
+      assertFalse("Wrong HTTP result should raised StashClientException", true);
+      
+    } catch (StashClientException e) {
+      verify(response, times(1)).getStatusText();
+      verify(httpClient, times(1)).close();  
+    }
+  }
+  
+  @Test
+  public void testDeleteTaskOnCommentWithException() throws Exception {
+    StashTask task = mock(StashTask.class);
+    when(task.getId()).thenReturn((long) 1111);
+    
+    when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_CREATED);
+    when(listenableFurture.get(anyLong(), eq(TimeUnit.MILLISECONDS))).thenThrow(new TimeoutException("TimeoutException for Test"));
+    
+    try {
+      spyClient.deleteTaskOnComment(task);
+      
+      assertFalse("Exception failure should be catched and convert to StashClientException", true);
+      
+    } catch (StashClientException e) {
+      verify(response, times(0)).getStatusText();
+      verify(httpClient, times(1)).close();  
+    }
+  }
+  
+  
 }

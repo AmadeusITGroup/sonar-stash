@@ -3,8 +3,10 @@ package org.sonar.plugins.stash;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
@@ -21,6 +23,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
@@ -134,6 +137,9 @@ public class StashRequestFacade implements BatchComponent {
         }
       }
       
+      // Severity available to create a task
+      List<String> taskSeverities = getReportedSeverities();
+      
       for (SonarQubeIssue issue : issueReport.getIssues()) {
         StashCommentReport comments = commentsByFile.get(issue.getPath());
         
@@ -151,15 +157,22 @@ public class StashRequestFacade implements BatchComponent {
           
             long line = diffReport.getLine(issue.getPath(), issue.getLine());
             
-            stashClient.postCommentLineOnPullRequest(project,
-                                                     repository,
-                                                     pullRequestId,
-                                                     MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
-                                                     issue.getPath(),
-                                                     line,
-                                                     type);
+            StashComment comment = stashClient.postCommentLineOnPullRequest(project,
+                                                                           repository,
+                                                                           pullRequestId,
+                                                                           MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
+                                                                           issue.getPath(),
+                                                                           line,
+                                                                           type);
   
             LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getRule(), type, issue.getPath(), line);
+            
+            // Create task linked to the comment if configured
+            if (taskSeverities.contains(issue.getSeverity())) {
+              stashClient.postTaskOnComment(issue.getMessage(), comment.getId());
+              
+              LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+            }
           }
         }
       }
@@ -289,7 +302,19 @@ public class StashRequestFacade implements BatchComponent {
         
         // delete comment if published by the current SQ user
         if (sonarUser.getId() == comment.getAuthor().getId()) {
-          stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
+          
+          // comment contains tasks which cannot be deleted => do nothing
+          if (comment.containsPermanentTasks()) {
+            LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\") CANNOT be deleted because one of its tasks is not deletable.", comment.getId(), comment.getPath(), comment.getLine());
+          } else {
+          
+            // delete tasks linked to the current comment
+            for (StashTask task : comment.getTasks()) {
+              stashClient.deleteTaskOnComment(task);
+            }
+            
+            stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
+          }
         }
       }
       
@@ -299,5 +324,29 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.error("Unable to reset comment list, {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
     }
+  }
+  
+  /**
+   * Get reported severities to create a task.
+   */
+  public List<String> getReportedSeverities() {
+      List<String> result = new ArrayList<>();
+      String threshold = config.getTaskIssueSeverityThreshold();
+        
+      // threshold == NONE, no severities reported 
+      if (! StringUtils.equals(threshold, StashPlugin.SEVERITY_NONE)) {
+        
+        // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
+        boolean hit = false;
+        for (String severity : StashPlugin.SEVERITY_LIST) {
+          
+          if (hit || StringUtils.equals(severity, threshold)) {
+            result.add(severity);
+            hit = true;
+          }
+        }
+      }
+      
+      return result;
   }
 }

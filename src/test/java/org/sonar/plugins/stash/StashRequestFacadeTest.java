@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,6 +21,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
@@ -31,6 +33,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 
 public class StashRequestFacadeTest {
@@ -56,6 +59,15 @@ public class StashRequestFacadeTest {
   StashCommentReport stashCommentsReport2;
   
   @Mock
+  StashComment comment1;
+  
+  @Mock
+  StashComment comment2;
+  
+  @Mock
+  StashComment comment3;
+  
+  @Mock
   StashUser stashUser;
   
   String stashCommentMessage1;
@@ -78,6 +90,8 @@ public class StashRequestFacadeTest {
   @Before
   public void setUp() throws Exception {
     config = mock(StashPluginConfiguration.class);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
+    
     myFacade = new StashRequestFacade(config);  
     
     stashClient = mock(StashClient.class);
@@ -94,26 +108,64 @@ public class StashRequestFacadeTest {
     
     issueReport = new SonarQubeIssuesReport();
     
-    SonarQubeIssue issue1 = new SonarQubeIssue("key1", "severity1", "message1", "rule1", FILE_PATH_1, 1);
+    SonarQubeIssue issue1 = new SonarQubeIssue("key1", Severity.CRITICAL, "message1", "rule1", FILE_PATH_1, 1);
     stashCommentMessage1 = MarkdownPrinter.printIssueMarkdown(issue1, SONARQUBE_URL);
     issueReport.add(issue1);
     
-    SonarQubeIssue issue2 = new SonarQubeIssue("key2", "severity2", "message2", "rule2", FILE_PATH_1, 2);
+    SonarQubeIssue issue2 = new SonarQubeIssue("key2", Severity.MAJOR, "message2", "rule2", FILE_PATH_1, 2);
     stashCommentMessage2 = MarkdownPrinter.printIssueMarkdown(issue2, SONARQUBE_URL);
     issueReport.add(issue2);
     
-    SonarQubeIssue issue3 = new SonarQubeIssue("key3", "severity3", "message3", "rule3", FILE_PATH_2, 1);
+    SonarQubeIssue issue3 = new SonarQubeIssue("key3", Severity.INFO, "message3", "rule3", FILE_PATH_2, 1);
     stashCommentMessage3 = MarkdownPrinter.printIssueMarkdown(issue3, SONARQUBE_URL);
     issueReport.add(issue3);
     
-    StashComment comment = mock(StashComment.class);
-    when(comment.getAuthor()).thenReturn(stashUser);
+    StashTask task1 = mock(StashTask.class);
+    when(task1.getId()).thenReturn((long) 1111);
+    
+    List<StashTask> taskList1 = new ArrayList<>();
+    taskList1.add(task1);
+    
+    comment1 = mock(StashComment.class);
+    when(comment1.getId()).thenReturn((long) 1111);
+    when(comment1.getAuthor()).thenReturn(stashUser);
+    when(stashClient.postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE)).thenReturn(comment1);
+    when(comment1.getTasks()).thenReturn(taskList1);
+    when(comment1.containsPermanentTasks()).thenReturn(false);
+    
+    StashTask task2 = mock(StashTask.class);
+    when(task1.getId()).thenReturn((long) 2222);
+    
+    List<StashTask> taskList2 = new ArrayList<>();
+    taskList2.add(task2);
+    
+    comment2 = mock(StashComment.class);
+    when(comment2.getId()).thenReturn((long) 2222);
+    when(comment2.getAuthor()).thenReturn(stashUser);
+    when(stashClient.postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE)).thenReturn(comment2);
+    when(comment2.getTasks()).thenReturn(taskList2);
+    when(comment2.containsPermanentTasks()).thenReturn(false);
+    
+    StashTask task3 = mock(StashTask.class);
+    when(task3.getId()).thenReturn((long) 3333);
+    
+    List<StashTask> taskList3 = new ArrayList<>();
+    taskList3.add(task3);
+    
+    comment3 = mock(StashComment.class);
+    when(comment3.getId()).thenReturn((long) 3333);
+    when(comment3.getAuthor()).thenReturn(stashUser);
+    when(stashClient.postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE)).thenReturn(comment3);
+    when(comment3.getTasks()).thenReturn(taskList3);
+    when(comment3.containsPermanentTasks()).thenReturn(false);
     
     ArrayList<StashComment> comments = new ArrayList<>();
-    comments.add(comment);
+    comments.add(comment1);
+    comments.add(comment2);
+    comments.add(comment3);
     
     when(diffReport.getComments()).thenReturn(comments);
-    
+        
     stashCommentsReport1 = mock(StashCommentReport.class);
     when(stashCommentsReport1.getComments()).thenReturn(comments);
     when(stashCommentsReport1.applyDiffReport(diffReport)).thenReturn(stashCommentsReport1);
@@ -123,11 +175,9 @@ public class StashRequestFacadeTest {
     when(stashCommentsReport1.getComments()).thenReturn(comments);
     when(stashCommentsReport2.applyDiffReport(diffReport)).thenReturn(stashCommentsReport2);
     when(stashClient.getPullRequestComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, FILE_PATH_2)).thenReturn(stashCommentsReport2);
-     
-    doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
-    doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
-    doNothing().when(stashClient).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    
     doNothing().when(stashClient).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
+    doNothing().when(stashClient).deleteTaskOnComment((StashTask) Mockito.anyObject());
   }
   
   @Test
@@ -230,10 +280,70 @@ public class StashRequestFacadeTest {
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(true);
     
     myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
-    
+
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+  }
+
+  @Test
+  public void testPostTaskOnComment() throws Exception {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
+    
+    myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    
+    verify(stashClient, times(1)).postTaskOnComment("message3", (long) 3333);
+    verify(stashClient, times(1)).postTaskOnComment("message2", (long) 2222);
+    verify(stashClient, times(1)).postTaskOnComment("message1", (long) 1111);
+  }
+
+  @Test
+  public void testPostTaskOnCommentWithRestrictedLevel() throws Exception {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    
+    myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    
+    verify(stashClient, times(0)).postTaskOnComment("message3", (long) 3333);
+    verify(stashClient, times(1)).postTaskOnComment("message2", (long) 2222);
+    verify(stashClient, times(1)).postTaskOnComment("message1", (long) 1111);
+  }
+  
+  @Test
+  public void testPostTaskOnCommentWithNotPresentLevel() throws Exception {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.BLOCKER);
+    
+    myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    
+    verify(stashClient, times(0)).postTaskOnComment("message3", (long) 3333);
+    verify(stashClient, times(0)).postTaskOnComment("message2", (long) 2222);
+    verify(stashClient, times(0)).postTaskOnComment("message1", (long) 1111);
+  }
+  
+  @Test
+  public void testPostTaskOnCommentWithSeverityNone() throws Exception {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
+    
+    myFacade.postCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+ 
+    verify(stashClient, times(0)).postTaskOnComment("message3", (long) 3333);
+    verify(stashClient, times(0)).postTaskOnComment("message2", (long) 2222);
+    verify(stashClient, times(0)).postTaskOnComment("message1", (long) 1111);
   }
   
   @Test
@@ -323,7 +433,28 @@ public class StashRequestFacadeTest {
   public void testResetComments() throws Exception {
     myFacade.resetComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, diffReport, stashUser, stashClient);
     
-    verify(stashClient, times(1)).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
+    verify(stashClient, times(3)).deleteTaskOnComment((StashTask) Mockito.anyObject());
+    verify(stashClient, times(3)).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
+  }
+  
+  @Test
+  public void testResetCommentsWithNotDeletableTasks() throws Exception {
+    when(comment1.containsPermanentTasks()).thenReturn(true);
+    
+    myFacade.resetComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, diffReport, stashUser, stashClient);
+    
+    verify(stashClient, times(2)).deleteTaskOnComment((StashTask) Mockito.anyObject());
+    verify(stashClient, times(2)).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
+  }
+  
+  @Test
+  public void testResetCommentsWithNoTasks() throws Exception {
+    when(comment1.getTasks()).thenReturn(new ArrayList<StashTask>());
+    
+    myFacade.resetComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, diffReport, stashUser, stashClient);
+    
+    verify(stashClient, times(2)).deleteTaskOnComment((StashTask) Mockito.anyObject());
+    verify(stashClient, times(3)).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
   }
   
   @Test
@@ -399,5 +530,40 @@ public class StashRequestFacadeTest {
     myFacade.addPullRequestReviewer(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, STASH_USER, stashClient);
     
     verify(stashClient, times(0)).addPullRequestReviewer(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, (long) 1, reviewers);
+  }
+  
+  @Test
+  public void testGetReportedSeverities() {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
+    
+    List<String> severities = myFacade.getReportedSeverities();
+    
+    assertEquals(5, severities.size());
+    assertEquals(StashPlugin.SEVERITY_LIST.get(0), severities.get(0));
+    assertEquals(StashPlugin.SEVERITY_LIST.get(1), severities.get(1));
+    assertEquals(StashPlugin.SEVERITY_LIST.get(2), severities.get(2));
+    assertEquals(StashPlugin.SEVERITY_LIST.get(3), severities.get(3));
+    assertEquals(StashPlugin.SEVERITY_LIST.get(4), severities.get(4));
+  }
+  
+  @Test
+  public void testGetReportedSeveritiesWithRestriction() {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    
+    List<String> severities = myFacade.getReportedSeverities();
+    
+    assertEquals(3, severities.size());
+    assertEquals(StashPlugin.SEVERITY_LIST.get(2), severities.get(0));
+    assertEquals(StashPlugin.SEVERITY_LIST.get(3), severities.get(1));
+    assertEquals(StashPlugin.SEVERITY_LIST.get(4), severities.get(2));
+  }
+  
+  @Test
+  public void testGetReportedSeveritiesWithNoSeverity() {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
+    
+    List<String> severities = myFacade.getReportedSeverities();
+    
+    assertEquals(0, severities.size());
   }
 }

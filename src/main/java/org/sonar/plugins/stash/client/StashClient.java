@@ -18,6 +18,7 @@ import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
 
@@ -43,6 +44,7 @@ public class StashClient {
   private static final String COMMENT_PULL_REQUEST_API = COMMENTS_PULL_REQUEST_API + "/{4}?version={5}";
   private static final String DIFF_PULL_REQUEST_API = PULL_REQUEST_API + "/diff";
   private static final String APPROVAL_PULL_REQUEST_API = PULL_REQUEST_API + "/approve";
+  private static final String TASKS_API = REST_API + "tasks";
   
   private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0} #{1}. Received {2} with message {3}.";  
   private static final String PULL_REQUEST_GET_ERROR_MESSAGE = "Unable to retrieve pull-request {0} #{1}. Received {2} with message {3}.";  
@@ -51,6 +53,8 @@ public class StashClient {
   private static final String COMMENT_POST_ERROR_MESSAGE = "Unable to post a comment to {0} #{1}. Received {2} with message {3}.";  
   private static final String COMMENT_GET_ERROR_MESSAGE = "Unable to get comment linked to {0} #{1}. Received {2} with message {3}.";  
   private static final String COMMENT_DELETION_ERROR_MESSAGE = "Unable to delete comment {0} from pull-request {1} #{2}. Received {3} with message {4}.";  
+  private static final String TASK_POST_ERROR_MESSAGE = "Unable to post a task on comment {0}. Received {1} with message {2}.";  
+  private static final String TASK_DELETION_ERROR_MESSAGE = "Unable to delete task {0}. Received {1} with message {2}.";  
   
   public StashClient(String url, StashCredentials credentials, int stashTimeout) {
     this.baseUrl = url;
@@ -171,9 +175,10 @@ public class StashClient {
     return result;
   } 
   
-  public void postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
+  public StashComment postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
       throws StashClientException {
-
+    StashComment result = null;
+    
     String request = MessageFormat.format(COMMENTS_PULL_REQUEST_API, baseUrl + REST_API, project, repository,
         pullRequestId);
 
@@ -204,11 +209,17 @@ public class StashClient {
         String responseMessage = response.getStatusText();
         throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, responseMessage));
       }
-    } catch (ExecutionException | TimeoutException | IOException | InterruptedException e) {
+      
+      // get generated comment
+      result = StashCollector.extractComment(response.getResponseBody(), path, line);
+      
+    } catch (ExecutionException | TimeoutException | IOException | InterruptedException | StashReportExtractionException e) {
       throw new StashClientException(e);
     } finally{
       httpClient.close();
     }
+    
+    return result;
   }
   
   public StashUser getUser(String userSlug)
@@ -339,7 +350,53 @@ public class StashClient {
       httpClient.close();
     }
   }
+  
+  public void postTaskOnComment(String message, Long commentId) throws StashClientException {
+    String request = baseUrl + TASKS_API;
+  
+    JSONObject anchor = new JSONObject();
+    anchor.put("id", commentId);
+    anchor.put("type", "COMMENT");
 
+    JSONObject json = new JSONObject();
+    json.put("anchor", anchor);
+    json.put("text", message);
+
+    try (AsyncHttpClient httpClient = createHttpClient()) {
+
+      BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
+      requestBuilder.setBody(json.toString());
+
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_CREATED) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(TASK_POST_ERROR_MESSAGE, commentId, responseCode, responseMessage));
+      }
+    } catch (ExecutionException | TimeoutException | IOException | InterruptedException e) {
+      throw new StashClientException(e);
+    }
+  }
+
+  public void deleteTaskOnComment(StashTask task) throws StashClientException {
+    String request = baseUrl + TASKS_API + "/" + task.getId();
+  
+    AsyncHttpClient httpClient = createHttpClient();
+    BoundRequestBuilder requestBuilder = httpClient.prepareDelete(request);
+    
+    try {
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_NO_CONTENT) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(TASK_DELETION_ERROR_MESSAGE, task.getId(), responseCode, responseMessage));
+      }
+    } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
+      throw new StashClientException(e);
+    } finally{
+      httpClient.close();
+    }
+  }
   
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
       ExecutionException, TimeoutException {

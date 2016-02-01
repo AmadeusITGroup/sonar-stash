@@ -1,14 +1,18 @@
 package org.sonar.plugins.stash.issue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class StashComment {
 
   private final long id;
   private final String message;
-  private final String path;
   private final StashUser author;
   private final long version;
   private long line;
+  private String path;
+  private List<StashTask> tasks;
   
   public StashComment(long id, String message, String path, Long line, StashUser author, long version) {
     this.id = id;
@@ -23,6 +27,8 @@ public class StashComment {
     } else{
       this.line = line.longValue();  
     }
+    
+    tasks = new ArrayList<>();
   }
 
   public long getId(){
@@ -31,6 +37,10 @@ public class StashComment {
   
   public void setLine(long line){
     this.line = line;
+  }
+  
+  public void setPath(String path){
+    this.path = path;
   }
   
   public String getMessage() {
@@ -51,6 +61,27 @@ public class StashComment {
   
   public long getVersion() {
     return version;
+  }
+  
+  public List<StashTask> getTasks() {
+    return tasks;
+  }
+  
+  public void addTask(StashTask task){
+    tasks.add(task);
+  }
+  
+  public boolean containsPermanentTasks() {
+    boolean result = false;
+    
+    for (StashTask task: tasks){
+      if (! task.isDeletable()){
+        result = true;
+        break;
+      }
+    }
+    
+    return result;
   }
   
   @Override
