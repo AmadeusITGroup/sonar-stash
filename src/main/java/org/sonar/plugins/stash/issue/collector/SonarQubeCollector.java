@@ -46,6 +46,9 @@ public final class SonarQubeCollector {
         if (inputFile == null){
           LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
         } else {
+	  LOGGER.debug("Basedir: {}", projectBaseDir);
+	  LOGGER.debug("File: {} ", inputFile.file());
+
           String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
              
           // Create the issue and Add to report

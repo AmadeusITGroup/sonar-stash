@@ -47,6 +47,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
+  public static final String STASH_PROJECT_BASE_DIR = "sonar.stash.project.base.dir";
   
   @Override
   public List getExtensions() {
