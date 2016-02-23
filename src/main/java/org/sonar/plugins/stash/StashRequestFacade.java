@@ -40,7 +40,7 @@ public class StashRequestFacade implements BatchComponent {
   }
   
   public void initialize(File projectBaseDir) {
-    if (config.getBaseDir() == "")
+    if (config.getBaseDir() != null && !"".equals(config.getBaseDir()))
     {
       this.projectBaseDir = projectBaseDir;
     }
