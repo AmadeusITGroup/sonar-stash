@@ -44,7 +44,7 @@ public class StashRequestFacade implements BatchComponent {
   }
   
   public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache){
-    return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir, config.includeExistingIssues());
   }
 
   /**
@@ -150,7 +150,7 @@ public class StashRequestFacade implements BatchComponent {
         } else {
         
           // check if issue belongs to the Stash diff view
-          String type = diffReport.getType(issue.getPath(), issue.getLine());
+          String type = diffReport.getType(issue.getPath(), issue.getLine(), config.includeVicinityIssues());
           if (type == null){
             LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})", issue.getRule(), issue.getPath(), issue.getLine());
           } else{

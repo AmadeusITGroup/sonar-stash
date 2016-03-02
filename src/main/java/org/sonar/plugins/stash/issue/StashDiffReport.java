@@ -3,6 +3,7 @@ package org.sonar.plugins.stash.issue;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Ranges;
 import org.apache.commons.lang3.StringUtils;
 import org.sonar.plugins.stash.StashPlugin;
 
@@ -14,6 +15,8 @@ import org.sonar.plugins.stash.StashPlugin;
  *
  */
 public class StashDiffReport {
+
+  private static final long PR_DIFF_COMMENT_OFFSET = 10;
 
   private List<StashDiff> diffs;
 
@@ -35,7 +38,7 @@ public class StashDiffReport {
     }
   }
   
-  public String getType(String path, long destination){
+  public String getType(String path, long destination, boolean includeVicinityIssues){
     String result = null;
     
     for (StashDiff diff : diffs) {
@@ -46,7 +49,7 @@ public class StashDiffReport {
         break;
       } else{
         
-        if (StringUtils.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
+        if (StringUtils.equals(diff.getPath(), path) && ((diff.getDestination() == destination) || includeVicinityIssuesForDiff(diff, destination, includeVicinityIssues))) {
           result = diff.getType();
           break;
         }
@@ -55,7 +58,12 @@ public class StashDiffReport {
 
     return result;
   }
-  
+
+  private boolean includeVicinityIssuesForDiff(StashDiff diff, long destination, boolean includeVicinityIssues) {
+    return includeVicinityIssues && Ranges.closed(diff.getSource() - PR_DIFF_COMMENT_OFFSET, diff.getDestination() + PR_DIFF_COMMENT_OFFSET).contains(destination);
+  }
+
+
   /**
    * Depends on the type of the diff.
    * If type == "CONTEXT", return the source line of the diff.

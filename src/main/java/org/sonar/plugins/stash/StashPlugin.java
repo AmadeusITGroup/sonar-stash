@@ -22,6 +22,9 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
+  private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
+  private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
+  private static final boolean DEFAULT_STASH_INCLUDE_VICINITY_ISSUES = false;
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
   
@@ -47,6 +50,9 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
+  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.analysis.overview";
+  public static final String STASH_INCLUDE_EXISTING_ISSUES = "sonar.stash.include.existing.issues";
+  public static final String STASH_INCLUDE_VICINITY_ISSUES = "sonar.stash.include.vicinity.issues";
   
   @Override
   public List getExtensions() {
@@ -93,7 +99,28 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
-            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build());
+            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
+            .name("Include Analysis Overview Comment")
+            .description("Set to false to prevent creation of the analysis overview comment.")
+            .type(PropertyType.BOOLEAN)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_EXISTING_ISSUES)
+            .name("Include Existing Issues")
+            .description("Set to true to include already existing issues on modified lines.")
+            .type(PropertyType.BOOLEAN)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .defaultValue(Boolean.toString(DEFAULT_STASH_INCLUDE_EXISTING_ISSUES)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_VICINITY_ISSUES)
+            .name("Include Vicinity Issues")
+            .description("Set to true to include issues which are in the vicinity (+/- 10 lines) of the pull request diff.")
+            .type(PropertyType.BOOLEAN)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .defaultValue(Boolean.toString(DEFAULT_STASH_INCLUDE_VICINITY_ISSUES)).build());
   }
 }
 
