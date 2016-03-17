@@ -1,14 +1,31 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.Collection;
 
+import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.batch.SensorContext;
+import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.measures.Measure;
+import org.sonar.api.measures.MeasuresFilters;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.InputFileCache;
+import org.sonar.plugins.stash.InputFileCacheSensor;
+import org.sonar.plugins.stash.client.SonarQubeClient;
+import org.sonar.plugins.stash.exceptions.SonarQubeClientException;
+import org.sonar.plugins.stash.exceptions.SonarQubeReportExtractionException;
+import org.sonar.plugins.stash.issue.CoverageIssue;
+import org.sonar.plugins.stash.issue.CoverageIssuesReport;
 import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 
@@ -55,6 +72,97 @@ public final class SonarQubeCollector {
       }
     }
 
+    return result;
+  }
+  
+  /**
+   * Extract Code Coverage report to be published into the pull-request.
+   * @throws SonarQubeClientException 
+   */
+  public static CoverageIssuesReport extractCoverageReport(String sonarQubeProjectKey, SensorContext context,
+      InputFileCacheSensor inputFileCacheSensor, String codeCoverageSeverity, SonarQubeClient sonarqubeClient) throws SonarQubeClientException {
+    
+    CoverageIssuesReport result = new CoverageIssuesReport();
+    
+    FileSystem fileSystem = inputFileCacheSensor.getFileSystem();
+    for (org.sonar.api.batch.fs.InputFile f : fileSystem.inputFiles(fileSystem.predicates().all())) {
+      Collection<Measure> allMeasures = context.getMeasures(context.getResource(f), MeasuresFilters.all());
+
+      Double linesToCover = null;
+      Double uncoveredLines = null;
+
+      if (allMeasures != null) {
+        
+        for (Measure<Serializable> measure : allMeasures) {
+          String measureName = measure.getMetric().getName();
+  
+          if (StringUtils.equals(measureName,
+              CoverageIssue.UNCOVERED_LINES_MEASURE_NAME)) {
+            uncoveredLines = measure.getValue();
+          }
+  
+          if (StringUtils.equals(measureName,
+              CoverageIssue.LINES_TO_COVER_MEASURE_NAME)) {
+            linesToCover = measure.getValue();
+          }
+        }
+  
+        // get lines_to_cover, uncovered_lines
+        if ((linesToCover != null) && (uncoveredLines != null)) {
+          double previousCoverage = sonarqubeClient.getCoveragePerFile(sonarQubeProjectKey, f.relativePath());
+  
+          CoverageIssue issue = new CoverageIssue(codeCoverageSeverity, f.relativePath());
+          issue.setLinesToCover(linesToCover);
+          issue.setUncoveredLines(uncoveredLines);
+          issue.setPreviousCoverage(previousCoverage);
+  
+          result.add(issue);
+          LOGGER.debug(issue.getMessage());
+        }
+      }
+    }
+  
+    // set previous project coverage from SonarQube server
+    double previousProjectCoverage = sonarqubeClient.getCoveragePerProject(sonarQubeProjectKey);
+    result.setPreviousProjectCoverage(previousProjectCoverage);
+
+    return result;
+  }
+  
+  
+  /**
+   * Extract Code Coverage retrieve by the SonarQube analysis.
+   */
+  public static double extractCoverage(String jsonBody) throws SonarQubeReportExtractionException {
+    double result = 0;
+    
+    try {
+      JSONArray jsonFiles = (JSONArray) new JSONParser().parse(jsonBody);
+      if (jsonFiles != null) {
+        
+        for (Object objectFile : jsonFiles.toArray()) {
+          JSONObject jsonFile = (JSONObject) objectFile;
+          
+          JSONArray jsonMeasures = (JSONArray) jsonFile.get("msr");
+          if (jsonMeasures != null) {
+        
+            for (Object obj : jsonMeasures.toArray()) {
+              JSONObject jsonMsr = (JSONObject) obj;
+
+              String key = (String) jsonMsr.get("key");
+              
+              if (StringUtils.equals(key, "line_coverage")) {
+                result = (Double) jsonMsr.get("val");
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch (ParseException e) {
+      throw new SonarQubeReportExtractionException(e);
+    }
+    
     return result;
   }
 }

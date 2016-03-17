@@ -41,4 +41,7 @@ public class InputFileCacheSensor implements Sensor {
     return fileSystem.predicates().all();
   }
   
+  public FileSystem getFileSystem() {
+    return fileSystem;
+  }
 }
