@@ -73,7 +73,8 @@ public class StashClientTest {
     when(httpClient.prepareGet(anyString())).thenReturn(requestBuilder);
     when(httpClient.prepareDelete(anyString())).thenReturn(requestBuilder);
     when(httpClient.preparePut(anyString())).thenReturn(requestBuilder);
-
+    doNothing().when(httpClient).close();
+    
     StashClient client = new StashClient("baseUrl", new StashCredentials("login", "password"), 1000);
     client.setHttpClient(httpClient);
     spyClient = spy(client);
@@ -324,7 +325,7 @@ public class StashClientTest {
       spyClient.getUser("sonarqube");
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
-      
+
     } catch (StashClientException e) { }
   }
     

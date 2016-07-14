@@ -66,6 +66,24 @@ public class StashRequestFacade implements BatchComponent {
   }
   
   /**
+   * Post SQ analysis overview on Stash
+   */
+  public void postCommitAnalysisOverview(String project, String repository, String commitId, String sonarQubeURL, int issueThreshold, SonarQubeIssuesReport issueReport, StashClient stashClient){
+    try {
+      stashClient.postCommentOnCommit(project,
+                                      repository,
+                                      commitId,
+                                      MarkdownPrinter.printReportMarkdown(issueReport, sonarQubeURL, issueThreshold));
+    
+      LOGGER.info("SonarQube analysis overview has been reported to Stash.");
+      
+    } catch(StashClientException e){
+      LOGGER.error("Unable to push SonarQube analysis overview to Stash: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+  
+  /**
    * Approve pull-request
    */
   public void approvePullRequest(String project, String repository, String pullRequestId, String user, StashClient stashClient){
@@ -114,6 +132,73 @@ public class StashRequestFacade implements BatchComponent {
       }
     } catch(StashClientException e){
       LOGGER.error("Unable to add a new reviewer to the pull-request: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+  }
+  
+  /**
+   * Post one comment on a commit by found issue on Stash.
+   */
+  public void postCommitCommentPerIssue(String project, String repository, String commitId, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient){
+    try {
+      // to optimize request to Stash, builds comment match ordered by filepath
+      Map<String,StashCommentReport> commentsByFile = new HashMap<>();
+      for (SonarQubeIssue issue : issueReport.getIssues()) {
+        if (commentsByFile.get(issue.getPath()) == null){
+          StashCommentReport comments = stashClient.getCommitComments(project, repository, commitId, issue.getPath());
+          
+          // According to the type of the comment
+          // if type == CONTEXT, comment.line is set to source line instead of destination line
+          comments.applyDiffReport(diffReport);
+          
+          commentsByFile.put(issue.getPath(), comments);
+        }
+      }
+      
+      // Severity available to create a task
+      List<String> taskSeverities = getReportedSeverities();
+      
+      for (SonarQubeIssue issue : issueReport.getIssues()) {
+        StashCommentReport comments = commentsByFile.get(issue.getPath());
+        
+        // if comment not already pushed to Stash
+        if ((comments != null) &&
+            (comments.contains(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL), issue.getPath(), issue.getLine()))) {
+          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getRule(), issue.getPath(), issue.getLine());
+        } else {
+        
+          // check if issue belongs to the Stash diff view
+          String type = diffReport.getType(issue.getPath(), issue.getLine());
+          if (type == null){
+            LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})", issue.getRule(), issue.getPath(), issue.getLine());
+          } else{
+          
+            long line = diffReport.getLine(issue.getPath(), issue.getLine());
+            
+            StashComment comment = stashClient.postCommentLineOnCommit(project,
+                                                                       repository,
+                                                                       commitId,
+                                                                       MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
+                                                                       issue.getPath(),
+                                                                       line,
+                                                                       type);
+  
+            LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getRule(), type, issue.getPath(), line);
+            
+            // Create task linked to the comment if configured
+            if (taskSeverities.contains(issue.getSeverity())) {
+              stashClient.postTaskOnComment(issue.getMessage(), comment.getId());
+              
+              LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+            }
+          }
+        }
+      }
+      
+      LOGGER.info("New SonarQube issues have been reported to Stash.");
+      
+    } catch (StashClientException e){
+      LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
     }
   }
@@ -243,16 +328,19 @@ public class StashRequestFacade implements BatchComponent {
   }
   
   /**
-   * Mandatory Stash pull-request ID option.
+   * Stash pull-request ID option. Must specify this or commit ID
    * @throws StashConfigurationException if unable to get parameter
    */
-  public String getStashPullRequestId() throws StashConfigurationException {
-    String result = config.getPullRequestId();
-    if (result == null){
-      throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_PULL_REQUEST_ID + ": value is null");
-    }
-    
-    return result;
+  public String getStashPullRequestId() {
+    return config.getPullRequestId();
+  }
+
+  /**
+   * Stash commit ID option. Must specify this or pull request ID
+   * @throws StashConfigurationException if unable to get parameter
+   */
+  public String getStashCommitId() {
+    return config.getCommitId();
   }
 
   /**
@@ -284,6 +372,25 @@ public class StashRequestFacade implements BatchComponent {
       result = stashClient.getPullRequestDiffs(project, repository, pullRequestId);
       
       LOGGER.debug("Stash differential report retrieved from pull request {} #{}", repository, pullRequestId);
+      
+    } catch(StashClientException e){
+      LOGGER.error("Unable to get Stash differential report from Stash: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+    }
+    
+    return result;
+  }
+  
+  /**
+   * Get all changes exposed through the Stash commit.
+   */
+  public StashDiffReport getCommitDiffReport(String project, String repository, String commitId, StashClient stashClient){
+    StashDiffReport result = null;
+    
+    try {
+      result = stashClient.getCommitDiffs(project, repository, commitId);
+      
+      LOGGER.debug("Stash differential report retrieved from commit {} #{}", repository, commitId);
       
     } catch(StashClientException e){
       LOGGER.error("Unable to get Stash differential report from Stash: {}", e.getMessage());
