@@ -45,8 +45,17 @@ public class StashIssueReportingPostJob implements PostJob {
         String stashURL = stashRequestFacade.getStashURL();
         String stashProject = stashRequestFacade.getStashProject();
         String repository = stashRequestFacade.getStashRepository();
+
         String stashPullRequestId = stashRequestFacade.getStashPullRequestId();
-          
+        String stashCommitId = stashRequestFacade.getStashCommitId();
+
+        if (stashPullRequestId == null && stashCommitId == null) {
+            throw new StashConfigurationException("Must specify either Commit ID or Pull Reuquest ID");
+        }
+        if (stashPullRequestId != null && stashCommitId != null) {
+            throw new StashConfigurationException("Cannot specify both Commit ID and Pull Reuquest ID");
+        }
+        
         int stashTimeout = config.getStashTimeout();
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
@@ -57,39 +66,53 @@ public class StashIssueReportingPostJob implements PostJob {
           LOGGER.error("Process stopped: no SonarQube reviewer identified to publish to Stash the SQ analysis"); 
         }
         else {
-          
-          // Get all changes exposed from Stash differential view of the pull-request
-          StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(stashProject, repository, stashPullRequestId, stashClient);
-          if (diffReport == null) {
-            LOGGER.error("Process stopped: No Stash differential report available to process the SQ analysis"); 
-          } else {
-          
-            // if requested, reset all comments linked to the pull-request
-            if (config.resetComments()) {
-              stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId, diffReport, stashUser, stashClient);
-            }
-            
-            boolean canApprovePullrequest = config.canApprovePullRequest();
-            if (canApprovePullrequest) {
-              stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
-            }
-            
-            // if threshold exceeded, do not push issue list to Stash
-            if (issueReport.countIssues() >= issueThreshold) {
-              LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
+          if (stashPullRequestId == null) {
+            // Get all changes exposed from Stash differential view of the commit
+            StashDiffReport diffReport = stashRequestFacade.getCommitDiffReport(stashProject, repository, stashCommitId, stashClient);
+            if (diffReport == null) {
+              LOGGER.error("Process stopped: No Stash differential report available to process the SQ analysis"); 
             } else {
-              stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL, issueReport, diffReport, stashClient);
-            }
-
-            stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
-           
-            if (canApprovePullrequest) {
-           
-              // if no new issues, plugin approves the pull-request 
-              if (issueReport.countIssues() == 0) {
-                stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+              if (issueReport.countIssues() >= issueThreshold) {
+                LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
               } else {
-                stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+                stashRequestFacade.postCommitCommentPerIssue(stashProject, repository, stashCommitId, sonarQubeURL, issueReport, diffReport, stashClient);
+              }
+              stashRequestFacade.postCommitAnalysisOverview(stashProject, repository, stashCommitId, sonarQubeURL, issueThreshold, issueReport, stashClient);
+            }
+          }
+          else {
+            // Get all changes exposed from Stash differential view of the pull-request
+            StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(stashProject, repository, stashPullRequestId, stashClient);
+            if (diffReport == null) {
+              LOGGER.error("Process stopped: No Stash differential report available to process the SQ analysis"); 
+            } else {
+            
+              // if requested, reset all comments linked to the pull-request
+              if (config.resetComments()) {
+                stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId, diffReport, stashUser, stashClient);
+              }
+              
+              boolean canApprovePullrequest = config.canApprovePullRequest();
+              if (canApprovePullrequest) {
+                stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+              }
+              
+              // if threshold exceeded, do not push issue list to Stash
+              if (issueReport.countIssues() >= issueThreshold) {
+                LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view", issueReport.countIssues(), issueThreshold);
+              } else {
+                stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL, issueReport, diffReport, stashClient);
+              }
+              stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
+             
+              if (canApprovePullrequest) {
+             
+                // if no new issues, plugin approves the pull-request 
+                if (issueReport.countIssues() == 0) {
+                  stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+                } else {
+                  stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId, stashCredentials.getLogin(), stashClient);
+                }
               }
             }
           }

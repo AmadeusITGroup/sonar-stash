@@ -56,6 +56,11 @@ public class StashClient {
   private static final String TASK_POST_ERROR_MESSAGE = "Unable to post a task on comment {0}. Received {1} with message {2}.";  
   private static final String TASK_DELETION_ERROR_MESSAGE = "Unable to delete task {0}. Received {1} with message {2}.";  
   
+  private static final String COMMITS_API = REPO_API + "commits/";
+  private static final String COMMIT_API = COMMITS_API + "{3}";
+  private static final String COMMENTS_COMMIT_API = COMMIT_API + "/comments";
+  private static final String DIFF_COMMIT_API = COMMIT_API + "/diff";
+  
   public StashClient(String url, StashCredentials credentials, int stashTimeout) {
     this.baseUrl = url;
     this.credentials = credentials;
@@ -106,6 +111,43 @@ public class StashClient {
         if (responseCode != HttpURLConnection.HTTP_OK) {
           String responseMessage = response.getStatusText();
           throw new StashClientException(MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, pullRequestId, responseCode, responseMessage));
+        } else{
+          String jsonComments = response.getResponseBody();
+          result.add(StashCollector.extractComments(jsonComments));
+            
+          // Stash pagination: check if you get all comments linked to the pull-request
+          isLastPage = StashCollector.isLastPage(jsonComments);
+          start = StashCollector.getNextPageStart(jsonComments);
+        }
+      } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
+        throw new StashClientException(e);
+      } finally{
+        httpClient.close();
+      }
+    }
+  
+    return result;
+  } 
+  
+  public StashCommentReport getCommitComments(String project, String repository, String commitId, String path)
+      throws StashClientException {
+    StashCommentReport result = new StashCommentReport();
+    
+    AsyncHttpClient httpClient = createHttpClient();
+    
+    long start = 0;
+    boolean isLastPage = false; 
+    
+    while (! isLastPage){
+      try {
+        String request = MessageFormat.format(COMMENTS_COMMIT_API + "?path={4}&start={5}", baseUrl + REST_API, project, repository, commitId, path, start);
+        BoundRequestBuilder requestBuilder = httpClient.prepareGet(request);
+        
+        Response response = executeRequest(requestBuilder);
+        int responseCode = response.getStatusCode();
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+          String responseMessage = response.getStatusText();
+          throw new StashClientException(MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, commitId, responseCode, responseMessage));
         } else{
           String jsonComments = response.getResponseBody();
           result.add(StashCollector.extractComments(jsonComments));
@@ -175,6 +217,34 @@ public class StashClient {
     return result;
   } 
   
+  public StashDiffReport getCommitDiffs(String project, String repository, String commitId)
+      throws StashClientException {
+    StashDiffReport result = new StashDiffReport();
+    
+    AsyncHttpClient httpClient = createHttpClient();
+    
+    try {
+      String request = MessageFormat.format(DIFF_COMMIT_API + "?withComments=true", baseUrl + REST_API, project, repository, commitId);
+      BoundRequestBuilder requestBuilder = httpClient.prepareGet(request);
+        
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_OK) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, commitId, responseCode, responseMessage));
+      } else{
+        String jsonDiffs = response.getResponseBody();
+        result = StashCollector.extractDiffs(jsonDiffs);
+      }
+    } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
+      throw new StashClientException(e);
+    } finally{
+      httpClient.close();
+    }
+  
+    return result;
+  } 
+  
   public StashComment postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
       throws StashClientException {
     StashComment result = null;
@@ -208,6 +278,78 @@ public class StashClient {
       if (responseCode != HttpURLConnection.HTTP_CREATED) {
         String responseMessage = response.getStatusText();
         throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, responseMessage));
+      }
+      
+      // get generated comment
+      result = StashCollector.extractComment(response.getResponseBody(), path, line);
+      
+    } catch (ExecutionException | TimeoutException | IOException | InterruptedException | StashReportExtractionException e) {
+      throw new StashClientException(e);
+    } finally{
+      httpClient.close();
+    }
+    
+    return result;
+  }
+  
+  public void postCommentOnCommit(String project, String repository, String commitId, String report)
+      throws StashClientException {
+
+    String request = MessageFormat.format(COMMENTS_COMMIT_API, baseUrl + REST_API, project, repository, commitId);
+    JSONObject json = new JSONObject();
+    json.put("text", report);
+
+    AsyncHttpClient httpClient = createHttpClient();
+    BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
+    requestBuilder.setBody(json.toString());
+
+    try {
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_CREATED) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, commitId, responseCode, responseMessage));
+      }
+    } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
+      throw new StashClientException(e);
+    } finally{
+      httpClient.close();
+    }
+  }
+
+  public StashComment postCommentLineOnCommit(String project, String repository, String commitId, String message, String path, long line, String type)
+      throws StashClientException {
+    StashComment result = null;
+    
+    String request = MessageFormat.format(COMMENTS_COMMIT_API, baseUrl + REST_API, project, repository,
+        commitId);
+
+    JSONObject anchor = new JSONObject();
+    anchor.put("line", line);
+    anchor.put("lineType", type);
+    
+    String fileType = "TO";
+    if (StringUtils.equals(type, StashPlugin.CONTEXT_ISSUE_TYPE)){
+      fileType = "FROM";
+    }
+    anchor.put("fileType", fileType);
+    
+    anchor.put("path", path);
+    
+    JSONObject json = new JSONObject();
+    json.put("text", message);
+    json.put("anchor", anchor);
+
+    AsyncHttpClient httpClient = createHttpClient();
+    BoundRequestBuilder requestBuilder = httpClient.preparePost(request);
+    requestBuilder.setBody(json.toString());
+    
+    try {
+      Response response = executeRequest(requestBuilder);
+      int responseCode = response.getStatusCode();
+      if (responseCode != HttpURLConnection.HTTP_CREATED) {
+        String responseMessage = response.getStatusText();
+        throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, commitId, responseCode, responseMessage));
       }
       
       // get generated comment
