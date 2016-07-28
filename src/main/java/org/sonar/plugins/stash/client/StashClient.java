@@ -411,6 +411,7 @@ public class StashClient {
       ExecutionException, TimeoutException {
     addAuthorization(requestBuilder);
     requestBuilder.addHeader("Content-Type", "application/json");
+    requestBuilder.setFollowRedirect(true);
     return requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);
   }
 
