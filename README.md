@@ -1,4 +1,7 @@
-# SonarQube Stash (BitBucket) plugin [![Build Status](https://travis-ci.org/AmadeusITGroup/sonar-stash.svg)](https://travis-ci.org/AmadeusITGroup/sonar-stash)
+# SonarQube Stash (BitBucket) plugin
+
+[![Build Status](https://travis-ci.org/AmadeusITGroup/sonar-stash.svg)](https://travis-ci.org/AmadeusITGroup/sonar-stash)
+[![SonarQube Coverage](https://img.shields.io/sonar/http/sonar.qatools.ru/ru.yandex.qatools.allure:allure-core/coverage.svg?maxAge=2592000)(https://sonarqube.com/overview?id=org.sonar%3Asonar-stash-plugin)]
 
 **SonarQube is now a real reviewer!**
 SonarQube Stash (BitBucket) plugin is a pull-request decorator which allows to integrate SonarQube violations directly into your pull-request.
