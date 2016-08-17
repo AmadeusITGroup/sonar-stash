@@ -22,11 +22,11 @@ import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.Realm;
-import com.ning.http.client.Realm.AuthScheme;
-import com.ning.http.client.Response;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.Realm;
+import org.asynchttpclient.Response;
 
 public class StashClient {
 
@@ -83,7 +83,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
 
@@ -117,7 +117,7 @@ public class StashClient {
       } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
         throw new StashClientException(e);
       } finally{
-        httpClient.close();
+        closeHttpClient(httpClient);
       }
     }
   
@@ -143,7 +143,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
   
@@ -169,7 +169,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   
     return result;
@@ -216,7 +216,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | IOException | InterruptedException | StashReportExtractionException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
     
     return result;
@@ -243,7 +243,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
       throw new StashClientException(e);
     } finally {
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
   
@@ -268,7 +268,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | StashReportExtractionException | IOException e) {
       throw new StashClientException(e);
     } finally {
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
   
@@ -307,7 +307,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
     } finally {
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
 
@@ -327,7 +327,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
   
@@ -347,7 +347,7 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
   
@@ -394,24 +394,34 @@ public class StashClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
     } finally{
-      httpClient.close();
+      closeHttpClient(httpClient);
     }
   }
-  
+
+  private void closeHttpClient(AsyncHttpClient httpClient) throws StashClientException {
+    try {
+      httpClient.close();
+    }
+    catch(IOException e) {
+      throw new StashClientException(e);
+    }
+  }
+
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException,
       ExecutionException, TimeoutException {
     addAuthorization(requestBuilder);
     requestBuilder.addHeader("Content-Type", "application/json");
+    requestBuilder.setFollowRedirect(true);
     return requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);
   }
 
   void addAuthorization(final BoundRequestBuilder requestBuilder) {
-    Realm realm = new Realm.RealmBuilder().setPrincipal(credentials.getLogin()).setPassword(credentials.getPassword())
-        .setUsePreemptiveAuth(true).setScheme(AuthScheme.BASIC).build();
+    Realm realm = new Realm.Builder(credentials.getLogin(), credentials.getPassword())
+        .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
     requestBuilder.setRealm(realm);
   }
   
   AsyncHttpClient createHttpClient(){
-    return new AsyncHttpClient();
+    return new DefaultAsyncHttpClient();
   }
 }
