@@ -20,7 +20,7 @@ After every run, in addition of the diff view, you may access to an overview of 
 - Maven 3.0.5
 - JDK 1.7
 - SonarQube 4.5.4 (LTS)
-- Stash (BitBucket) 3.x
+- Stash (BitBucket) REST API 1.0 (3.x, 4.x)
 
 #### To build the plugin
 This command generates a jar file.
