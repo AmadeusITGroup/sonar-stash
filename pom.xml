@@ -85,9 +85,9 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.sonar</groupId>
+        <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
         <artifactId>sonar-packaging-maven-plugin</artifactId>
-        <version>1.7</version>
+        <version>1.17</version>
         <extensions>true</extensions>
         <configuration>
           <pluginClass>org.sonar.plugins.stash.StashPlugin</pluginClass>
