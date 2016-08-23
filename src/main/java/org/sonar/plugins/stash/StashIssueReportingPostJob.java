@@ -81,7 +81,9 @@ public class StashIssueReportingPostJob implements PostJob {
               stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL, issueReport, diffReport, stashClient);
             }
 
-            stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
+            if (config.includeAnalysisOverview()) {
+              stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, issueThreshold, issueReport, stashClient);
+            }
            
             if (canApprovePullrequest) {
            

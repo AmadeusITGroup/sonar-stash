@@ -25,11 +25,11 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File projectBaseDir) {
+  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File projectBaseDir, boolean includeExistingIssues) {
     SonarQubeIssuesReport result = new SonarQubeIssuesReport();
 
     for (Issue issue : projectIssues.issues()) {
-      if (! issue.isNew()){
+      if (! issue.isNew() && !includeExistingIssues){
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
       } else {
         String key = issue.key();

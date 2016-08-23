@@ -76,18 +76,29 @@ public class StashDiffReportTest {
   
   @Test
   public void testGetType(){
-    assertEquals(report1.getType("path/to/diff1", 20), StashPlugin.CONTEXT_ISSUE_TYPE);
-    assertEquals(report1.getType("path/to/diff2", 30), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff1", 20, false), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff2", 30, false), StashPlugin.ADDED_ISSUE_TYPE);
     
-    assertEquals(report1.getType("path/to/diff2", 20), null);
-    assertEquals(report1.getType("path/to/diff1", 30), null);
-    assertEquals(report1.getType("path/to/diff4", 60), null);
+    assertEquals(report1.getType("path/to/diff2", 20, false), null);
+    assertEquals(report1.getType("path/to/diff1", 30, false), null);
+    assertEquals(report1.getType("path/to/diff4", 60, false), null);
+
+    assertEquals(report1.getType("path/to/diff1", 20, true), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff2", 30, false), StashPlugin.ADDED_ISSUE_TYPE);
+
+    assertEquals(report1.getType("path/to/diff2", 9, true), null);
+    assertEquals(report1.getType("path/to/diff2", 10, true), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff2", 25, true), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff2", 40, true), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff2", 41, true), null);
+    assertEquals(report1.getType("path/to/diff1", 30, true), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff4", 60, true), null);
   }
   
   @Test
   public void testGetTypeWithNoDestination(){
-    assertEquals(report1.getType("path/to/diff1", 0), StashPlugin.CONTEXT_ISSUE_TYPE);
-    assertEquals(report1.getType("path/to/diff", 0), null);
+    assertEquals(report1.getType("path/to/diff1", 0, false), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff", 0, false), null);
   }
   
   @Test
