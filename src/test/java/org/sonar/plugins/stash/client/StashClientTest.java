@@ -73,12 +73,11 @@ public class StashClientTest {
     when(httpClient.prepareGet(anyString())).thenReturn(requestBuilder);
     when(httpClient.prepareDelete(anyString())).thenReturn(requestBuilder);
     when(httpClient.preparePut(anyString())).thenReturn(requestBuilder);
-    doNothing().when(httpClient).close();
-    
+
     StashClient client = new StashClient("baseUrl", new StashCredentials("login", "password"), 1000);
+    client.setHttpClient(httpClient);
     spyClient = spy(client);
     doNothing().when(spyClient).addAuthorization(requestBuilder);
-    doReturn(httpClient).when(spyClient).createHttpClient();
   }
   
   @Test
@@ -87,7 +86,6 @@ public class StashClientTest {
     
     spyClient.postCommentOnPullRequest("Project", "Repository", "1", "Report");
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close();
   }
   
   @Test
@@ -101,7 +99,6 @@ public class StashClientTest {
     
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -117,7 +114,6 @@ public class StashClientTest {
     
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -133,7 +129,6 @@ public class StashClientTest {
     
     assertTrue(report.contains("message", "path", 5));
     assertEquals(report.size(), 1);
-    verify(httpClient, times(1)).close();
   }
   
   @Test
@@ -151,7 +146,6 @@ public class StashClientTest {
     assertTrue(report.contains("message1", "path", 1));
     assertTrue(report.contains("message2", "path", 2));
     assertEquals(report.size(), 2);
-    verify(httpClient, times(2)).close();
   }
   
   @Test
@@ -169,7 +163,6 @@ public class StashClientTest {
     assertTrue(report.contains("message1", "path", 5));
     assertFalse(report.contains("message2", "path", 10));
     assertEquals(report.size(), 1);
-    verify(httpClient, times(1)).close();
   }
   
   @Test
@@ -183,7 +176,6 @@ public class StashClientTest {
     
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -199,7 +191,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
 
@@ -210,7 +201,6 @@ public class StashClientTest {
     
     StashDiffReport report = spyClient.getPullRequestDiffs("Project", "Repository", "1");
     assertEquals(report.getDiffs().size(), 4);
-    verify(httpClient, times(1)).close(); 
   }
   
   @Test
@@ -225,7 +215,6 @@ public class StashClientTest {
      
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -241,7 +230,6 @@ public class StashClientTest {
     
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -257,7 +245,6 @@ public class StashClientTest {
     
     assertEquals((long) 1234, comment.getId());
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
   
   @Test
@@ -271,7 +258,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -287,7 +273,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
 
@@ -305,7 +290,6 @@ public class StashClientTest {
     assertEquals(user.getEmail(), "sq@email.com");
     assertEquals(user.getSlug(), "sonarqube");
     
-    verify(httpClient, times(1)).close(); 
   }
     
   @Test
@@ -319,7 +303,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -335,7 +318,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
     
@@ -349,7 +331,6 @@ public class StashClientTest {
     
     spyClient.deletePullRequestComment("Project", "Repository", "1", stashComment);
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
   
   @Test
@@ -367,7 +348,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -384,8 +364,6 @@ public class StashClientTest {
     assertEquals(pullRequest.getProject(), "Project");
     assertEquals(pullRequest.getRepository(), "Repository");
     assertEquals(pullRequest.getVersion(), 1);
-    
-    verify(httpClient, times(1)).close(); 
   }
     
   @Test
@@ -399,7 +377,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -415,7 +392,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -426,7 +402,6 @@ public class StashClientTest {
     spyClient.approvePullRequest("Project", "Repository", "123");
     
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
     
   @Test
@@ -440,7 +415,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -456,7 +430,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
     
@@ -467,7 +440,6 @@ public class StashClientTest {
     spyClient.resetPullRequestApproval("Project", "Repository", "123");
     
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
     
   @Test
@@ -481,7 +453,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -501,7 +472,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -517,7 +487,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -534,7 +503,6 @@ public class StashClientTest {
     spyClient.addPullRequestReviewer("Project", "Repository", "123", (long) 1, reviewers);
     
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
   
   @Test
@@ -544,7 +512,6 @@ public class StashClientTest {
     spyClient.addPullRequestReviewer("Project", "Repository", "123", (long) 1, new ArrayList<StashUser>());
     
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
     
   @Test
@@ -564,7 +531,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -586,7 +552,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -597,7 +562,6 @@ public class StashClientTest {
     spyClient.postTaskOnComment("message", (long) 1111);
     
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
   
   @Test
@@ -611,7 +575,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -627,7 +590,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -641,7 +603,6 @@ public class StashClientTest {
     spyClient.deleteTaskOnComment(task);
     
     verify(requestBuilder, times(1)).execute();
-    verify(httpClient, times(1)).close(); 
   }
   
   @Test
@@ -658,7 +619,6 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(1)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
   
@@ -677,9 +637,13 @@ public class StashClientTest {
       
     } catch (StashClientException e) {
       verify(response, times(0)).getStatusText();
-      verify(httpClient, times(1)).close();  
     }
   }
-  
-  
+
+  @Test
+  public void testClosingStashClientClosesHttpClient() {
+    verify(httpClient, times(0)).close();
+    spyClient.close();
+    verify(httpClient, times(1)).close();
+  }
 }

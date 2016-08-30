@@ -32,6 +32,7 @@ public class StashIssueReportingPostJob implements PostJob {
 
   @Override
   public void executeOn(Project project, SensorContext context) {
+    StashClient stashClient = null;
     try {
       boolean notifyStash = config.hasToNotifyStash();
       if (notifyStash) {
@@ -50,7 +51,7 @@ public class StashIssueReportingPostJob implements PostJob {
         int stashTimeout = config.getStashTimeout();
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
-        StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
+        stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
         
         StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
         if (stashUser == null) {
@@ -98,6 +99,10 @@ public class StashIssueReportingPostJob implements PostJob {
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
+    } finally {
+      if (stashClient != null) {
+        stashClient.close();
+      }
     }
   }
 }
