@@ -66,6 +66,12 @@
       <artifactId>async-http-client</artifactId>
       <version>1.9.28</version>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- unit tests -->
     <dependency>
