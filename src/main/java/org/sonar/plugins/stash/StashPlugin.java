@@ -68,6 +68,13 @@ public class StashPlugin extends SonarPlugin {
             .description("User to push data on Stash instance")
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT).build(),
+        PropertyDefinition.builder(STASH_PASSWORD)
+                .name("Stash base Password")
+                .description("Password for Stash base User " +
+                        "(Do NOT use in production, passwords are public for everyone with UNAUTHENTICATED HTTP access to SonarQube")
+                .type(PropertyType.PASSWORD)
+                .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                .onQualifiers(Qualifiers.PROJECT).build(),
         PropertyDefinition.builder(STASH_TIMEOUT)
             .name("Stash issue Timeout")
             .description("Timeout when pushing a new issue to Stash (in ms)")
