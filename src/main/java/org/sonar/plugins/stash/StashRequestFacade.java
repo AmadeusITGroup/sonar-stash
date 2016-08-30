@@ -39,8 +39,14 @@ public class StashRequestFacade implements BatchComponent {
     this.config = stashPluginConfiguration;
   }
   
-  public void initialize(File projectBaseDir) {
-    this.projectBaseDir = projectBaseDir;
+  public void setProjectBaseDirIfNotConfigured(File projectBaseDir) {
+    if (StringUtils.isEmpty(config.getBaseDir())) {
+      this.projectBaseDir = projectBaseDir;
+    }
+
+    if (StringUtils.isNotEmpty(config.getBaseDir())) {
+      this.projectBaseDir = new File(config.getBaseDir());
+    }
   }
   
   public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache){
