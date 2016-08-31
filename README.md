@@ -43,7 +43,7 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash base URL** (sonar.stash.url): To define Stash instance.
 
-**Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository. **Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password in commandline**.
+**Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository. **Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password on the commandline**.
 
 **Stash coverage severity** (sonar.stash.coverage.severity.threshold): If the contribution reduced the coverage on a file, the plugin generates an issue with the following severity.
 
@@ -100,6 +100,13 @@ sonar-runner -Dsonar.branch=<BRANCH_TO_BE_COMPARED> -Dsonar.stash.notification -
 ```
 
 **Be careful, with SonarQube 4.5.6, this feature does not work with incremental mode.**
+
+## Protect passwords
+
+The plugin can also read the password from an environment variable.
+This is configured by setting `sonar.stash.password.variable` to the name of
+the environment variable to read.
+The prevents the password from leaking into the process table.
 
 # How to contribute
 
