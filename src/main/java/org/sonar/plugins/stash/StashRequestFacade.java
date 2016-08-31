@@ -240,17 +240,17 @@ public class StashRequestFacade implements BatchComponent {
   }
   
   public StashCredentials getCredentials() throws StashConfigurationException {
-    String pwEnv = config.getStashPasswordEnvironmentVariable();
-    String pw = config.getStashPassword();
-    if (pwEnv != null) {
-      pw = System.getenv(pwEnv);
-      if (pw == null) {
+    String passwordEnvVariable = config.getStashPasswordEnvironmentVariable();
+    String password = config.getStashPassword();
+    if (passwordEnvVariable != null) {
+      password = System.getenv(passwordEnvVariable);
+      if (password == null) {
           throw new StashConfigurationException(
                   "Unable to retrieve password from configured environment variable " +
                   StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
       }
     }
-    return new StashCredentials(config.getStashLogin(), pw);
+    return new StashCredentials(config.getStashLogin(), password);
   }
   
   /**
