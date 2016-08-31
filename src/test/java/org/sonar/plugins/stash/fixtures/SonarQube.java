@@ -106,10 +106,12 @@ public class SonarQube {
 
     public void waitForReady() {
         AsyncHttpClient client = new AsyncHttpClient();
+        String url = "http://127.0.0.1:" + getPort() + "/";
         while (true) {
+            System.out.println("Waiting for SonarQube to be available at " + url);
             Response response = null;
             try {
-                response = client.prepareGet("http://127.0.0.1:" + getPort() + "/").execute().get();
+                response = client.prepareGet(url).execute().get();
             } catch (InterruptedException | ExecutionException e) {
                 /* noop */
             }
@@ -122,6 +124,7 @@ public class SonarQube {
                 /* noop */
             }
         }
+        System.out.println("SonarQube is ready");
     }
 
     public URL getUrl() {
