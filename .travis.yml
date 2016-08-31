@@ -7,6 +7,7 @@ jdk:
 
 script:
   - mvn clean verify -Pcoverage-per-test
+  - mvn verify
 
 sudo: false
 
