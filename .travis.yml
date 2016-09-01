@@ -1,11 +1,10 @@
 language: java
 
 jdk:
-  - openjdk7
-  - oraclejdk7
   - oraclejdk8
 
 script:
+  - echo $RAILS_ENV
   - mvn clean test -Pcoverage-per-test
   - tail -F target/fixtures/sonarqube/sonarqube-6.0/logs/sonar.log &
   - mvn verify
