@@ -29,11 +29,11 @@ public class CompleteITCase {
     protected static final int stashPullRequest = 42;
 
     @Rule
-    public WireMockRule wireMock = new WireMockRule(WireMockConfiguration.options().port(9006));
+    public WireMockRule wireMock = new WireMockRule(WireMockConfiguration.options().port(8080));
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        sonarqube = MavenSonarFixtures.getSonarqube(9005);
+        sonarqube = MavenSonarFixtures.getSonarqube(9000);
         sonarqube.setUp();
         sonarqube.installPlugin(new File(System.getProperty("test.plugin.archive")));
         sonarqube.startAsync();
