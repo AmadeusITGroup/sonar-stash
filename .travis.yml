@@ -1,8 +1,5 @@
 language: java
 
-install:
-  - mvn dependency:go-offline
-
 matrix:
   fast_finish: true
   include:
@@ -24,6 +21,9 @@ matrix:
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=4.5.7
+
+install:
+  - mvn dependency:go-offline
 
 script:
   - ./.travis/script.sh
