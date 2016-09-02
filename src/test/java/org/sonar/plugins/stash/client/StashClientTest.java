@@ -3,9 +3,7 @@ package org.sonar.plugins.stash.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -19,6 +17,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import com.ning.http.client.*;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,10 +33,7 @@ import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
-import com.ning.http.client.AsyncHttpClient;
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.ListenableFuture;
-import com.ning.http.client.Response;
 
 public class StashClientTest {
 
@@ -68,9 +64,11 @@ public class StashClientTest {
     requestBuilder = mock(BoundRequestBuilder.class);
     when(requestBuilder.setBody(anyString())).thenReturn(requestBuilder);
     when(requestBuilder.addHeader(anyString(), anyString())).thenReturn(requestBuilder);
+    when(requestBuilder.setUrl(anyString())).thenReturn(requestBuilder);
     when(requestBuilder.execute()).thenReturn(listenableFurture);
-    
+
     httpClient = mock(AsyncHttpClient.class);
+    when(httpClient.prepareRequest(any(Request.class))).thenReturn(requestBuilder);
     when(httpClient.preparePost(anyString())).thenReturn(requestBuilder);
     when(httpClient.prepareGet(anyString())).thenReturn(requestBuilder);
     when(httpClient.prepareDelete(anyString())).thenReturn(requestBuilder);
@@ -79,7 +77,6 @@ public class StashClientTest {
     StashClient client = new StashClient("baseUrl", new StashCredentials("login", "password"), 1000);
     client.setHttpClient(httpClient);
     spyClient = spy(client);
-    doNothing().when(spyClient).addAuthorization(requestBuilder);
   }
   
   @Test
@@ -127,9 +124,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
     
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -189,9 +184,7 @@ public class StashClientTest {
     
       assertFalse("Wrong HTTP result should raised StashClientException", true);
     
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -204,9 +197,7 @@ public class StashClientTest {
 
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
 
   @Test
@@ -228,9 +219,7 @@ public class StashClientTest {
     
       assertFalse("Wrong HTTP result should raised StashClientException", true);
      
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -243,9 +232,7 @@ public class StashClientTest {
     
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
     
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -297,9 +284,7 @@ public class StashClientTest {
 
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
 
   @Test
@@ -327,9 +312,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -342,9 +325,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
     
   @Test
@@ -372,9 +353,7 @@ public class StashClientTest {
     
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -401,9 +380,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -416,9 +393,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -439,9 +414,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -454,9 +427,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
     
   @Test
@@ -477,9 +448,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -496,9 +465,7 @@ public class StashClientTest {
   
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -511,9 +478,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -555,9 +520,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -576,9 +539,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -599,9 +560,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -614,9 +573,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -643,9 +600,7 @@ public class StashClientTest {
       
       assertFalse("Wrong HTTP result should raised StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
   
   @Test
@@ -661,9 +616,7 @@ public class StashClientTest {
       
       assertFalse("Exception failure should be catched and convert to StashClientException", true);
       
-    } catch (StashClientException e) {
-      verify(response, times(0)).getStatusText();
-    }
+    } catch (StashClientException e) { }
   }
 
   @Test
