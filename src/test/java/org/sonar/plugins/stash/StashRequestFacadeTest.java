@@ -36,7 +36,7 @@ import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 
-public class StashRequestFacadeTest {
+public class StashRequestFacadeTest extends StashTest {
   
   StashRequestFacade myFacade;
   

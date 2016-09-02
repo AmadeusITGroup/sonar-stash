@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.sonar.plugins.stash.StashTest;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
@@ -35,7 +36,7 @@ import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 
-public class StashClientTest {
+public class StashClientTest extends StashTest {
 
   @Mock
   BoundRequestBuilder requestBuilder;

@@ -20,7 +20,7 @@ import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
 
-public class StashIssueReportingPostJobTest {
+public class StashIssueReportingPostJobTest extends StashTest {
   
   StashIssueReportingPostJob myJob;
   
