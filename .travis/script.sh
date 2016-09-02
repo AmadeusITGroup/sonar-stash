@@ -6,7 +6,7 @@ if [ -z "${TEST_SUITE}" ]; then
 	exit 1
 
 elif [ "unit" = "${TEST_SUITE}" ]; then
-	mvn clean test -Pcoverage-per-test
+	mvn test -Pcoverage-per-test
 
 elif [ "integration" = "${TEST_SUITE}" ]; then
 	if [ -z "${SONARQUBE_VERSION}" ]; then
