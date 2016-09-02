@@ -14,5 +14,8 @@ elif [ "integration" = "${TEST_SUITE}" ]; then
 		exit 1
 
 	tail -F "target/fixtures/sonarqube/sonarqube-${SONARQUBE_VERSION}/logs/sonar.log" &
+	# otherwise the rails bundled with sonarqube tries to load test.yml which does
+	# not exist
+	export RAILS_ENV=production
 	mvn verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
 fi

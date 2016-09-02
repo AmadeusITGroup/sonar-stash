@@ -3,11 +3,6 @@ language: java
 jdk:
   - oraclejdk8
 
-# otherwise the rails bundled with sonarqube tries to load test.yml which does
-# not exist
-env:
-  - RAILS_ENV=production
-
 matrix:
   fast_finish: true
   include:
