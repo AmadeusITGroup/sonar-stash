@@ -3,13 +3,29 @@ language: java
 jdk:
   - oraclejdk8
 
+# otherwise the rails bundled with sonarqube tries to load test.yml which does
+# not exist
 env:
   - RAILS_ENV=production
 
+matrix:
+  fast_finish: true
+  include:
+    - jdk: oraclejdk8
+      env: TEST_SUITE=unit
+    - jdk: oraclejdk7
+      env: TEST_SUITE=unit
+    - jdk: oraclejdk8
+      env:
+        - TEST_SUITE=integration
+        - SONARQUBE_VERSION=6.0
+    - jdk: oraclejdk8
+      env:
+        - TEST_SUITE=integration
+        - SONARQUBE_VERSION=5.6
+
 script:
-  - mvn clean test -Pcoverage-per-test
-  - tail -F target/fixtures/sonarqube/sonarqube-6.0/logs/sonar.log &
-  - mvn verify
+  - ./.travis/script.sh
 
 sudo: false
 
