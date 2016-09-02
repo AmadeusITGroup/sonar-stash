@@ -47,7 +47,12 @@ public class StashClient implements AutoCloseable {
   private static final String DIFF_PULL_REQUEST_API = PULL_REQUEST_API + "/diff";
   private static final String APPROVAL_PULL_REQUEST_API = PULL_REQUEST_API + "/approve";
   private static final String TASKS_API = REST_API + "tasks";
-  
+
+  private static final String COMMITS_API = REPO_API + "commits/";
+  private static final String COMMIT_API = COMMITS_API + "{3}";
+  private static final String COMMENTS_COMMIT_API = COMMIT_API + "/comments";
+  private static final String DIFF_COMMIT_API = COMMIT_API + "/diff";
+
   private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0} #{1}.";
   private static final String PULL_REQUEST_GET_ERROR_MESSAGE = "Unable to retrieve pull-request {0} #{1}.";
   private static final String PULL_REQUEST_PUT_ERROR_MESSAGE = "Unable to update pull-request {0} #{1}.";
@@ -102,6 +107,31 @@ public class StashClient implements AutoCloseable {
     return result;
   } 
   
+  public StashCommentReport getCommitComments(String project, String repository, String commitId, String path)
+      throws StashClientException {
+    StashCommentReport result = new StashCommentReport();
+    
+    AsyncHttpClient httpClient = createHttpClient();
+    
+    long start = 0;
+    boolean isLastPage = false; 
+    
+    while (! isLastPage){
+      try {
+        String request = MessageFormat.format(COMMENTS_COMMIT_API + "?path={4}&start={5}", baseUrl + REST_API, project, repository, commitId, path, start);
+        String response = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, commitId));
+        result.add(StashCollector.extractComments(response));
+        // Stash pagination: check if you get all comments linked to the pull-request
+        isLastPage = StashCollector.isLastPage(response);
+        start = StashCollector.getNextPageStart(response);
+      } catch (StashReportExtractionException e) {
+        throw new StashClientException(e);
+      }
+    }
+  
+    return result;
+  } 
+  
   public void deletePullRequestComment(String project, String repository, String pullRequestId, StashComment comment)
       throws StashClientException {
 
@@ -126,8 +156,19 @@ public class StashClient implements AutoCloseable {
     }
 
     return result;
+  } 
+  
+  public StashDiffReport getCommitDiffs(String project, String repository, String commitId)
+      throws StashClientException {
+    try {
+      String request = MessageFormat.format(DIFF_COMMIT_API + "?withComments=true", baseUrl + REST_API, project, repository, commitId);
+      String response = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, commitId));
+      return StashCollector.extractDiffs(response);
+    } catch (StashReportExtractionException e) {
+      throw new StashClientException(e);
+    }
   }
-
+  
   public StashComment postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
       throws StashClientException {
     String request = MessageFormat.format(COMMENTS_PULL_REQUEST_API, baseUrl + REST_API, project, repository,
@@ -156,7 +197,48 @@ public class StashClient implements AutoCloseable {
         throw new StashClientException(e);
     }
   }
+  
+  public void postCommentOnCommit(String project, String repository, String commitId, String report)
+      throws StashClientException {
 
+    String request = MessageFormat.format(COMMENTS_COMMIT_API, baseUrl + REST_API, project, repository, commitId);
+    JSONObject json = new JSONObject();
+    json.put("text", report);
+
+    postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, commitId));
+  }
+
+  public StashComment postCommentLineOnCommit(String project, String repository, String commitId, String message, String path, long line, String type)
+      throws StashClientException {
+    String request = MessageFormat.format(COMMENTS_COMMIT_API, baseUrl + REST_API, project, repository,
+        commitId);
+
+    JSONObject anchor = new JSONObject();
+    anchor.put("line", line);
+    anchor.put("lineType", type);
+    
+    String fileType = "TO";
+    if (StringUtils.equals(type, StashPlugin.CONTEXT_ISSUE_TYPE)){
+      fileType = "FROM";
+    }
+    anchor.put("fileType", fileType);
+    
+    anchor.put("path", path);
+    
+    JSONObject json = new JSONObject();
+    json.put("text", message);
+    json.put("anchor", anchor);
+
+    String response = postCreate(request, json,
+            MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, commitId));
+
+    try {
+      return StashCollector.extractComment(response, path, line);
+    } catch (StashReportExtractionException e) {
+      throw new StashClientException(e);
+    }
+  }
+  
   public StashUser getUser(String userSlug)
           throws StashClientException {
     String request = MessageFormat.format(USER_API, baseUrl + REST_API, userSlug);

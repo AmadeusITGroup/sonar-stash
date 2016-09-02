@@ -79,6 +79,7 @@ public class StashRequestFacadeTest extends StashTest {
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
   private static final String STASH_PULLREQUEST_ID = "1";
+  private static final String STASH_COMMIT_ID = "2";
   private static final String STASH_DIFF_TYPE = "StashDiffType";
   private static final String STASH_USER = "SonarQube";
   
@@ -130,6 +131,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(comment1.getId()).thenReturn((long) 1111);
     when(comment1.getAuthor()).thenReturn(stashUser);
     when(stashClient.postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE)).thenReturn(comment1);
+    when(stashClient.postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE)).thenReturn(comment1);
     when(comment1.getTasks()).thenReturn(taskList1);
     when(comment1.containsPermanentTasks()).thenReturn(false);
     
@@ -143,6 +145,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(comment2.getId()).thenReturn((long) 2222);
     when(comment2.getAuthor()).thenReturn(stashUser);
     when(stashClient.postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE)).thenReturn(comment2);
+    when(stashClient.postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE)).thenReturn(comment2);
     when(comment2.getTasks()).thenReturn(taskList2);
     when(comment2.containsPermanentTasks()).thenReturn(false);
     
@@ -156,6 +159,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(comment3.getId()).thenReturn((long) 3333);
     when(comment3.getAuthor()).thenReturn(stashUser);
     when(stashClient.postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE)).thenReturn(comment3);
+    when(stashClient.postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE)).thenReturn(comment3);
     when(comment3.getTasks()).thenReturn(taskList3);
     when(comment3.containsPermanentTasks()).thenReturn(false);
     
@@ -170,11 +174,13 @@ public class StashRequestFacadeTest extends StashTest {
     when(stashCommentsReport1.getComments()).thenReturn(comments);
     when(stashCommentsReport1.applyDiffReport(diffReport)).thenReturn(stashCommentsReport1);
     when(stashClient.getPullRequestComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, FILE_PATH_1)).thenReturn(stashCommentsReport1);
+    when(stashClient.getCommitComments(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, FILE_PATH_1)).thenReturn(stashCommentsReport1);
     
     stashCommentsReport2 = mock(StashCommentReport.class);
     when(stashCommentsReport1.getComments()).thenReturn(comments);
     when(stashCommentsReport2.applyDiffReport(diffReport)).thenReturn(stashCommentsReport2);
     when(stashClient.getPullRequestComments(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, FILE_PATH_2)).thenReturn(stashCommentsReport2);
+    when(stashClient.getCommitComments(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, FILE_PATH_2)).thenReturn(stashCommentsReport2);
     
     doNothing().when(stashClient).deletePullRequestComment(Mockito.eq(STASH_PROJECT), Mockito.eq(STASH_REPOSITORY), Mockito.eq(STASH_PULLREQUEST_ID), (StashComment) Mockito.anyObject());
     doNothing().when(stashClient).deleteTaskOnComment((StashTask) Mockito.anyObject());
@@ -254,10 +260,22 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals(myFacade.getStashPullRequestId(), "12345");
   }
   
-  @Test (expected = StashConfigurationException.class)
-  public void testGetStashPullRequestIdThrowsException() throws StashConfigurationException {
+  @Test
+  public void testGetStashPullRequestIdNull() throws StashConfigurationException {
     when(config.getPullRequestId()).thenReturn(null);
-    myFacade.getStashPullRequestId();
+    assertEquals(myFacade.getStashPullRequestId(), null);
+  }
+  
+  @Test
+  public void testGetStashCommitId() throws StashConfigurationException {
+    when(config.getCommitId()).thenReturn("12345");
+    assertEquals(myFacade.getStashCommitId(), "12345");
+  }
+  
+  @Test
+  public void testGetStashiCommitIdNull() throws StashConfigurationException {
+    when(config.getPullRequestId()).thenReturn(null);
+    assertEquals(myFacade.getStashCommitId(), null);
   }
   
   @Test
@@ -271,6 +289,19 @@ public class StashRequestFacadeTest extends StashTest {
     verify(stashClient, times(0)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+  }
+  
+  @Test
+  public void testPostCommitCommentPerIssue() throws Exception{
+    when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(true);
+    when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
+    when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
+    
+    myFacade.postCommitCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    
+    verify(stashClient, times(0)).postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
   }
   
   @Test
@@ -295,6 +326,21 @@ public class StashRequestFacadeTest extends StashTest {
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(STASH_PROJECT, STASH_REPOSITORY, STASH_PULLREQUEST_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
+    
+    verify(stashClient, times(1)).postTaskOnComment("message3", (long) 3333);
+    verify(stashClient, times(1)).postTaskOnComment("message2", (long) 2222);
+    verify(stashClient, times(1)).postTaskOnComment("message1", (long) 1111);
+  }
+
+  @Test
+  public void testPostTaskOnCommitComment() throws Exception {
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
+    
+    myFacade.postCommitCommentPerIssue(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    
+    verify(stashClient, times(1)).postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnCommit(STASH_PROJECT, STASH_REPOSITORY, STASH_COMMIT_ID, stashCommentMessage3, FILE_PATH_2, 1, STASH_DIFF_TYPE);
     
     verify(stashClient, times(1)).postTaskOnComment("message3", (long) 3333);
     verify(stashClient, times(1)).postTaskOnComment("message2", (long) 2222);
