@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -11,6 +12,8 @@ import java.util.concurrent.TimeoutException;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -78,8 +81,7 @@ public class StashClient implements AutoCloseable {
       Response response = executeRequest(requestBuilder);
       int responseCode = response.getStatusCode();
       if (responseCode != HttpURLConnection.HTTP_CREATED) {
-        String responseMessage = response.getStatusText();
-        throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, responseMessage));
+        throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, formatStashApiError(response)));
       }
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException e) {
       throw new StashClientException(e);
@@ -195,8 +197,7 @@ public class StashClient implements AutoCloseable {
       Response response = executeRequest(requestBuilder);
       int responseCode = response.getStatusCode();
       if (responseCode != HttpURLConnection.HTTP_CREATED) {
-        String responseMessage = response.getStatusText();
-        throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, responseMessage));
+        throw new StashClientException(MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId, responseCode, formatStashApiError(response)));
       }
       
       // get generated comment
@@ -389,5 +390,42 @@ public class StashClient implements AutoCloseable {
   @Override
   public void close() {
     httpClient.close();
+  }
+
+  private static String formatStashApiError(Response response) throws StashClientException {
+    String contentType = response.getHeader("Content-Type");
+    if (!"application/json".equals(contentType)) {
+      throw new StashClientException("Received error with type " + contentType + " instead of JSON");
+    }
+
+    JSONArray errors;
+
+    String body = "<no body>";
+    try {
+      body = response.getResponseBody();
+      Object obj = new JSONParser().parse(body);
+      JSONObject responseJson = (JSONObject) obj;
+      errors = (JSONArray) responseJson.get("errors");
+    } catch (IOException | ParseException | ClassCastException e) {
+      throw new StashClientException("Could not parse JSON response " + e + "('" + body + "')", e);
+    }
+
+    if (errors == null) {
+      throw new StashClientException("Error response did not contain an errors object '" + body + "'");
+    }
+
+    List<String> errorParts = new ArrayList<>();
+
+    for (Object o: errors) {
+      try {
+        JSONObject error = (JSONObject) o;
+        errorParts.add((String) error.get("exceptionName") + ": " + (String) error.get("message"));
+      } catch (ClassCastException e) {
+          throw new StashClientException("Error response contained invalid error", e);
+      }
+
+    }
+
+    return StringUtils.join(errorParts, ", ");
   }
 }

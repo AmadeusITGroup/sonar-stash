@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -91,14 +93,27 @@ public class StashClientTest {
   @Test
   public void testPostCommentOnPullRequestWithWrongHTTPResult() throws Exception {
     when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_NOT_IMPLEMENTED);
-    
+    when(response.getHeader("Content-Type")).thenReturn("application/json");
+    when(response.getResponseBody()).thenReturn("{\n" +
+            "    \"errors\": [\n" +
+            "        {\n" +
+            "            \"context\": null,\n" +
+            "            \"message\": \"A detailed error message.\",\n" +
+            "            \"exceptionName\": \"seriousException\"\n" +
+            "        }\n" +
+            "    ]\n" +
+            "}");
+
     try {
       spyClient.postCommentOnPullRequest("Project", "Repository", "1", "Report");
     
-      assertFalse("Wrong HTTP result should raised StashClientException", true);
+      Assert.fail("Wrong HTTP result should raised StashClientException");
     
     } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
+      Assert.assertThat(e.getMessage(), CoreMatchers.containsString(
+              String.valueOf(HttpURLConnection.HTTP_NOT_IMPLEMENTED)));
+      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
+      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
     }
   }
   
@@ -250,14 +265,25 @@ public class StashClientTest {
   @Test
   public void testPostCommentLineOnPullRequestWithWrongHTTPResult() throws Exception {
     when(response.getStatusCode()).thenReturn(HttpURLConnection.HTTP_FORBIDDEN);
-    
+    when(response.getHeader("Content-Type")).thenReturn("application/json");
+    when(response.getResponseBody()).thenReturn("{\n" +
+            "    \"errors\": [\n" +
+            "        {\n" +
+            "            \"context\": null,\n" +
+            "            \"message\": \"A detailed error message.\",\n" +
+            "            \"exceptionName\": \"seriousException\"\n" +
+            "        }\n" +
+            "    ]\n" +
+            "}");
+
     try {
       spyClient.postCommentLineOnPullRequest("Project", "Repository", "1", "message", "path", 5, "type");
     
-      assertFalse("Wrong HTTP result should raised StashClientException", true);
+      Assert.fail("Wrong HTTP result should raised StashClientException");
       
     } catch (StashClientException e) {
-      verify(response, times(1)).getStatusText();
+      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
+      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
     }
   }
   
