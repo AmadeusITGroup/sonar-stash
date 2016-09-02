@@ -27,7 +27,7 @@ Note: these are the versions where the plugin has been tested. Other versions ma
 #### To build the plugin
 This command generates a jar file:
 ```
-mvn clean install
+mvn clean package
 ```
 
 #### To deploy the plugin
