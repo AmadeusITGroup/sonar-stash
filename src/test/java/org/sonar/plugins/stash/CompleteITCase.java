@@ -4,12 +4,12 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
-import org.sonar.plugins.stash.fixtures.SonarQube;
+import org.sonar.plugins.stash.fixtures.SonarQubeRule;
 import org.sonar.plugins.stash.fixtures.SonarScanner;
 
 import java.io.File;
@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Properties;
 
 public class CompleteITCase {
-    protected static SonarQube sonarqube;
     protected static SonarScanner sonarScanner;
     protected static File sourcesDir;
 
@@ -30,24 +29,18 @@ public class CompleteITCase {
 
     @Rule
     public WireMockRule wireMock = new WireMockRule(WireMockConfiguration.options().port(8080));
+    @ClassRule
+    public static SonarQubeRule sonarqube = new SonarQubeRule(MavenSonarFixtures.getSonarqube(9000));
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        sonarqube = MavenSonarFixtures.getSonarqube(9000);
-        sonarqube.setUp();
-        sonarqube.installPlugin(new File(System.getProperty("test.plugin.archive")));
-        sonarqube.startAsync();
-        sonarqube.waitForReady();
+        sonarqube.get().installPlugin(new File(System.getProperty("test.plugin.archive")));
+        sonarqube.start();
 
         sonarScanner = MavenSonarFixtures.getSonarScanner();
 
         sourcesDir = new File(System.getProperty("test.sources.dir"));
         sourcesDir.mkdirs();
-    }
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        sonarqube.stop();
     }
 
     @Test
@@ -110,6 +103,6 @@ public class CompleteITCase {
         extraProps.setProperty("sonar.stash.repository", stashRepo);
         extraProps.setProperty("sonar.stash.pullrequest.id", String.valueOf(stashPullRequest));
         extraProps.setProperty("sonar.log.level", "DEBUG");
-        sonarScanner.scan(sonarqube, sourcesDir, sources, "KEY", "Some Project", "0.0.0Final39", extraProps);
+        sonarScanner.scan(sonarqube.get(), sourcesDir, sources, "KEY", "Some Project", "0.0.0Final39", extraProps);
     }
 }
