@@ -1,7 +1,7 @@
 package org.sonar.plugins.stash.client;
 
 import java.io.*;
-import java.net.HttpURLConnection;
+import java.net.*;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,19 +9,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.ning.http.client.*;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.io.*;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.AsyncHttpClientConfigDefaults;
-import com.ning.http.client.Realm;
-import com.ning.http.client.Realm.AuthScheme;
-import com.ning.http.client.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -32,9 +26,9 @@ import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.*;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
+import sun.net.www.protocol.http.*;
+import sun.security.krb5.*;
 
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.Realm.AuthScheme;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;
@@ -50,7 +44,6 @@ public class StashClient implements AutoCloseable {
   private final String baseUrl;
   private final StashCredentials credentials;
   private final int stashTimeout;
-  private AsyncHttpClient httpClient;
 
   private static final String REST_API = "/rest/api/1.0/";
   
@@ -81,7 +74,6 @@ public class StashClient implements AutoCloseable {
     this.baseUrl = url;
     this.credentials = credentials;
     this.stashTimeout = stashTimeout;
-    this.httpClient = createHttpClient();
   }
 
   public void postCommentOnPullRequest(String project, String repository, String pullRequestId, String report)
@@ -125,7 +117,6 @@ public class StashClient implements AutoCloseable {
                       project, repository, pullRequestId, Long.toString(comment.getId()), Long.toString(comment.getVersion()));
 
 
-    BoundRequestBuilder requestBuilder = httpClient.prepareDelete(request);
     delete(request, MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), repository, pullRequestId));
   }
   
@@ -248,29 +239,25 @@ public class StashClient implements AutoCloseable {
     delete(request, MessageFormat.format(TASK_DELETION_ERROR_MESSAGE, task.getId()));
   }
 
-  void setHttpClient(AsyncHttpClient httpClient) {
-    this.httpClient = httpClient;
-  }
-
   @Override
   public void close() {
-    httpClient.close();
+      // NOOP, the jvm manages our connection pools
   }
 
   private JSONObject get(String url, String errorMessage) throws StashClientException {
-      return performRequest(httpClient.prepareGet(url), null, HttpURLConnection.HTTP_OK, errorMessage);
+      return performRequest(HTTP_GET, url, null, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
   private JSONObject post(String url, JSONObject body, String errorMessage) throws StashClientException {
-    return performRequest(httpClient.preparePost(url), body, HttpURLConnection.HTTP_OK, errorMessage);
+    return performRequest(HTTP_POST, url, body, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
   private JSONObject postCreate(String url, JSONObject body, String errorMessage) throws StashClientException {
-    return performRequest(httpClient.preparePost(url), body, HTTP_CREATED, errorMessage);
+    return performRequest(HTTP_POST, url, body, HTTP_CREATED, errorMessage);
   }
 
   private JSONObject delete(String url, int expectedStatusCode, String errorMessage) throws StashClientException {
-    return performRequest(httpClient.prepareDelete(url), null, expectedStatusCode, errorMessage);
+    return performRequest(HTTP_DELETE, url, null, expectedStatusCode, errorMessage);
   }
 
   private JSONObject delete(String url, String errorMessage) throws StashClientException {
@@ -278,41 +265,88 @@ public class StashClient implements AutoCloseable {
   }
 
   private JSONObject put(String url, JSONObject body, String errorMessage) throws StashClientException {
-    return performRequest(httpClient.preparePut(url), body, HttpURLConnection.HTTP_OK, errorMessage);
+    return performRequest(HTTP_PUT, url, body, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
-  private JSONObject performRequest(BoundRequestBuilder requestBuilder, JSONObject body, int expectedStatusCode, String errorMessage)
+  private JSONObject performRequest(String method, String url, JSONObject body, int expectedStatusCode, String errorMessage)
           throws StashClientException {
-    if (body != null) {
-      requestBuilder.setBody(body.toString());
+    URL target = null;
+    try {
+      target = new URL(url);
+    } catch (MalformedURLException e) {
+        throw new StashClientException("Invalid  URL: " + url, e);
     }
-    Realm realm = new Realm.RealmBuilder().setPrincipal(credentials.getLogin()).setPassword(credentials.getPassword())
-            .setUsePreemptiveAuth(true).setScheme(AuthScheme.BASIC).build();
-    requestBuilder.setRealm(realm);
-    requestBuilder.setFollowRedirects(true);
-    requestBuilder.addHeader("Content-Type", "application/json");
+    if (!("http".equals(target.getProtocol()) || "https".equals(target.getProtocol()))) {
+      throw new StashClientException("Invalid protocol: " + target.getProtocol());
+    }
+    HttpURLConnection connection = null;
+    try {
+      connection = (HttpURLConnection) target.openConnection();
+    } catch (IOException e) {
+        throw new StashClientException("Could not open connection to " + url, e);
+    }
 
     try {
-      Response response = requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);
+      connection.setRequestMethod(method);
+    } catch (ProtocolException e) {
+        throw new StashClientException("Invalid method " + method, e);
+    }
+    try {
+      connection.setRequestProperty("Authorization", Base64.encodeBase64String(
+              (credentials.getLogin() + ":" + credentials.getPassword()).getBytes("UTF-8"))
+      );
+    } catch (UnsupportedEncodingException e) {
+      throw new StashClientException(e);
+    }
+    connection.setRequestProperty("Content-Type", "application/json");
+    connection.setConnectTimeout(stashTimeout);
+    connection.setReadTimeout(stashTimeout);
+    connection.setInstanceFollowRedirects(true);
+    if (body != null) {
+      connection.setDoOutput(true);
+    }
 
-      validateResponse(response, expectedStatusCode, errorMessage);
-      return extractResponse(response);
-    } catch (ExecutionException | TimeoutException | InterruptedException e) {
+    try {
+      connection.connect();
+      if (body != null) {
+        OutputStreamWriter output = null;
+        output = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
+        output.write(body.toJSONString());
+      }
+
+      validateResponse(connection, expectedStatusCode, errorMessage);
+      return extractResponse(connection);
+    } catch (IOException e) {
       throw new StashClientException(e);
     }
   }
 
-  private static void validateResponse(Response response, int expectedStatusCode, String message) throws StashClientException {
-    int responseCode = response.getStatusCode();
+  private static void validateResponse(HttpURLConnection response, int expectedStatusCode, String message) throws StashClientException {
+    int responseCode;
+    try {
+      responseCode = response.getResponseCode();
+    } catch (IOException e) {
+        throw new StashClientException("Could not read response code " + response.getURL(), e);
+    }
     if (responseCode != expectedStatusCode) {
       throw new StashClientException(message + " Received " + responseCode + ": " + formatStashApiError(response));
     }
   }
 
-  private static JSONObject extractResponse(Response response) throws StashClientException {
+  private static JSONObject extractResponse(HttpURLConnection response) throws StashClientException {
     String body = null;
     try {
-      body = response.getResponseBody();
+      InputStream errorStream = response.getErrorStream();
+      if (errorStream == null) {
+        InputStream inputStream = response.getInputStream();
+        if (inputStream == null) {
+          body = null;
+        } else {
+          body = IOUtils.toString(response.getInputStream(), "UTF-8");
+        }
+      } else {
+        body = IOUtils.toString(errorStream, "UTF-8");
+      }
     } catch (IOException e) {
         throw new StashClientException("Could not load response body", e);
     }
@@ -321,7 +355,7 @@ public class StashClient implements AutoCloseable {
       return null;
     }
 
-    String contentType = response.getHeader("Content-Type");
+    String contentType = response.getContentType();
     if (!"application/json".equals(contentType)) {
       throw new StashClientException("Received error with type " + contentType + " instead of JSON");
     }
@@ -333,12 +367,7 @@ public class StashClient implements AutoCloseable {
     }
   }
 
-  private static String formatStashApiError(Response response) throws StashClientException {
-    String contentType = response.getHeader("Content-Type");
-    if (!"application/json".equals(contentType)) {
-      throw new StashClientException("Received error with type " + contentType + " instead of JSON");
-    }
-
+  private static String formatStashApiError(HttpURLConnection response) throws StashClientException {
     JSONArray errors;
     JSONObject responseJson = extractResponse(response);
 
@@ -375,11 +404,6 @@ public class StashClient implements AutoCloseable {
       // FIXME: add SonarQube version
     }
     return MessageFormat.format("SonarQube/{0} {1}/{2} {3}",
-    sonarQubeVersion, name, version, AsyncHttpClientConfigDefaults.defaultUserAgent());
-  }
-  
-  AsyncHttpClient createHttpClient(){
-    return new AsyncHttpClient(
-            new AsyncHttpClientConfig.Builder().setUserAgent(getUserAgent()).build());
+    sonarQubeVersion, name, version, HttpURLConnection.getDefaultRequestProperty("http.agent"));
   }
 }

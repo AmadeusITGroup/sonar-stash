@@ -1,14 +1,10 @@
 package org.sonar.plugins.stash.fixtures;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,17 +100,16 @@ public class SonarQube {
                 StandardCopyOption.REPLACE_EXISTING);
     }
 
-    public void waitForReady() {
-        AsyncHttpClient client = new AsyncHttpClient();
+    public void waitForReady() throws Exception {
         while (true) {
             System.out.println("Waiting for SonarQube to be available at " + getUrl());
-            Response response = null;
+            HttpURLConnection connection = (HttpURLConnection) getUrl().openConnection();
             try {
-                response = client.prepareGet(getUrl().toString()).execute().get();
-            } catch (InterruptedException | ExecutionException e) {
+                connection.connect();
+            } catch (IOException e) {
                 /* noop */
             }
-            if (response != null && response.getStatusCode() == 200) {
+            if (connection.getResponseCode() == 200) {
                 break;
             }
             try {
