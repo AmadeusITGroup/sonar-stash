@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.json.simple.*;
+import org.json.simple.parser.*;
 import org.junit.Test;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
@@ -22,7 +24,7 @@ public class StashCollectorTest {
   public void testExtractCommentReport() throws Exception {
     String commentString = "{\"values\": [{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}]}";
-    StashCommentReport commentReport = StashCollector.extractComments(commentString);
+    StashCommentReport commentReport = StashCollector.extractComments(parse(commentString));
 
     assertEquals(commentReport.size(), 1);
 
@@ -43,7 +45,7 @@ public class StashCollectorTest {
         + "{\"id\":5678, \"text\":\"message2\", \"anchor\": {\"path\":\"path2\", \"line\":2},"
           + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":2}]}";
     
-    StashCommentReport commentReport = StashCollector.extractComments(commentString);
+    StashCommentReport commentReport = StashCollector.extractComments(parse(commentString));
 
     assertEquals(commentReport.size(), 2);
     
@@ -67,7 +69,7 @@ public class StashCollectorTest {
   @Test
   public void testExtractEmptyCommentReport() throws Exception {
     String commentString = "{\"values\": []}";
-    StashCommentReport commentReport = StashCollector.extractComments(commentString);
+    StashCommentReport commentReport = StashCollector.extractComments(parse(commentString));
 
     assertEquals(commentReport.size(), 0);
   }
@@ -77,7 +79,7 @@ public class StashCollectorTest {
     String commentString = "{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
     
-    StashComment comment = StashCollector.extractComment(commentString);
+    StashComment comment = StashCollector.extractComment(parse(commentString));
 
     assertEquals(comment.getId(), 1234);
     assertEquals(comment.getMessage(), "message");
@@ -88,12 +90,12 @@ public class StashCollectorTest {
   }
   
   @Test
-  public void testExtractEmptyCommentWithNoAnchor() {
+  public void testExtractEmptyCommentWithNoAnchor() throws Exception {
     String commentString = "{\"id\":1234, \"text\":\"message\", "
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
     
     try {
-      StashCollector.extractComment(commentString);
+      StashCollector.extractComment(parse(commentString));
     
       assertFalse("No anchor tag: extraction should raised StashReportExtractionException exception", true);
     
@@ -107,7 +109,7 @@ public class StashCollectorTest {
     String commentString = "{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
     
-    StashComment comment = StashCollector.extractComment(commentString, "pathAsParameter", (long) 1111);
+    StashComment comment = StashCollector.extractComment(parse(commentString), "pathAsParameter", (long) 1111);
 
     assertEquals(comment.getId(), 1234);
     assertEquals(comment.getMessage(), "message");
@@ -120,27 +122,27 @@ public class StashCollectorTest {
   @Test
   public void testIsLastPage() throws Exception {
     String jsonBody = "{\"isLastPage\": true}";
-    assertTrue(StashCollector.isLastPage(jsonBody));
+    assertTrue(StashCollector.isLastPage(parse(jsonBody)));
     
     jsonBody = "{\"isLastPage\": false}";
-    assertFalse(StashCollector.isLastPage(jsonBody));
+    assertFalse(StashCollector.isLastPage(parse(jsonBody)));
     
     jsonBody = "{\"values\": []}";
-    assertTrue(StashCollector.isLastPage(jsonBody));
+    assertTrue(StashCollector.isLastPage(parse(jsonBody)));
   }
   
   @Test
   public void testNextPageStart() throws Exception {
     String jsonBody = "{\"nextPageStart\": 3}";
-    assertEquals(StashCollector.getNextPageStart(jsonBody), 3);
+    assertEquals(StashCollector.getNextPageStart(parse(jsonBody)), 3);
     
     jsonBody = "{\"values\": []}";
-    assertEquals(StashCollector.getNextPageStart(jsonBody), 0);
+    assertEquals(StashCollector.getNextPageStart(parse(jsonBody)), 0);
   }
   
   @Test
   public void testExtractDiffsWithBaseReport() throws Exception {
-    StashDiffReport report = StashCollector.extractDiffs(DiffReportSample.baseReport);
+    StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReport));
     assertEquals(report.getDiffs().size(), 4);
     
     StashDiff diff1 = report.getDiffs().get(0);
@@ -214,7 +216,7 @@ public class StashCollectorTest {
   
   @Test
   public void testExtractDiffsWithNoComments() throws Exception {
-    StashDiffReport report = StashCollector.extractDiffs(DiffReportSample.baseReportWithNoComments);
+    StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReportWithNoComments));
     assertEquals(report.getDiffs().size(), 4);
     
     StashDiff diff1 = report.getDiffs().get(0);
@@ -248,7 +250,7 @@ public class StashCollectorTest {
   
   @Test
   public void testExtractDiffsWithFileComments() throws Exception {
-    StashDiffReport report = StashCollector.extractDiffs(DiffReportSample.baseReportWithFileComments);
+    StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReportWithFileComments));
     assertEquals(report.getDiffs().size(), 5);
     
     StashDiff diff1 = report.getDiffs().get(0);
@@ -329,7 +331,7 @@ public class StashCollectorTest {
   
   @Test
   public void testExtractDiffsWithEmptyFileComments() throws Exception {
-    StashDiffReport report = StashCollector.extractDiffs(DiffReportSample.baseReportWithEmptyFileComments);
+    StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReportWithEmptyFileComments));
     assertEquals(report.getDiffs().size(), 5);
     
     StashDiff diff1 = report.getDiffs().get(0);
@@ -377,16 +379,16 @@ public class StashCollectorTest {
   public void testExtractDiffsWithEmptyReport() throws Exception {
     String jsonBody = "{ \"diffs\": []}";
     
-    StashDiffReport report = StashCollector.extractDiffs(jsonBody);
+    StashDiffReport report = StashCollector.extractDiffs(parse(jsonBody));
     assertTrue(report.getDiffs().isEmpty());
     
-    report = StashCollector.extractDiffs(DiffReportSample.emptyReport);
+    report = StashCollector.extractDiffs(parse(DiffReportSample.emptyReport));
     assertTrue(report.getDiffs().isEmpty());
   }
   
   @Test
   public void testExtractDiffsWithMultipleFile() throws Exception {
-    StashDiffReport report = StashCollector.extractDiffs(DiffReportSample.multipleFileReport);
+    StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.multipleFileReport));
     assertEquals(report.getDiffs().size(), 2);
     
     StashDiff diff1 = report.getDiffs().get(0);
@@ -408,7 +410,7 @@ public class StashCollectorTest {
   
   @Test
   public void testExtractDiffsWithDeletedFile() throws Exception {
-    StashDiffReport report = StashCollector.extractDiffs(DiffReportSample.deletedFileReport);
+    StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.deletedFileReport));
     assertEquals(report.getDiffs().size(), 2);
     
     StashDiff diff1 = report.getDiffs().get(0);
@@ -441,7 +443,7 @@ public class StashCollectorTest {
           + "{\"user\": { \"name\":\"" + reviewerName + "\", \"emailAddress\": \"" + reviewerEmail + "\","
           + "\"id\": " + reviewerId + ", \"slug\": \"" + reviewerSlug + "\"}, \"role\": \"REVIEWER\", \"approved\": false}]}";
     
-    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, jsonBody);
+    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, parse(jsonBody));
     
     assertEquals(project, pullRequest.getProject());
     assertEquals(repository, pullRequest.getRepository());
@@ -477,7 +479,7 @@ public class StashCollectorTest {
           + "{\"user\": { \"name\":\"" + reviewerName2 + "\", \"emailAddress\": \"" + reviewerEmail2 + "\","
             + "\"id\": " + reviewerId2 + ", \"slug\": \"" + reviewerSlug2 + "\"}, \"role\": \"REVIEWER\", \"approved\": false}]}";
     
-    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, jsonBody);
+    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, parse(jsonBody));
     
     assertEquals(project, pullRequest.getProject());
     assertEquals(repository, pullRequest.getRepository());
@@ -501,7 +503,7 @@ public class StashCollectorTest {
     String jsonBody = "{\"id\": " + pullRequestId + ", \"version\": " + pullRequestVersion + ", \"title\": \"PR-Test\","
         + "\"description\": \"PR-test\", \"reviewers\": []}";
     
-    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, jsonBody);
+    StashPullRequest pullRequest = StashCollector.extractPullRequest(project, repository, pullRequestId, parse(jsonBody));
     
     assertEquals(project, pullRequest.getProject());
     assertEquals(repository, pullRequest.getRepository());
@@ -521,7 +523,7 @@ public class StashCollectorTest {
     String jsonBody = "{ \"name\":\"" + userName + "\", \"email\": \"" + userEmail + "\","
         + "\"id\": " + userId + ", \"slug\": \"" + userSlug + "\"}";
     
-    StashUser user = StashCollector.extractUser(jsonBody);
+    StashUser user = StashCollector.extractUser(parse(jsonBody));
     assertEquals(user.getId(), userId);
     assertEquals(user.getName(), userName);
     assertEquals(user.getSlug(), userSlug);
@@ -561,5 +563,8 @@ public class StashCollectorTest {
     assertEquals(state, task.getState());
     assertEquals(true, task.isDeletable());
   }
-  
+
+  private static JSONObject parse(String s) throws Exception {
+      return (JSONObject) new JSONParser().parse(s);
+  }
 }
