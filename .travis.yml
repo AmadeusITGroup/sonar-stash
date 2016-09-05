@@ -1,12 +1,32 @@
 language: java
 
-jdk:
-  - openjdk7
-  - oraclejdk7
-  - oraclejdk8
+matrix:
+  fast_finish: true
+  include:
+    - jdk: oraclejdk8
+      env: TEST_SUITE=unit
+    - jdk: oraclejdk7
+      env: TEST_SUITE=unit
+    - jdk: openjdk7
+      env: TEST_SUITE=unit
+    - jdk: oraclejdk8
+      env:
+        - TEST_SUITE=integration
+        - SONARQUBE_VERSION=6.0
+    - jdk: oraclejdk8
+      env:
+        - TEST_SUITE=integration
+        - SONARQUBE_VERSION=5.6
+    - jdk: oraclejdk8
+      env:
+        - TEST_SUITE=integration
+        - SONARQUBE_VERSION=4.5.7
+
+install:
+  - mvn dependency:go-offline
 
 script:
-  - mvn clean verify -Pcoverage-per-test
+  - ./.travis/script.sh
 
 sudo: false
 
