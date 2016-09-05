@@ -277,6 +277,7 @@ public class StashClient implements AutoCloseable {
     Realm realm = new Realm.RealmBuilder().setPrincipal(credentials.getLogin()).setPassword(credentials.getPassword())
             .setUsePreemptiveAuth(true).setScheme(AuthScheme.BASIC).build();
     requestBuilder.setRealm(realm);
+    requestBuilder.setFollowRedirects(true);
     requestBuilder.addHeader("Content-Type", "application/json");
     try {
       Response response = requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);

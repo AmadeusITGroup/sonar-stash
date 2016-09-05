@@ -275,6 +275,16 @@ public class StashClientTest extends StashTest {
     wireMock.verify(deleteRequestedFor(anyUrl()));
   }
 
+  @Test
+  public void testFollowInternalRedirection() throws Exception {
+    String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
+    wireMock.stubFor(get(anyUrl()).atPriority(2).willReturn(
+            aResponse().withStatus(HTTP_MOVED_TEMP).withHeader("Location", "/foo")));
+    wireMock.stubFor(get(urlPathEqualTo("/foo")).atPriority(1).willReturn(aResponse().withBody(jsonUser)));
+    client.getUser("does not matter");
+    wireMock.verify(getRequestedFor(urlPathEqualTo("/foo")));
+  }
+
   private void addErrorResponse(MappingBuilder mapping, int statusCode) {
     wireMock.stubFor(mapping.willReturn( aResponse()
             .withStatus(statusCode)
