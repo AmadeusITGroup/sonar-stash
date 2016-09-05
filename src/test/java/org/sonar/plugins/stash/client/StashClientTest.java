@@ -18,7 +18,7 @@ import static java.net.HttpURLConnection.*;
 import static org.junit.Assert.*;
 
 public class StashClientTest extends StashTest {
-  private static final int timeout = 50;
+  private static final int timeout = 150;
   private static final int errorTimeout = timeout + 10;
 
   @Rule
