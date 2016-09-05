@@ -15,19 +15,33 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.AsyncHttpClientConfigDefaults;
+import com.ning.http.client.Realm;
+import com.ning.http.client.Realm.AuthScheme;
+import com.ning.http.client.Response;
+import org.apache.commons.lang3.StringUtils;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.sonar.plugins.stash.PluginInfo;
+import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
-import org.sonar.plugins.stash.issue.StashComment;
-import org.sonar.plugins.stash.issue.StashCommentReport;
-import org.sonar.plugins.stash.issue.StashDiffReport;
-import org.sonar.plugins.stash.issue.StashPullRequest;
-import org.sonar.plugins.stash.issue.StashTask;
-import org.sonar.plugins.stash.issue.StashUser;
+import org.sonar.plugins.stash.issue.*;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
 import com.ning.http.client.Realm.AuthScheme;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static java.net.HttpURLConnection.*;
 
@@ -234,10 +248,6 @@ public class StashClient implements AutoCloseable {
     delete(request, MessageFormat.format(TASK_DELETION_ERROR_MESSAGE, task.getId()));
   }
 
-  AsyncHttpClient createHttpClient(){
-    return new AsyncHttpClient();
-  }
-
   void setHttpClient(AsyncHttpClient httpClient) {
     this.httpClient = httpClient;
   }
@@ -340,16 +350,36 @@ public class StashClient implements AutoCloseable {
 
     List<String> errorParts = new ArrayList<>();
 
-    for (Object o: errors) {
+    for (Object o : errors) {
       try {
         JSONObject error = (JSONObject) o;
         errorParts.add((String) error.get("exceptionName") + ": " + (String) error.get("message"));
       } catch (ClassCastException e) {
-          throw new StashClientException("Error response contained invalid error", e);
+        throw new StashClientException("Error response contained invalid error", e);
       }
 
     }
 
     return StringUtils.join(errorParts, ", ");
+  }
+
+  // We can't test this, as the manifest can only be loaded when deployed from a JAR-archive.
+  // During unit testing this is not the case
+  public static String getUserAgent() {
+    PluginInfo info = PluginUtils.infoForPluginClass(StashPlugin.class);
+    String name, version, sonarQubeVersion;
+    name = version = sonarQubeVersion = "unknown";
+    if (info != null) {
+      name = info.getName();
+      version = info.getVersion();
+      // FIXME: add SonarQube version
+    }
+    return MessageFormat.format("SonarQube/{0} {1}/{2} {3}",
+    sonarQubeVersion, name, version, AsyncHttpClientConfigDefaults.defaultUserAgent());
+  }
+  
+  AsyncHttpClient createHttpClient(){
+    return new AsyncHttpClient(
+            new AsyncHttpClientConfig.Builder().setUserAgent(getUserAgent()).build());
   }
 }
