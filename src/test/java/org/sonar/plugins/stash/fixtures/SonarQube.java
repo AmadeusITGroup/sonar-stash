@@ -109,8 +109,12 @@ public class SonarQube {
             } catch (IOException e) {
                 /* noop */
             }
-            if (connection.getResponseCode() == 200) {
-                break;
+            try {
+                if (connection.getResponseCode() == 200) {
+                    break;
+                }
+            } catch (ConnectException e)  {
+                /* noop */
             }
             try {
                 Thread.sleep(5000);
