@@ -1,10 +1,10 @@
 package org.sonar.plugins.stash.issue;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.sonar.plugins.stash.StashPlugin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class StashDiff {
 

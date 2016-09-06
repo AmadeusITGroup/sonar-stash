@@ -1,9 +1,9 @@
 package org.sonar.plugins.stash.issue;
 
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.rule.Severity;
+
+import java.util.Map;
 
 public final class MarkdownPrinter {
 

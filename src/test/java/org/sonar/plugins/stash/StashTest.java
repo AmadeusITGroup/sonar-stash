@@ -1,6 +1,6 @@
 package org.sonar.plugins.stash;
 
-import org.junit.*;
+import org.junit.Rule;
 
 public abstract class StashTest {
     @Rule

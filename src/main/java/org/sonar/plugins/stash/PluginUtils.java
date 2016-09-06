@@ -1,13 +1,9 @@
 package org.sonar.plugins.stash;
 
-import org.sonar.plugins.stash.client.StashClient;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 

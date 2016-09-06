@@ -1,10 +1,10 @@
 package org.sonar.plugins.stash.issue;
 
-import static org.junit.Assert.assertTrue;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class MarkdownPrinterTest {
 

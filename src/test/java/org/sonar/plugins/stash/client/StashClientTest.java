@@ -1,21 +1,47 @@
 package org.sonar.plugins.stash.client;
 
-import com.github.tomakehurst.wiremock.client.*;
-import com.github.tomakehurst.wiremock.core.*;
-import com.github.tomakehurst.wiremock.junit.*;
-import org.hamcrest.*;
-import org.junit.*;
-import org.sonar.plugins.stash.*;
-import org.sonar.plugins.stash.exceptions.*;
-import org.sonar.plugins.stash.issue.*;
-import org.sonar.plugins.stash.issue.collector.*;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.sonar.plugins.stash.StashTest;
+import org.sonar.plugins.stash.exceptions.StashClientException;
+import org.sonar.plugins.stash.issue.StashComment;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
+import org.sonar.plugins.stash.issue.StashUser;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
-import java.net.*;
-import java.util.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static java.net.HttpURLConnection.*;
-import static org.junit.Assert.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static java.net.HttpURLConnection.HTTP_CREATED;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
+import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
+import static java.net.HttpURLConnection.HTTP_NOT_IMPLEMENTED;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
+import static java.net.HttpURLConnection.HTTP_OK;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class StashClientTest extends StashTest {
   private static final int timeout = 150;

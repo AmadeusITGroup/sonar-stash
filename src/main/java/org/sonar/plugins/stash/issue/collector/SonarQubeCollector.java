@@ -1,7 +1,5 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import java.io.File;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.InputFile;
@@ -11,6 +9,8 @@ import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.InputFileCache;
 import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+
+import java.io.File;
 
 public final class SonarQubeCollector {
 

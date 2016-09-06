@@ -1,14 +1,14 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.plugins.stash.InputFileCache;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class InputFileCacheTest {
 

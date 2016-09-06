@@ -1,12 +1,5 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +11,13 @@ import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.InputFileCache;
 import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+
+import java.io.File;
+import java.util.ArrayList;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class SonarQubeCollectorTest {

@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
+
 public class CompleteITCase {
     protected static SonarScanner sonarScanner;
     protected static File sourcesDir;

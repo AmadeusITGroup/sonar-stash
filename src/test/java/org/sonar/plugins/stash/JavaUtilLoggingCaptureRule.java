@@ -1,11 +1,17 @@
 package org.sonar.plugins.stash;
 
-import org.junit.rules.*;
-import org.junit.runner.*;
-import org.junit.runners.model.*;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
-import java.util.*;
-import java.util.logging.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.MemoryHandler;
 
 public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule {
     private boolean gobbleOnSuccess;
