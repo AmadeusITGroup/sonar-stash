@@ -314,7 +314,7 @@ public class StashClient implements AutoCloseable {
 
     String contentType = response.getHeader("Content-Type");
     if (!"application/json".equals(contentType)) {
-      throw new StashClientException("Received error with type " + contentType + " instead of JSON");
+      throw new StashClientException("Received response with type " + contentType + " instead of JSON");
     }
     try {
       Object obj = new JSONParser().parse(body);
@@ -325,11 +325,6 @@ public class StashClient implements AutoCloseable {
   }
 
   private static String formatStashApiError(Response response) throws StashClientException {
-    String contentType = response.getHeader("Content-Type");
-    if (!"application/json".equals(contentType)) {
-      throw new StashClientException("Received error with type " + contentType + " instead of JSON");
-    }
-
     JSONArray errors;
     JSONObject responseJson = extractResponse(response);
 
