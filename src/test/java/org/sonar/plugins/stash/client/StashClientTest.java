@@ -328,7 +328,7 @@ public class StashClientTest extends StashTest {
     ));
   }
 
-  private static ResponseDefinitionBuilder aJsonResponse() {
+  public static ResponseDefinitionBuilder aJsonResponse() {
       return aResponse().withHeader("Content-Type", "application/json").withBody("{}");
   }
 

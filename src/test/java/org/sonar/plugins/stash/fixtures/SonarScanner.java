@@ -46,5 +46,8 @@ public class SonarScanner {
         }
         Process process = pb.start();
         process.waitFor();
+        if (process.exitValue() != 0) {
+            throw new IOException("Sonar Scanner failed with " + process.exitValue());
+        }
     }
 }

@@ -52,7 +52,7 @@ public class CompleteITCase {
         wireMock.stubFor(
                 WireMock.get(WireMock.urlPathEqualTo(
                         urlPath("rest", "api", "1.0", "users", stashUser)))
-                        .willReturn(WireMock.aResponse()
+                        .willReturn(aJsonResponse()
                                 .withBody(jsonUser)
                         )
         );
@@ -60,7 +60,7 @@ public class CompleteITCase {
                 WireMock.get(WireMock.urlPathEqualTo(
                         repoPath(stashProject, stashRepo, "pull-requests", String.valueOf(stashPullRequest), "diff")))
                         .withQueryParam("withComments", WireMock.equalTo(String.valueOf(true)))
-                        .willReturn(WireMock.aResponse()
+                        .willReturn(aJsonResponse()
                                 .withBody(jsonPullRequest)
                         )
         );
@@ -68,12 +68,23 @@ public class CompleteITCase {
                 WireMock.post(WireMock.urlPathEqualTo(
                         repoPath(stashProject, stashRepo, "pull-requests", String.valueOf(stashPullRequest), "comments")))
                         .withRequestBody(WireMock.equalToJson("{\"text\":\"## SonarQube analysis Overview\\n### No new issues detected!\"}"))
-                        .willReturn(WireMock.aResponse()
+                        .willReturn(aJsonResponse()
                                 .withStatus(201)
                                 .withBody("{}")
                         )
         );
+
         scan();
+        wireMock.verify(WireMock.getRequestedFor(WireMock.urlPathMatching(".*" + stashUser + "$")));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.urlPathMatching(".*diff$")));
+        wireMock.verify(WireMock.postRequestedFor(WireMock.urlPathMatching(".*comments$")));
+    }
+
+    @Test
+    public void testUserAgent() {
+        String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
+        wireMock.stubFor(WireMock.any(WireMock.anyUrl()).willReturn(WireMock.aResponse().withHeader("Content-Type", "application/json").withBody(jsonUser)));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing("SonarQube")));
     }
 
     private String repoPath(String project, String repo, String... parts) {
