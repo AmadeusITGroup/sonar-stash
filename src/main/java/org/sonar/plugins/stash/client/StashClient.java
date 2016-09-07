@@ -36,7 +36,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.net.HttpURLConnection.HTTP_CREATED;
 
-public class StashClient implements AutoCloseable {
+public class StashClient implements StashApi {
 
   private final String baseUrl;
   private final StashCredentials credentials;
@@ -75,6 +75,7 @@ public class StashClient implements AutoCloseable {
     this.httpClient = createHttpClient();
   }
 
+  @Override
   public void postCommentOnPullRequest(String project, String repository, String pullRequestId, String report)
       throws StashClientException {
 
@@ -85,6 +86,7 @@ public class StashClient implements AutoCloseable {
     postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId));
   }
 
+  @Override
   public StashCommentReport getPullRequestComments(String project, String repository, String pullRequestId, String path)
       throws StashClientException {
     StashCommentReport result = new StashCommentReport();
@@ -109,6 +111,7 @@ public class StashClient implements AutoCloseable {
     return result;
   } 
   
+  @Override
   public void deletePullRequestComment(String project, String repository, String pullRequestId, StashComment comment)
       throws StashClientException {
 
@@ -120,6 +123,7 @@ public class StashClient implements AutoCloseable {
     delete(request, MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), repository, pullRequestId));
   }
   
+  @Override
   public StashDiffReport getPullRequestDiffs(String project, String repository, String pullRequestId)
       throws StashClientException {
     StashDiffReport result = new StashDiffReport();
@@ -135,6 +139,7 @@ public class StashClient implements AutoCloseable {
     return result;
   }
 
+  @Override
   public StashComment postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
       throws StashClientException {
     String request = MessageFormat.format(COMMENTS_PULL_REQUEST_API, baseUrl + REST_API, project, repository,
@@ -164,6 +169,7 @@ public class StashClient implements AutoCloseable {
     }
   }
 
+  @Override
   public StashUser getUser(String userSlug)
           throws StashClientException {
     String request = MessageFormat.format(USER_API, baseUrl + REST_API, userSlug);
@@ -175,6 +181,7 @@ public class StashClient implements AutoCloseable {
     }
   }
   
+  @Override
   public StashPullRequest getPullRequest(String project, String repository, String pullRequestId)
       throws StashClientException {
     String request = MessageFormat.format(PULL_REQUEST_API, baseUrl + REST_API, project, repository, pullRequestId);
@@ -186,6 +193,7 @@ public class StashClient implements AutoCloseable {
     }
   }
   
+  @Override
   public void addPullRequestReviewer(String project, String repository, String pullRequestId, long pullRequestVersion, ArrayList<StashUser> reviewers)
       throws StashClientException {
     String request = MessageFormat.format(PULL_REQUEST_API, baseUrl + REST_API, project, repository, pullRequestId);
@@ -210,16 +218,19 @@ public class StashClient implements AutoCloseable {
     put(request, json, MessageFormat.format(PULL_REQUEST_PUT_ERROR_MESSAGE, repository, pullRequestId));
   }
 
+  @Override
   public void approvePullRequest(String project, String repository, String pullRequestId) throws StashClientException {
     String request = MessageFormat.format(APPROVAL_PULL_REQUEST_API, baseUrl + REST_API, project, repository, pullRequestId);
     post(request, null, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, repository, pullRequestId));
   }
   
+  @Override
   public void resetPullRequestApproval(String project, String repository, String pullRequestId) throws StashClientException {
     String request = MessageFormat.format(APPROVAL_PULL_REQUEST_API, baseUrl + REST_API, project, repository, pullRequestId);
     delete(request, HttpURLConnection.HTTP_OK, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, repository, pullRequestId));
   }
   
+  @Override
   public void postTaskOnComment(String message, Long commentId) throws StashClientException {
     String request = baseUrl + TASKS_API;
   
@@ -234,6 +245,7 @@ public class StashClient implements AutoCloseable {
     postCreate(request, json, MessageFormat.format(TASK_POST_ERROR_MESSAGE, commentId));
   }
 
+  @Override
   public void deleteTaskOnComment(StashTask task) throws StashClientException {
     String request = baseUrl + TASKS_API + "/" + task.getId();
     delete(request, MessageFormat.format(TASK_DELETION_ERROR_MESSAGE, task.getId()));

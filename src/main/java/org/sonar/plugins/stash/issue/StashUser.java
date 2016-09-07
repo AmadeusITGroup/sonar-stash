@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 public class StashUser {
 
   private final long id;
@@ -28,5 +30,9 @@ public class StashUser {
 
   public String getEmail() {
     return email;
+  }
+
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
   }
 }
