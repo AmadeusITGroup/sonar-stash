@@ -118,6 +118,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     
     when(stashRequestFacade.getCodeCoverageSeverity()).thenReturn(Severity.INFO);
     when(stashRequestFacade.getCoverageReport(eq(project.getKey()), eq(context), eq(inputFileCacheSensor), eq(Severity.INFO), (SonarQubeClient) Mockito.anyObject())).thenReturn(coverageReport);
+    when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
   }
   
   @Test
@@ -309,7 +310,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     verify(stashRequestFacade, times(0)).approvePullRequest(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(STASH_LOGIN), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0)).resetPullRequestApproval(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(STASH_LOGIN), (StashClient) Mockito.anyObject());
   }
-  
+
   @Test
   public void testExecuteOnWithCodeCoverageSecurityAsNone() throws Exception {
     when(stashRequestFacade.getCodeCoverageSeverity()).thenReturn(StashPlugin.SEVERITY_NONE);
@@ -335,22 +336,39 @@ public class StashIssueReportingPostJobTest extends StashTest {
   @Test
   public void testExecuteOnWithCodeCoverageSecurityAsInfo() throws Exception {
     when(stashRequestFacade.getCodeCoverageSeverity()).thenReturn("INFO");
-    
+
     SonarQubeIssuesReport report = mock(SonarQubeIssuesReport.class);
     when(report.countIssues()).thenReturn(10);
     when(stashRequestFacade.extractIssueReport(projectIssues, inputFileCache)).thenReturn(report);
-    
+
     CoverageIssuesReport coverageReport = mock(CoverageIssuesReport.class);
     when(coverageReport.countLoweredIssues()).thenReturn(10);
     when(stashRequestFacade.getCoverageReport(eq(project.getKey()), eq(context), eq(inputFileCacheSensor), eq("INFO"), (SonarQubeClient) Mockito.anyObject())).thenReturn(coverageReport);
-    
+
     myJob = new StashIssueReportingPostJob(config, projectIssues, inputFileCache, stashRequestFacade, inputFileCacheSensor);
     myJob.executeOn(project, context);
-    
+
     verify(stashRequestFacade, times(1)).getCoverageReport(eq(project.getKey()), eq(context), eq(inputFileCacheSensor), anyString(), (SonarQubeClient) Mockito.anyObject());
-    
+
     verify(stashRequestFacade, times(1)).postSonarQubeReport(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(SONARQUBE_URL), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(1)).postCoverageReport(eq(STASH_PROJECT), eq(STASH_REPOSITORY), eq(STASH_PULLREQUEST_ID), eq(SONARQUBE_URL), eq(coverageReport), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(1)).postAnalysisOverview(eq(ID_CARD), eq(STASH_ISSUE_THRESHOLD), eq(report), eq(coverageReport), (StashClient) Mockito.anyObject());
+  }
+
+  @Test
+  public void testExecuteOnWithoutAnalysisComment() throws Exception {
+    when(config.includeAnalysisOverview()).thenReturn(Boolean.FALSE);
+
+    SonarQubeIssuesReport report = mock(SonarQubeIssuesReport.class);
+    when(report.countIssues()).thenReturn(101);
+    when(stashRequestFacade.extractIssueReport(projectIssues, inputFileCache)).thenReturn(report);
+
+    int issueThreshold = 100;
+    when(stashRequestFacade.getIssueThreshold()).thenReturn(issueThreshold);
+
+    myJob = new StashIssueReportingPostJob(config, projectIssues, inputFileCache, stashRequestFacade, inputFileCacheSensor);
+    myJob.executeOn(project, context);
+
+    verify(stashRequestFacade, times(0)).postAnalysisOverview(eq(ID_CARD), eq(STASH_ISSUE_THRESHOLD), eq(report), eq(coverageReport), (StashClient) Mockito.anyObject());
   }
 }
