@@ -33,7 +33,7 @@ mvn clean package
 #### To deploy the plugin
 Just copy the sonar-stash-plugin jar file to the plugin folder of the expected SonarQube server and restart the SonarQube server. For instance, on Linux platform:
 ```
-~> cp target/sonar-stash-plugin-1.0.jar $SONARQUBE_HOME/extensions/plugins
+cp target/sonar-stash-plugin-1.0.jar $SONARQUBE_HOME/extensions/plugins
 ```
 
 #### Configuration on SonarQube server
@@ -65,11 +65,15 @@ To activate the plugin, just add the following options to the SonarQube launcher
 
 Before SonarQube 5.2:
 ```
-sonar-runner -Dsonar.analysis.mode=incremental -Dsonar.stash.notification -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
+sonar-runner -Dsonar.analysis.mode=incremental \
+	-Dsonar.stash.notification -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> \
+	-Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
 ```
 For SonarQube 5.2+:
 ```
-sonar-runner -Dsonar.analysis.mode=preview -Dsonar.stash.notification=true -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
+sonar-runner -Dsonar.analysis.mode=preview \
+	-Dsonar.stash.notification=true -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> \
+	-Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
 ```
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-logs.PNG)
