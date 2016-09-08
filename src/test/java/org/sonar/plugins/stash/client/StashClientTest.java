@@ -44,7 +44,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class StashClientTest extends StashTest {
-  private static final int timeout = 150;
+  private static final int timeout = 200;
   private static final int errorTimeout = timeout + 10;
 
   @Rule
