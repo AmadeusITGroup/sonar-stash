@@ -8,6 +8,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.sonar.plugins.stash.client.StashClient;
+import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
 import org.sonar.plugins.stash.fixtures.SonarQubeRule;
 import org.sonar.plugins.stash.fixtures.SonarScanner;
@@ -81,9 +83,11 @@ public class CompleteITCase {
     }
 
     @Test
-    public void testUserAgent() {
+    public void testUserAgent() throws Exception {
         String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
         wireMock.stubFor(WireMock.any(WireMock.anyUrl()).willReturn(WireMock.aResponse().withHeader("Content-Type", "application/json").withBody(jsonUser)));
+        StashClient client = new StashClient("http://127.0.0.1:" + wireMock.port(), new StashCredentials("some", "thing"), 300);
+        client.getUser("sonarqube");
         wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing("SonarQube")));
     }
 
