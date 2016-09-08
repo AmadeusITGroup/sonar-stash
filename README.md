@@ -77,3 +77,11 @@ sonar-runner -Dsonar.analysis.mode=preview -Dsonar.stash.notification=true -Dson
 #### Reset comments of previous SonarQube analysis
 
 If needed, you can reset comments published during the previous SonarQube analysis of your pull-request. Please add **sonar.stash.comments.reset** option to your SonarQube analysis. Please notice only comments linked to the **sonar.stash.login** user will be deleted. This reset will be the first action performed by the plugin.
+
+# How to contribute
+
+* Before developing a major feature please open a ticket and announce it.
+  Maybe the maintainers have strong opinions or useful hints about it.
+
+* Add unit and for major features integration tests.
+* Use the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html) for new development.
