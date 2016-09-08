@@ -216,6 +216,9 @@ public class StashRequestFacadeTest extends StashTest {
   public void testGetStashURL() throws StashConfigurationException {
     when(config.getStashURL()).thenReturn("http://url");
     assertEquals(myFacade.getStashURL(), "http://url");
+
+    when(config.getStashURL()).thenReturn("http://url/");
+    assertEquals(myFacade.getStashURL(), "http://url");
   }
   
   @Test (expected = StashConfigurationException.class)
