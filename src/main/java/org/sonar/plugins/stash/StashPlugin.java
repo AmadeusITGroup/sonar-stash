@@ -1,8 +1,5 @@
 package org.sonar.plugins.stash;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.collections.ListUtils;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
@@ -11,6 +8,9 @@ import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.rule.Severity;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Properties({
     @Property(key = StashPlugin.STASH_NOTIFICATION, name = "Stash Notification", defaultValue = "false", description = "Analysis result will be issued in Stash pull request", global = false),
@@ -90,10 +90,6 @@ public class StashPlugin extends SonarPlugin {
         PropertyDefinition.builder(STASH_CODE_COVERAGE_SEVERITY)
             .name("Stash code coverage severity")
             .description("Severity to be associated with Code Coverage issues")
-            .type(PropertyType.SINGLE_SELECT_LIST)
-            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
-            .onQualifiers(Qualifiers.PROJECT)
-            .defaultValue(SEVERITY_NONE)
             .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
         PropertyDefinition.builder(STASH_TASK_SEVERITY_THRESHOLD)
             .name("Stash tasks severity threshold")
@@ -103,7 +99,6 @@ public class StashPlugin extends SonarPlugin {
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
             .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build());
-        
   }
 }
 

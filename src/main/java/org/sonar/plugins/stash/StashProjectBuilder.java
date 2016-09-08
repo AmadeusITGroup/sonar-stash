@@ -1,8 +1,8 @@
 package org.sonar.plugins.stash;
 
-import java.io.File;
-
 import org.sonar.api.batch.bootstrap.ProjectBuilder;
+
+import java.io.File;
 
 public class StashProjectBuilder extends ProjectBuilder {
 

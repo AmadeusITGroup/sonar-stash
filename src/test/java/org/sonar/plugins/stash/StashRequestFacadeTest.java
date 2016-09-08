@@ -42,7 +42,7 @@ import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 
-public class StashRequestFacadeTest {
+public class StashRequestFacadeTest extends StashTest {
   
   @Spy
   StashRequestFacade myFacade;
@@ -230,6 +230,9 @@ public class StashRequestFacadeTest {
   @Test
   public void testGetStashURL() throws StashConfigurationException {
     when(config.getStashURL()).thenReturn("http://url");
+    assertEquals(myFacade.getStashURL(), "http://url");
+
+    when(config.getStashURL()).thenReturn("http://url/");
     assertEquals(myFacade.getStashURL(), "http://url");
   }
   

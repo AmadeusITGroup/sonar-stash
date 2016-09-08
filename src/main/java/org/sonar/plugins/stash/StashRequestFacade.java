@@ -250,7 +250,12 @@ public class StashRequestFacade implements BatchComponent {
     if (result == null){
       throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_URL + " from plugin configuration (value is null)");
     }
-    
+
+    if (result.endsWith("/")) {
+      LOGGER.warn("Stripping trailing slash from {}, as it leads to invalid URLs", StashPlugin.STASH_URL);
+      result = StringUtils.removeEnd(result, "/");
+    }
+
     return result;
   }
   

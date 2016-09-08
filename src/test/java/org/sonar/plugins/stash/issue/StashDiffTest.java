@@ -1,13 +1,13 @@
 package org.sonar.plugins.stash.issue;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.sonar.plugins.stash.StashPlugin;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.plugins.stash.StashPlugin;
 
 public class StashDiffTest {
   
