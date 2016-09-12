@@ -19,4 +19,10 @@ elif [ "integration" = "${TEST_SUITE}" ]; then
 	# not exist
 	export RAILS_ENV=production
 	mvn verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
+
+    ## We run the Sonar analysis only once with the encrypted credentials
+    set -x
+    if [ "$SONAR_TOKEN" != "" ]; then
+        mvn sonar:sonar -Dsonar.host.url=https://sonarqube.com -Dsonar.login=$SONAR_TOKEN
+    fi
 fi
