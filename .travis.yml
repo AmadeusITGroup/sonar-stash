@@ -3,20 +3,33 @@ language: java
 matrix:
   fast_finish: true
   include:
+    ## First, the CI environments ##
     - jdk: oraclejdk8
-      env: TEST_SUITE=unit
+      env:
+        - TEST_SUITE=unit
+
     - jdk: oraclejdk7
-      env: TEST_SUITE=unit
+      env:
+        - TEST_SUITE=unit
+        # Adding SONAR_TOKEN for SonarQube reports (just need one environment to generate it)
+        - secure: "BcTOZZfl2OE46Al4YgTuYSSBAwZDKQytNrYEGtF3JE33jwn/aLw/6DtK8VozRp2HS8WiMYgcGAXu7TOaScNcK9G84aOvfjlcFbORgdC5H6EVxohlEgc8CavN5ppNaCavOXVtwvLuaS+EUJDR9x4xCXw41GQ8D/z61INRGj3I4dGs0R8Mm5uMNdB4qbF3Vp2cIi4QOTkEFYk3qcBO6Ze/WZqUINoabC8PWhI/UnxhZuZUx+y9o/1Y0T91/HUjHisuuOCkhDGBQn6tAFty0sZkAVbKhuRLZv8wOONkSC9KmTj1p76UYqZG90JCPJrVR3SvczI5VMis33oA59AYyl5I05G0qtddyUP8e4czIcmMiv8INX7pi/vJmLS+EWvRrPXUZtyeqwDDq7r3ROy8ly+7HGHXz07LXr+F7ccBJR39Wc0cDt/aunqkd6MzSYBNK8Y+VSWL6CmvkdNkdu9Bs9mNfaBZ4oPsGgP7e1rhVUXQrIAKZ12M/gNw1TB67elkZTQf2/ZJXXvtg9WQ6wP98EF92T1Z0XLr608+L/5X4/gzjYBdX7cZ1IbyMTHu1nM8JGp10zmQxxJIlRsk4c6Q6ZdkxH0HEK7gAZYtau0TXNu+7whZEtbwBB1Ob1NrInxczAda9H92uwoyO7ZVbScgN+ObgFWb6AnK+FT8O4IM6n0esSc="
+        # Adding SONAR_TOKEN for re-schneider's fork
+        - secure: "FIoZWuu5xy5JY0Ph6sAOyK0e/F3MqgDqIE8s+I+FCzmhw9CHfcRKlDOHzZR6GudifW5gaRX+1FBAAQn8uXRIeZ4UyLW/BVOOjD+2hnI9P7ulKGmkdXEFf14/vWdD62e1FH0/FfLtJwNei5MXPoIa89MUrwHURhfkmd/P8UjP0BxTLH74KIU2vwxNtjCoDsiupJHDcVHbcF25Q8q83bhFdmFu8tp/s5Sjw9NqedAlEW3plvEhHX3jK7sBENdXFDyG5JORJd4gVMdKcJ4QCSQ1MaPRrtvkI8pHJwMYZWjmJZ0t/Kk+wo+Ml0SSvT2wcA4buJw/DWBjZGS6KjdAG4V4uqpb/6C30LoYf0eBcUwrC414n4qpkVDDeyAOSRfLq08PUlUVvEbHN5syYAcmJds6huadILmWhBAqo2/fBy5gTm0ehc3K9PQU96GVPZHcAuxZdIV2GAGKZ5WLCfpjgtJLgz17VWrZc5vjMrTZtoEo1o3M1SZZU2mjptRYDZYmhTrAG4yXVBgXwXfmor2DrTiL1dgTod1vgNA5EsKl4OVpvknUk24dI3M8Ub0O62pdEcVz0UsQY8BwxZQCgu+K6colFKFbDcTM1sastnELrCK6WCIqKPGcUOkZ2kCRCQYlukedv45pYv0A2jos4gH0SzwDps2nDWS+ORKlg3txsROC5SM="
+
     - jdk: openjdk7
       env: TEST_SUITE=unit
+
+    ## Then, the automated integration tests environments ##
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=6.0
+
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=5.6
+
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=integration
