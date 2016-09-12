@@ -40,8 +40,7 @@ public final class MarkdownPrinter {
     StringBuilder sb = new StringBuilder();
 
     Map<String, SonarQubeIssue> rules = report.getUniqueRulesBySeverity(severity);
-    for (String rule : rules.keySet()) {
-      SonarQubeIssue issue = rules.get(rule);
+    for (SonarQubeIssue issue : rules.values()) {
       sb.append("| ").append(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL)).append(" |").append(NEW_LINE);
     }
 
