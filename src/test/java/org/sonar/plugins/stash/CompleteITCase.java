@@ -29,6 +29,8 @@ public class CompleteITCase {
     protected static final String stashPassword = "myPassword";
     protected static final String stashProject = "PROJ";
     protected static final String stashRepo = "REPO";
+    protected static final String sonarQubeKey = "SomeKey";
+    protected static final String sonarQubeName = "Integration test project";
     protected static final int stashPullRequest = 42;
 
     @Rule
@@ -40,6 +42,7 @@ public class CompleteITCase {
     public static void setUpClass() throws Exception {
         sonarqube.get().installPlugin(new File(System.getProperty("test.plugin.archive")));
         sonarqube.start();
+        sonarqube.get().createProject(sonarQubeKey, sonarQubeName);
 
         sonarScanner = MavenSonarFixtures.getSonarScanner();
 
@@ -120,6 +123,6 @@ public class CompleteITCase {
         extraProps.setProperty("sonar.stash.repository", stashRepo);
         extraProps.setProperty("sonar.stash.pullrequest.id", String.valueOf(stashPullRequest));
         extraProps.setProperty("sonar.log.level", "DEBUG");
-        sonarScanner.scan(sonarqube.get(), sourcesDir, sources, "KEY", "Some Project", "0.0.0Final39", extraProps);
+        sonarScanner.scan(sonarqube.get(), sourcesDir, sources, sonarQubeKey, sonarQubeName, "0.0.0Final39", extraProps);
     }
 }
