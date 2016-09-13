@@ -18,13 +18,16 @@ public class PluginUtils {
                     man = new Manifest(ms);
                 }
                 Attributes attrs = man.getMainAttributes();
-                if (attrs == null)
+                if (attrs == null) {
                     continue;
+                }
                 String pluginClass = attrs.getValue("Plugin-Class");
-                if (pluginClass == null)
+                if (pluginClass == null) {
                     continue;
-                if (!pluginClass.equals(klass.getName()))
+                }
+                if (!pluginClass.equals(klass.getName())) {
                     continue;
+                }
 
                 String pluginVersion = attrs.getValue("Plugin-Version");
                 String pluginName = attrs.getValue("Plugin-Name");
