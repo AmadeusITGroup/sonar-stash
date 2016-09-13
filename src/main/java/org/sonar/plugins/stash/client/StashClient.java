@@ -118,8 +118,6 @@ public class StashClient implements AutoCloseable {
     String request = MessageFormat.format(API_ONE_PR_ONE_COMMENT, baseUrl, project, repository, pullRequestId,
                                           Long.toString(comment.getId()), Long.toString(comment.getVersion()));
 
-
-    BoundRequestBuilder requestBuilder = httpClient.prepareDelete(request);
     delete(request, MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), repository, pullRequestId));
   }
   
