@@ -63,7 +63,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
       
     } catch(StashClientException e){
-        StashClientExceptionManager(e, "Unable to push SonarQube analysis overview to Stash: {}");
+        LOGGER.error("Unable to push SonarQube analysis overview to Stash", e);
     }
   }
   
@@ -77,7 +77,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"", pullRequestId, project, repository, user);
       
     } catch(StashClientException e){
-        StashClientExceptionManager(e, "Unable to approve pull-request: {}");
+        LOGGER.error("Unable to approve pull-request", e);
     }
   }
   
@@ -91,7 +91,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"", pullRequestId, project, repository, user);
       
     } catch(StashClientException e){
-        StashClientExceptionManager(e, "Unable to reset pull-request approval: {}");
+        LOGGER.error("Unable to reset pull-request approval", e);
     }
   }
   
@@ -113,7 +113,7 @@ public class StashRequestFacade implements BatchComponent {
         LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", user, pullRequestId, project, repository);
       }
     } catch(StashClientException e){
-        StashClientExceptionManager(e, "Unable to add a new reviewer to the pull-request: {}");
+        LOGGER.error("Unable to add a new reviewer to the pull-request", e);
     }
   }
   
@@ -179,7 +179,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.info("New SonarQube issues have been reported to Stash.");
       
     } catch (StashClientException e){
-        StashClientExceptionManager(e, "Unable to link SonarQube issues to Stash: {}");
+        LOGGER.error("Unable to link SonarQube issues to Stash", e);
     }
   }
   
@@ -270,7 +270,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.debug("SonarQube reviewer {} identified in Stash", user);
       
     } catch(StashClientException e){
-        StashClientExceptionManager(e, "Unable to get SonarQube reviewer from Stash: {}");
+        LOGGER.error("Unable to get SonarQube reviewer from Stash", e);
     }
     
     return result;
@@ -288,7 +288,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.debug("Stash differential report retrieved from pull request {} #{}", repository, pullRequestId);
       
     } catch(StashClientException e){
-        StashClientExceptionManager(e, "Unable to get Stash differential report from Stash: {}");
+        LOGGER.error("Unable to get Stash differential report from Stash", e);
     }
     
     return result;
@@ -322,7 +322,7 @@ public class StashRequestFacade implements BatchComponent {
       LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset", sonarUser.getName());
       
     } catch (StashClientException e){
-        StashClientExceptionManager(e, "Unable to reset comment list, {}");
+        LOGGER.error("Unable to reset comment list", e);
     }
   }
   
@@ -349,12 +349,4 @@ public class StashRequestFacade implements BatchComponent {
       
       return result;
   }
-
-  /**
-   *  Reduce code duplication with a StashClientExceptionManager method
-   */
- private void StashClientExceptionManager(StashClientException e, String message){
-     LOGGER.error(message, e.getMessage());
-     LOGGER.debug("Exception stack trace: {}.", e);
- }
 }
