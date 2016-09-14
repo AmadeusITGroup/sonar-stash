@@ -8,6 +8,11 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 public class PluginUtils {
+
+    // Hiding implicit public constructor with an explicit private one (squid:S1118)
+    private PluginUtils() {
+    }
+    
     public static PluginInfo infoForPluginClass(Class klass) {
         try {
             Enumeration<URL> resources = klass.getClassLoader().getResources("META-INF/MANIFEST.MF");
