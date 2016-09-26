@@ -37,15 +37,19 @@
     <sonar.version>4.5.4</sonar.version>
     <sonar.pluginName>Stash</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.stash.StashPlugin</sonar.pluginClass>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
     <test.sonarqube.dist.groupId>fixme.fixme</test.sonarqube.dist.groupId>
     <test.sonarqube.dist.artifactId>sonarqube-dist</test.sonarqube.dist.artifactId>
     <test.sonarqube.dist.version>6.0</test.sonarqube.dist.version>
     <test.sonarqube.dist.outputdir>${project.build.directory}/fixtures/sonarqube</test.sonarqube.dist.outputdir>
+
     <test.sonarscanner.dist.groupId>fixme.fixme</test.sonarscanner.dist.groupId>
     <test.sonarscanner.dist.artifactId>sonarscanner-dist</test.sonarscanner.dist.artifactId>
     <test.sonarscanner.dist.version>2.6.1</test.sonarscanner.dist.version>
     <test.sonarscanner.dist.outputdir>${project.build.directory}/fixtures/sonarscanner</test.sonarscanner.dist.outputdir>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    
+    <test.url.binaries.repo>https://sonarsource.bintray.com/Distribution</test.url.binaries.repo>
     <test.plugin.archive>${project.build.directory}/${project.artifactId}-${project.version}.jar</test.plugin.archive>
     <test.sources.dir>${project.build.directory}/fixtures/sources</test.sources.dir>
   </properties>
@@ -157,7 +161,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://sonarsource.bintray.com/Distribution/sonarqube/sonarqube-${test.sonarqube.dist.version}.zip</url>
+              <url>${test.url.binaries.repo}/sonarqube/sonarqube-${test.sonarqube.dist.version}.zip</url>
               <unpack>true</unpack>
               <outputDirectory>${test.sonarqube.dist.outputdir}</outputDirectory>
             </configuration>
@@ -169,7 +173,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>https://sonarsource.bintray.com/Distribution/sonar-scanner-cli/sonar-scanner-${test.sonarscanner.dist.version}.zip</url>
+              <url>${test.url.binaries.repo}/sonar-scanner-cli/sonar-scanner-${test.sonarscanner.dist.version}.zip</url>
               <unpack>true</unpack>
               <outputDirectory>${test.sonarscanner.dist.outputdir}</outputDirectory>
             </configuration>

@@ -17,6 +17,9 @@ import org.sonar.plugins.stash.issue.StashUser;
 
 public final class StashCollector {
 
+   private static final String AUTHOR  = "author";
+   private static final String VERSION = "version";
+
   private StashCollector() {
     // NOTHING TO DO
     // Pure static class
@@ -45,9 +48,12 @@ public final class StashCollector {
     long id = (long) jsonComment.get("id");
     String message = (String) jsonComment.get("text");
 
-    StashUser stashUser = extractUser((JSONObject) jsonComment.get("author"));
+    long version = (long) jsonComment.get(VERSION);
 
-    result = new StashComment(id, message, path, line, stashUser, (long) jsonComment.get("version"));
+    JSONObject jsonAuthor = (JSONObject) jsonComment.get(AUTHOR);
+    StashUser stashUser = extractUser(jsonAuthor);
+
+    result = new StashComment(id, message, path, line, stashUser, version);
 
     return result;
   }
@@ -73,7 +79,8 @@ public final class StashCollector {
   public static StashPullRequest extractPullRequest(String project, String repository, String pullRequestId, JSONObject jsonPullRequest) throws StashReportExtractionException {
     StashPullRequest result = new StashPullRequest(project, repository, pullRequestId);
 
-    result.setVersion((long) jsonPullRequest.get("version"));
+    long version = (long) jsonPullRequest.get(VERSION);
+    result.setVersion(version);
 
     JSONArray jsonReviewers = (JSONArray) jsonPullRequest.get("reviewers");
     if (jsonReviewers != null) {
@@ -156,14 +163,14 @@ public final class StashCollector {
                                 if (lineCommentId == commentId) {
 
                                   String lineCommentMessage = (String) jsonLineComment.get("text");
+                                  long lineCommentVersion = (long) jsonLineComment.get(VERSION);
 
-                                  JSONObject objAuthor = (JSONObject) jsonLineComment.get("author");
+                                  JSONObject objAuthor = (JSONObject) jsonLineComment.get(AUTHOR);
                                   if (objAuthor != null) {
 
                                     StashUser author = extractUser(objAuthor);
 
-                                    StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path,
-                                                        destination, author, (long) jsonLineComment.get("version"));
+                                    StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path, destination, author, lineCommentVersion);
                                     diff.addComment(comment);
 
                                     // get the tasks linked to the current comment
@@ -201,14 +208,14 @@ public final class StashCollector {
 
                 long lineCommentId = (long) jsonLineComment.get("id");
                 String lineCommentMessage = (String) jsonLineComment.get("text");
+                long lineCommentVersion = (long) jsonLineComment.get(VERSION);
 
-                JSONObject objAuthor = (JSONObject) jsonLineComment.get("author");
+                JSONObject objAuthor = (JSONObject) jsonLineComment.get(AUTHOR);
                 if (objAuthor != null) {
 
                   StashUser author = extractUser(objAuthor);
 
-                  StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path, (long) 0, author,
-                                                            (long) jsonLineComment.get("version"));
+                  StashComment comment = new StashComment(lineCommentId, lineCommentMessage, path, (long) 0, author, lineCommentVersion);
                   initialDiff.addComment(comment);
                 }
               }
