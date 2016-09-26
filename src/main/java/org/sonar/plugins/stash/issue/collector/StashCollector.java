@@ -260,7 +260,6 @@ public final class StashCollector {
   }
 
   public static long getNextPageStart(JSONObject jsonObject) throws StashReportExtractionException {
-    long result = 0;
 
     if (jsonObject.get("nextPageStart") != null) {
       return (Long) jsonObject.get("nextPageStart");
