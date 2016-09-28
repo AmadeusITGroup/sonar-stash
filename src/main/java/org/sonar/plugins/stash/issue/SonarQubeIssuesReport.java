@@ -19,7 +19,7 @@ public class SonarQubeIssuesReport {
     issues.add(issue);
   }
 
-  public List<SonarQubeIssue> getIssues(){
+  public List<SonarQubeIssue> getIssues() {
     return issues;
   }
   

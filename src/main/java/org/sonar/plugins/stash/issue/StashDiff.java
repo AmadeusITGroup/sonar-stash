@@ -22,7 +22,7 @@ public class StashDiff {
     this.comments = new ArrayList<>();
   }
 
-  public void addComment(StashComment comment){
+  public void addComment(StashComment comment) {
     this.comments.add(comment);
   }
   
@@ -38,23 +38,23 @@ public class StashDiff {
     return destination;
   }
   
-  public String getType(){
+  public String getType() {
     return type;
   }
   
-  public List<StashComment> getComments(){
+  public List<StashComment> getComments() {
     return comments;
   }
   
-  public boolean isTypeOfContext(){
+  public boolean isTypeOfContext() {
     return StringUtils.equals(StashPlugin.CONTEXT_ISSUE_TYPE, type);
   }
   
-  public boolean containsComment(long commentId){
+  public boolean containsComment(long commentId) {
     boolean result = false;
-    for (StashComment comment: comments){
+    for (StashComment comment: comments) {
       long cid = comment.getId();
-      if (cid == commentId){
+      if (cid == commentId) {
         result = true;
         break;
       }
