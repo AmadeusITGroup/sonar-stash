@@ -54,63 +54,81 @@ public class StashIssueReportingPostJob implements PostJob {
         stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
         
         StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
+
         if (stashUser == null) {
-          LOGGER.error("Process stopped: no SonarQube reviewer identified to publish to Stash the SQ analysis"); 
-
-        }  else {
+          throw new StashMissingElementException("no SonarQube reviewer identified"
+                                                + " to publish to Stash the SQ analysis");
+        }
           
-          // Get all changes exposed from Stash differential view of the pull-request
-          StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(stashProject, repository,
-                                                                                   stashPullRequestId, stashClient);
-          if (diffReport == null) {
-            LOGGER.error("Process stopped: No Stash differential report available to process the SQ analysis"); 
+        // Get all changes exposed from Stash differential view of the pull-request
+        StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(stashProject, repository,
+                                                                                 stashPullRequestId, stashClient);
+        if (diffReport == null) {
+          throw new StashMissingElementException("No Stash differential report"
+                                                + " available to process the SQ analysis");
+        }
+          
+        // if requested, reset all comments linked to the pull-request
+        if (config.resetComments()) {
+          stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId,
+                                                         diffReport, stashUser, stashClient);
+        }
+        
+        boolean canApprovePullrequest = config.canApprovePullRequest();
+        if (canApprovePullrequest) {
+          stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId,
+                                                                  stashCredentials.getLogin(), stashClient);
+        }
+        
+        // if threshold exceeded, do not push issue list to Stash
+        if (issueReport.countIssues() >= issueThreshold) {
+          LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view",
+                                                         issueReport.countIssues(), issueThreshold);
+        } else {
+          stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL,
+                                                               issueReport, diffReport, stashClient);
+        }
+
+        stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL,
+                                                              issueThreshold, issueReport, stashClient);
+       
+        if (canApprovePullrequest) {
+       
+          // if no new issues, plugin approves the pull-request 
+          if (issueReport.countIssues() == 0) {
+            stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId,
+                                                                stashCredentials.getLogin(), stashClient);
           } else {
-          
-            // if requested, reset all comments linked to the pull-request
-            if (config.resetComments()) {
-              stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId,
-                                                             diffReport, stashUser, stashClient);
-            }
-            
-            boolean canApprovePullrequest = config.canApprovePullRequest();
-            if (canApprovePullrequest) {
-              stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId,
+            stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId,
                                                                       stashCredentials.getLogin(), stashClient);
-            }
-            
-            // if threshold exceeded, do not push issue list to Stash
-            if (issueReport.countIssues() >= issueThreshold) {
-              LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view",
-                                                             issueReport.countIssues(), issueThreshold);
-            } else {
-              stashRequestFacade.postCommentPerIssue(stashProject, repository, stashPullRequestId, sonarQubeURL,
-                                                                   issueReport, diffReport, stashClient);
-            }
-
-            stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL,
-                                                                  issueThreshold, issueReport, stashClient);
-           
-            if (canApprovePullrequest) {
-           
-              // if no new issues, plugin approves the pull-request 
-              if (issueReport.countIssues() == 0) {
-                stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId,
-                                                                    stashCredentials.getLogin(), stashClient);
-              } else {
-                stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId,
-                                                                          stashCredentials.getLogin(), stashClient);
-              }
-            }
           }
         }
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
+
+    } catch (StashMissingElementException e) {
+      LOGGER.error("Process stopped: {}", e.getMessage());
+      LOGGER.debug("Exception stack trace", e);
+
     } finally {
       if (stashClient != null) {
         stashClient.close();
       }
+    }
+  }
+
+  /*
+     Custom exception to keep nested if statements under control
+  */
+  private class StashMissingElementException extends Exception {
+
+    public StashMissingElementException(String exc) {
+        super(exc);
+    }
+    public String getMessage() {
+        return super.getMessage();
     }
   }
 }

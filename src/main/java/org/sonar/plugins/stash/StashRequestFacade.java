@@ -1,4 +1,3 @@
-
 package org.sonar.plugins.stash;
 
 import org.apache.commons.lang3.StringUtils;
