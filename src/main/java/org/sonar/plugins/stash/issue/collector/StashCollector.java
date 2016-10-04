@@ -134,8 +134,8 @@ public final class StashCollector {
         continue;  // Let's process the next item in "objdiff_loop"
       }
 
-      // call the new private
-      result = parseHunksIntoDiffs(path, jsonHunks, jsonDiff);
+      // calling the extracted section to scan the jsonHunks & jsonDiff into usable diffs
+      result.add(parseHunksIntoDiffs(path, jsonHunks, jsonDiff));
 
       // Extract File Comments: this kind of comment will be attached to line 0
       JSONArray jsonLineComments = (JSONArray)jsonDiff.get("fileComments");
@@ -167,6 +167,7 @@ public final class StashCollector {
                                                 (long)0, author, lineCommentVersion);
         initialDiff.addComment(comment);
       }
+
       result.add(initialDiff);
     }
     return result;
@@ -194,15 +195,11 @@ public final class StashCollector {
         // type of the diff in diff view
         // We filter REMOVED type, like useless for SQ analysis
         String type = (String)jsonSegment.get("type");
-
-        // Let's process the next item in "objsegm_loop"
-        if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)) {
-          continue;
-        }
-
+        //
         JSONArray jsonLines = (JSONArray)jsonSegment.get("lines");
 
-        if (jsonLines == null) {
+        if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE) || jsonLines == null) {
+
           continue;  // Let's process the next item in "objsegm_loop"
         }
 
@@ -257,7 +254,7 @@ public final class StashCollector {
         long lineCommentVersion = (long)jsonLineComment.get(VERSION);
 
         JSONObject objAuthor = (JSONObject)jsonLineComment.get(AUTHOR);
-
+ 
         if (objAuthor == null) {
           continue;  // Let's process the next item in "objlico_loop"
         }
