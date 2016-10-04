@@ -22,11 +22,24 @@ matrix:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=4.5.7
 
+env:
+  global:
+    # GITHUB_LOGIN
+    - secure: "PRO/z9WX9ovBX8e6mCkb2ZEiG/JBZXVkJfSuIEPz0vnZXhh8G9ZaicBeiWE7+D8yqlhOVBFIMWkQKtekzmjW6WvitIh+Q0P7RZ99t20HD/rfFFJTXps6F4dOXZXTDhz5R1aQ6PwAfYmffhoSNgSu9zwxKcyhiCb0O6STKAXClRRfNRgtTRmweQl/Ef+AyRcCE2iRqC1FFLwdDnmCPsIkL1mRiflm4adIuu3+YwMrfZraw7kPQ4cWCUVskan5wEugQIjJ4ptRdJ9ogsl7BcT6roXmmetfE60qrHp9q277iwwsJKARW9wC174fJAeM88wdpsy2dbOLLRpK+xE8du5rgHPS0To7SKFvXgQZ84mUgt8xoX1Hoe/4UzFjWqp/AwdeZHyOSpi95NmNbEwutyQUxcVZulrhIJzs140IgiQ7uWyHiYGno2ibDo2CYdWdu/ZIO8iV6i6WrJT5XB5OT0IcU+wohwfGE0aN3UPZ7XJUcNAwoEc9pw4o2Sor/FTst+N4QJp7fz6qnoywTFPMxILogOM3Rr7tSW5ZtWeWuf5A4ukUTnF6iPi4UtHd+QghfqlxyZKGC2n1Yzb2n+BBK+j4iwicGxfov6/oeCs8JFAjtS2gv+pHrlaiCGUVsXwLpemzP6DffD/MAcyQpXdpjlWZfurts58jkUIfsor7ldsrq78="
+    # GITHUB_TOKEN
+    - secure: "WCX04V8Hmm9QRtbm28Kyg6AtAOCBHUPYiJcm5RWE+k01WMVimasFlM6vatfezYhIsqtqFBN6Iuk2gYDWRJhkF/1GI6JZQAvwh1cwQwg2FjEU1vy0YElNJBzzdHufmGwIUcq9Am84GVbbFrgKbeo/uVwDN6ocCD2FFb4hGwPgX8RT7gTEeU0LpxsKH+i8MuJUk4vivuYqw8KsC/fTVbkZfKQTcf4jwzCj3qW6YvXMo3c4dDRuTIHjknWwzhIXGu+/l5p5adjzjzy1wiMm3RRVUvssbaZmg/AbUQ/3iZ822wesYooQmLqqB6JbOppwEFOQCMVy/63UEOFfkPaGDyTfKfkH+zSB7eA0ON/3+7thiw954VZpkBWnHhtMyIZ/nfffKyFsQHLqLD4OMeiaOC0UnTg8lWzhk5tkrR2evDzW/E2Ts3C7zPq5GJSZX7Q+IfuuadjVJ/vaOAwQO7FP0L/ZNA9hsF13wGpHwTfOfPLLdzsjGK1R8sbimQFNpjMohBD6lof18jiy5H4FECPJ7EJUA25jvue2iXTz8hWLHCKxxwZILuDSQHFNZo/Lq1Wqzlmvc0PiCv8DrhD4civzC9GudbrFvjL0SS9mCik6a+8j/tNgj63sgdFg0+MlMutvdHzI4Htev/YNcq5I7/Vm9n8pVn/YeJNLcDRxJTPHsJCei2w="
+    #
+    - SONAR_HOST_URL="https://sonarqube.com"
+    # SONAR_TOKEN
+    - secure: "dK/a0jhxtrbJccbOH0nlrsF/5+EtdC7YmBed/3NilkD/Cw1gnxzVK+JJ6PRb2iGLbQJlD7vyhVL+RriUCkXGtUAjw32j+th7/0ILr8+DYCl7PnD5dd3tBWax77ronlDrFM33fFU2Mu7YQtjhuszH6KCA7oJ4KyjRxGY5mKyR/9EmXyw+Eu77o3UiwedTgUNBKk6idTONkKwgAOgQ3SpKid3i0q8TF1w/4UnHj5AbFTQ9dyvpGBpWYtMnpIHfZwz+fnWEHMXOjZyqX9kutNYhep1U81Gjjf8E9/VL7TwC6g1p3W1VuDObFzg17Gg/jhCyTxblEt+UttNHgTkQnWqoxqSXkekQW35QU8pyPG7YGkdOP5JW0wuyj20tnFr7TVaY/j7F/5IXfNR8Oo55tnSmU3rZ3Y6iA4NjN7wDNLW6x2Z+wfYwEatxwwKMxWtI8yhhMRctDx7wEiRsJDyRQmNDcndk7JYYLRiKWvnC2zyamTR/2pvR+BCs6dv9c127S3D3Kymyp7UxCN0edf/+nbJd+ZXstSShm5Sa3BLMzKJ9wJwxQvz4lKFB1X6pNPCdYvN7fGWU/brvsBK8bL/W4Qs1DZACYPCnG+Ijb7zzphMljRmxo+3HmAn+wOtd78Ydidtsv5w8cASmkCWVnGpsVwIyShwKEo1GPoGYWPBsdinlD7k="
+
+
 install:
   - mvn dependency:go-offline
 
 script:
   - ./.travis/script.sh
+  - ./.travis/runSonarQubeAnalysis.sh
 
 sudo: false
 
