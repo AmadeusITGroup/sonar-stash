@@ -12,6 +12,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.sonar.plugins.stash.ContentType;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.StashPlugin;
@@ -68,6 +69,7 @@ public class StashClient implements AutoCloseable {
   private static final String TASK_POST_ERROR_MESSAGE = "Unable to post a task on comment {0}.";
   private static final String TASK_DELETION_ERROR_MESSAGE = "Unable to delete task {0}.";
 
+  private static final ContentType JSON = new ContentType("application", "json", null);
 
   public StashClient(String url, StashCredentials credentials, int stashTimeout) {
     this.baseUrl = url;
@@ -311,7 +313,7 @@ public class StashClient implements AutoCloseable {
     }
 
     String contentType = response.getHeader("Content-Type");
-    if (!"application/json".equals(contentType)) {
+    if (!JSON.match(StringUtils.strip(contentType))) {
       throw new StashClientException("Received response with type " + contentType + " instead of JSON");
     }
     try {
