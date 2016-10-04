@@ -53,9 +53,7 @@ public final class StashCollector {
     JSONObject jsonAuthor = (JSONObject)jsonComment.get(AUTHOR);
     StashUser stashUser = extractUser(jsonAuthor);
 
-    StashComment result = new StashComment(id, message, path, line, stashUser, version);
-
-    return result;
+    return new StashComment(id, message, path, line, stashUser, version);
   }
   
   public static StashComment extractComment(JSONObject jsonComment) throws StashReportExtractionException {
@@ -71,9 +69,7 @@ public final class StashCollector {
     // can be null if comment is attached to the global file
     Long line = (Long)jsonAnchor.get("line");
 
-    StashComment result = extractComment(jsonComment, path, line);
-
-    return result;
+    return extractComment(jsonComment, path, line);
   }
   
   public static StashPullRequest extractPullRequest(String project,
@@ -115,7 +111,9 @@ public final class StashCollector {
     StashDiffReport result = new StashDiffReport();
     JSONArray jsonDiffs = (JSONArray)jsonObject.get("diffs");
 
-    if (jsonDiffs == null) { return null; }
+    if (jsonDiffs == null) {
+      return null;
+    }
 
     // Let's call this for loop "objdiff_loop"
     for (Object objDiff : jsonDiffs.toArray()) {
@@ -125,12 +123,16 @@ public final class StashCollector {
       // if status of the file is deleted, destination == null
       JSONObject destinationPath = (JSONObject)jsonDiff.get("destination");
 
-      if (destinationPath == null) { continue; } // Let's process the next item in "objdiff_loop"
+      if (destinationPath == null) {
+        continue;  // Let's process the next item in "objdiff_loop"
+      }
 
       String path = (String)destinationPath.get("toString");
       JSONArray jsonHunks = (JSONArray)jsonDiff.get("hunks");
 
-      if (jsonHunks == null) { continue; } // Let's process the next item in "objdiff_loop"
+      if (jsonHunks == null) {
+        continue;  // Let's process the next item in "objdiff_loop"
+      }
 
       // Let's call this for loop "objhunk_loop"
       for (Object objHunk : jsonHunks.toArray()) {
@@ -138,7 +140,9 @@ public final class StashCollector {
         JSONObject jsonHunk    = (JSONObject)objHunk;
         JSONArray jsonSegments = (JSONArray)jsonHunk.get("segments");
 
-        if (jsonSegments == null) { continue; } // Let's process the next item in "objhunk_loop"
+        if (jsonSegments == null) {
+          continue;  // Let's process the next item in "objhunk_loop"
+        }
 
         // Let's call this for loop "objsegm_loop"
         for (Object objSegment : jsonSegments.toArray()) {
@@ -149,11 +153,15 @@ public final class StashCollector {
           String type = (String)jsonSegment.get("type");
 
           // Let's process the next item in "objsegm_loop"
-          if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)) { continue; }
+          if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)) {
+            continue;
+          }
 
           JSONArray jsonLines = (JSONArray)jsonSegment.get("lines");
 
-          if (jsonLines == null) { continue; } // Let's process the next item in "objsegm_loop"
+          if (jsonLines == null) {
+            continue;  // Let's process the next item in "objsegm_loop"
+          }
 
           // Let's call this for loop "objline_loop"
           for (Object objLine : jsonLines.toArray()) {
@@ -180,7 +188,9 @@ public final class StashCollector {
       // Extract File Comments: this kind of comment will be attached to line 0
       JSONArray jsonLineComments = (JSONArray)jsonDiff.get("fileComments");
 
-      if (jsonLineComments == null) { continue; } // Let's process the next item in "objdiff_loop"
+      if (jsonLineComments == null) {
+        continue;  // Let's process the next item in "objdiff_loop"
+      }
 
       StashDiff initialDiff = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, path, 0, 0);
 
@@ -195,7 +205,9 @@ public final class StashCollector {
 
         JSONObject objAuthor = (JSONObject)jsonLineComment.get(AUTHOR);
 
-        if (objAuthor == null) { continue; } // Let's process the next item in "objlinc_loop"
+        if (objAuthor == null) {
+          continue;  // Let's process the next item in "objlinc_loop"
+        }
 
         StashUser author = extractUser(objAuthor);
 
