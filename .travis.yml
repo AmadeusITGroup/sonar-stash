@@ -51,7 +51,7 @@ install:
 
 script:
   - ./.travis/script.sh
-  - [ "${SQ_RUN}" == "yes" ] && ./.travis/runSonarQubeAnalysis.sh
+  - ./.travis/runSonarQubeAnalysis.sh
 
 sudo: false
 

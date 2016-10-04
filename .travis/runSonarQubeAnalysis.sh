@@ -10,6 +10,13 @@ set -e
 # - SONAR_HOST_URL => should point to the public URL of the SQ server (e.g. for Nemo: https://nemo.sonarqube.org)
 # - SONAR_TOKEN    => token of a user who has the "Execute Analysis" permission on the SQ server
 
+# We don't want to run X times the same analysis because of the matrix configuration
+if [ "${SQ_RUN}" != "yes" ]; then
+	echo "Duplicated run detected, skipping the SonarQube analysis..."
+	exit 0
+fi
+
+
 # And run the analysis
 # It assumes that the project uses Maven and has a POM at the root of the repo
 if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
