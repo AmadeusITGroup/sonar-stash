@@ -134,56 +134,8 @@ public final class StashCollector {
         continue;  // Let's process the next item in "objdiff_loop"
       }
 
-      // Let's call this for loop "objhunk_loop"
-      for (Object objHunk : jsonHunks.toArray()) {
-
-        JSONObject jsonHunk    = (JSONObject)objHunk;
-        JSONArray jsonSegments = (JSONArray)jsonHunk.get("segments");
-
-        if (jsonSegments == null) {
-          continue;  // Let's process the next item in "objhunk_loop"
-        }
-
-        // Let's call this for loop "objsegm_loop"
-        for (Object objSegment : jsonSegments.toArray()) {
-
-          JSONObject jsonSegment = (JSONObject)objSegment;
-          // type of the diff in diff view
-          // We filter REMOVED type, like useless for SQ analysis
-          String type = (String)jsonSegment.get("type");
-
-          // Let's process the next item in "objsegm_loop"
-          if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)) {
-            continue;
-          }
-
-          JSONArray jsonLines = (JSONArray)jsonSegment.get("lines");
-
-          if (jsonLines == null) {
-            continue;  // Let's process the next item in "objsegm_loop"
-          }
-
-          // Let's call this for loop "objline_loop"
-          for (Object objLine : jsonLines.toArray()) {
-
-            JSONObject jsonLine = (JSONObject)objLine;
-            // destination line in diff view
-            long source = (long)jsonLine.get("source");
-            long destination = (long)jsonLine.get("destination");
-
-            StashDiff diff = new StashDiff(type, path, source, destination);
-            // Add comment attached to the current line
-            JSONArray jsonCommentIds = (JSONArray)jsonLine.get("commentIds");
-
-            if (jsonCommentIds == null) {
-              result.add(diff);
-            } else {
-              // To keep this method depth under control (squid:S134), we outsourced the comments extraction
-              result.add(extractCommentsForDiff(diff, jsonDiff, jsonCommentIds));
-            }
-          }
-        }
-      }
+      // call the new private
+      result = parseHunksIntoDiffs(path, jsonHunks, jsonDiff);
 
       // Extract File Comments: this kind of comment will be attached to line 0
       JSONArray jsonLineComments = (JSONArray)jsonDiff.get("fileComments");
@@ -216,6 +168,64 @@ public final class StashCollector {
         initialDiff.addComment(comment);
       }
       result.add(initialDiff);
+    }
+    return result;
+  }
+
+  private static StashDiffReport parseHunksIntoDiffs(String path, JSONArray jsonHunks, JSONObject jsonDiff)
+          throws StashReportExtractionException {
+
+    StashDiffReport result = new StashDiffReport();
+
+    // Let's call this for loop "objhunk_loop"
+    for (Object objHunk : jsonHunks.toArray()) {
+
+      JSONObject jsonHunk    = (JSONObject)objHunk;
+      JSONArray jsonSegments = (JSONArray)jsonHunk.get("segments");
+
+      if (jsonSegments == null) {
+        continue;  // Let's process the next item in "objhunk_loop"
+      }
+
+      // Let's call this for loop "objsegm_loop"
+      for (Object objSegment : jsonSegments.toArray()) {
+
+        JSONObject jsonSegment = (JSONObject)objSegment;
+        // type of the diff in diff view
+        // We filter REMOVED type, like useless for SQ analysis
+        String type = (String)jsonSegment.get("type");
+
+        // Let's process the next item in "objsegm_loop"
+        if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE)) {
+          continue;
+        }
+
+        JSONArray jsonLines = (JSONArray)jsonSegment.get("lines");
+
+        if (jsonLines == null) {
+          continue;  // Let's process the next item in "objsegm_loop"
+        }
+
+        // Let's call this for loop "objline_loop"
+        for (Object objLine : jsonLines.toArray()) {
+
+          JSONObject jsonLine = (JSONObject)objLine;
+          // destination line in diff view
+          long source = (long)jsonLine.get("source");
+          long destination = (long)jsonLine.get("destination");
+
+          StashDiff diff = new StashDiff(type, path, source, destination);
+          // Add comment attached to the current line
+          JSONArray jsonCommentIds = (JSONArray)jsonLine.get("commentIds");
+
+          if (jsonCommentIds == null) {
+            result.add(diff);
+          } else {
+            // To keep this method depth under control (squid:S134), we outsourced the comments extraction
+            result.add(extractCommentsForDiff(diff, jsonDiff, jsonCommentIds));
+          }
+        }
+      }
     }
     return result;
   }
