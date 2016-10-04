@@ -7,7 +7,7 @@ import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-public class PluginUtils {
+public final class PluginUtils {
 
     // Hiding implicit public constructor with an explicit private one (squid:S1118)
     private PluginUtils() {
