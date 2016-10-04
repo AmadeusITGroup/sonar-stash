@@ -311,7 +311,10 @@ public class StashClient implements AutoCloseable {
     }
 
     String contentType = response.getHeader("Content-Type");
-    if (!"application/json".equals(contentType)) {
+
+    // The server can be verbose and return "application/json..." and it is still a JSON response
+    // (i.e. a charset: https://www.w3.org/International/articles/http-charset/index)
+    if (!StringUtils.contains(contentType, "application/json")) {
       throw new StashClientException("Received response with type " + contentType + " instead of JSON");
     }
     try {
