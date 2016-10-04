@@ -127,8 +127,5 @@ public class StashIssueReportingPostJob implements PostJob {
     public StashMissingElementException(String exc) {
         super(exc);
     }
-    public String getMessage() {
-        return super.getMessage();
-    }
   }
 }
