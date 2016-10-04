@@ -44,7 +44,6 @@ public final class StashCollector {
   
   public static StashComment extractComment(JSONObject jsonComment, String path, Long line)
          throws StashReportExtractionException {
-    StashComment result = null;
 
     long id = (long)jsonComment.get("id");
     String message = (String)jsonComment.get("text");
@@ -54,13 +53,12 @@ public final class StashCollector {
     JSONObject jsonAuthor = (JSONObject)jsonComment.get(AUTHOR);
     StashUser stashUser = extractUser(jsonAuthor);
 
-    result = new StashComment(id, message, path, line, stashUser, version);
+    StashComment result = new StashComment(id, message, path, line, stashUser, version);
 
     return result;
   }
   
   public static StashComment extractComment(JSONObject jsonComment) throws StashReportExtractionException {
-    StashComment result = null;
 
     JSONObject jsonAnchor = (JSONObject)jsonComment.get("anchor");
     if (jsonAnchor == null) {
@@ -73,7 +71,7 @@ public final class StashCollector {
     // can be null if comment is attached to the global file
     Long line = (Long)jsonAnchor.get("line");
 
-    result = extractComment(jsonComment, path, line);
+    StashComment result = extractComment(jsonComment, path, line);
 
     return result;
   }
