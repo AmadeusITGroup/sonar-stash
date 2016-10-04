@@ -25,11 +25,13 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File projectBaseDir) {
+  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues,
+                                                         InputFileCache inputFileCache,
+                                                         File projectBaseDir) {
     SonarQubeIssuesReport result = new SonarQubeIssuesReport();
 
     for (Issue issue : projectIssues.issues()) {
-      if (! issue.isNew()){
+      if (! issue.isNew()) {
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
       } else {
         String key = issue.key();
@@ -43,7 +45,7 @@ public final class SonarQubeCollector {
         }
   
         InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
-        if (inputFile == null){
+        if (inputFile == null) {
           LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
         } else {
           String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());

@@ -10,14 +10,15 @@ public final class MarkdownPrinter {
   private static final String NEW_LINE = "\n";
   private static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
   
-  private MarkdownPrinter(){
+  private MarkdownPrinter() {
     // DO NOTHING
   }
   
   public static String printIssueMarkdown(SonarQubeIssue issue, String sonarQubeURL) {
     StringBuilder sb = new StringBuilder();
-    sb.append(printSeverityMarkdown(issue.getSeverity())).append(issue.getMessage()).append(" [[").append(issue.getRule())
-        .append("]").append("(").append(sonarQubeURL).append("/").append(CODING_RULES_RULE_KEY).append(issue.getRule()).append(")]");
+    sb.append(printSeverityMarkdown(issue.getSeverity())).append(issue.getMessage()).append(" [[")
+      .append(issue.getRule()).append("]").append("(").append(sonarQubeURL).append("/")
+      .append(CODING_RULES_RULE_KEY).append(issue.getRule()).append(")]");
 
     return sb.toString();
   }
@@ -36,7 +37,8 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public static String printIssueListBySeverityMarkdown(SonarQubeIssuesReport report, String sonarQubeURL, String severity) {
+  public static String printIssueListBySeverityMarkdown(SonarQubeIssuesReport report,
+                                                            String sonarQubeURL, String severity) {
     StringBuilder sb = new StringBuilder();
 
     Map<String, SonarQubeIssue> rules = report.getUniqueRulesBySeverity(severity);

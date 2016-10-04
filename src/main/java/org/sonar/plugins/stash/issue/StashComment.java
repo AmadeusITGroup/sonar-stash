@@ -24,22 +24,22 @@ public class StashComment {
     // Stash comment can be null if comment is global to all the file
     if (line == null) {
       this.line = 0;
-    } else{
+    } else {
       this.line = line.longValue();  
     }
     
     tasks = new ArrayList<>();
   }
 
-  public long getId(){
+  public long getId() {
     return id;
   }
   
-  public void setLine(long line){
+  public void setLine(long line) {
     this.line = line;
   }
   
-  public void setPath(String path){
+  public void setPath(String path) {
     this.path = path;
   }
   
@@ -67,15 +67,15 @@ public class StashComment {
     return tasks;
   }
   
-  public void addTask(StashTask task){
+  public void addTask(StashTask task) {
     tasks.add(task);
   }
   
   public boolean containsPermanentTasks() {
     boolean result = false;
     
-    for (StashTask task: tasks){
-      if (! task.isDeletable()){
+    for (StashTask task: tasks) {
+      if (! task.isDeletable()) {
         result = true;
         break;
       }
@@ -88,7 +88,7 @@ public class StashComment {
   public boolean equals(Object object) {
     boolean result = false;
     if (object instanceof StashComment) {
-      StashComment stashComment = (StashComment) object;
+      StashComment stashComment = (StashComment)object;
       result = this.getId() == stashComment.getId();
     }
     
@@ -97,6 +97,6 @@ public class StashComment {
   
   @Override
   public int hashCode() {
-    return (int) this.getId();
+    return (int)this.getId();
   }
 }

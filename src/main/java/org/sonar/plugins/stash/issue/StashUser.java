@@ -7,7 +7,7 @@ public class StashUser {
   private final String slug;
   private final String email;
   
-  public StashUser(long id, String name, String slug, String email){
+  public StashUser(long id, String name, String slug, String email) {
     this.id = id;
     this.name = name;
     this.slug = slug;

@@ -13,10 +13,32 @@ import java.util.Arrays;
 import java.util.List;
 
 @Properties({
-    @Property(key = StashPlugin.STASH_NOTIFICATION, name = "Stash Notification", defaultValue = "false", description = "Analysis result will be issued in Stash pull request", global = false),
-    @Property(key = StashPlugin.STASH_PROJECT, name = "Stash Project", description = "Stash project of current pull-request", global = false),
-    @Property(key = StashPlugin.STASH_REPOSITORY, name = "Stash Repository", description = "Stash project of current pull-request", global = false),
-    @Property(key = StashPlugin.STASH_PULL_REQUEST_ID, name = "Stash Pull-request Id", description = "Stash pull-request Id", global = false) })
+    @Property(
+               key = StashPlugin.STASH_NOTIFICATION,
+               name = "Stash Notification",
+               defaultValue = "false",
+               description = "Analysis result will be issued in Stash pull request",
+               global = false
+             ),
+    @Property(
+               key = StashPlugin.STASH_PROJECT,
+               name = "Stash Project",
+               description = "Stash project of current pull-request",
+               global = false
+             ),
+    @Property(
+               key = StashPlugin.STASH_REPOSITORY,
+               name = "Stash Repository",
+               description = "Stash project of current pull-request",
+               global = false
+             ),
+    @Property(
+               key = StashPlugin.STASH_PULL_REQUEST_ID,
+               name = "Stash Pull-request Id",
+               description = "Stash pull-request Id",
+               global = false
+             )
+    })
 
 public class StashPlugin extends SonarPlugin {
 

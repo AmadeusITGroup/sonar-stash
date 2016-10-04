@@ -30,21 +30,21 @@ public class StashDiffReport {
   }
   
   public void add(StashDiffReport report) {
-    for (StashDiff diff: report.getDiffs()){
+    for (StashDiff diff: report.getDiffs()) {
       diffs.add(diff);  
     }
   }
   
-  public String getType(String path, long destination){
+  public String getType(String path, long destination) {
     String result = null;
     
     for (StashDiff diff : diffs) {
       // Line 0 never belongs to Stash Diff view.
       // It is a global comment with a type set to CONTEXT.
-      if (StringUtils.equals(diff.getPath(), path) && (destination == 0)){
+      if (StringUtils.equals(diff.getPath(), path) && (destination == 0)) {
         result = StashPlugin.CONTEXT_ISSUE_TYPE;
         break;
-      } else{
+      } else {
         
         if (StringUtils.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
           result = diff.getType();
@@ -61,13 +61,13 @@ public class StashDiffReport {
    * If type == "CONTEXT", return the source line of the diff.
    * If type == "ADDED", return the destination line of the diff.
    */
-  public long getLine(String path, long destination){
+  public long getLine(String path, long destination) {
     long result = 0;
     for (StashDiff diff : diffs) {
       if (StringUtils.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
-        if (diff.isTypeOfContext()){
+        if (diff.isTypeOfContext()) {
           result = diff.getSource();
-        } else{
+        } else {
           result = diff.getDestination();
         }
         
@@ -78,7 +78,7 @@ public class StashDiffReport {
     return result;
   }
   
-  public StashDiff getDiffByComment(long commentId){
+  public StashDiff getDiffByComment(long commentId) {
     StashDiff result = null;
     for (StashDiff diff : diffs) {
       if (diff.containsComment(commentId)) {

@@ -37,7 +37,7 @@ public class InputFileCacheSensor implements Sensor {
     return stashPluginConfiguration.hasToNotifyStash();
   }
 
-  private FilePredicate getAllPredicateFiles(){
+  private FilePredicate getAllPredicateFiles() {
     return fileSystem.predicates().all();
   }
   
