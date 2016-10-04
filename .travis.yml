@@ -3,20 +3,30 @@ language: java
 matrix:
   fast_finish: true
   include:
+    # The basic unit-tests environments
     - jdk: oraclejdk8
-      env: TEST_SUITE=unit
+      env:
+        - TEST_SUITE=unit
+        - SQ_RUN=yes
+        # It is necessary only to run the analysis once ;)
+
     - jdk: oraclejdk7
       env: TEST_SUITE=unit
+
     - jdk: openjdk7
       env: TEST_SUITE=unit
+
+    # The integration tests environments
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=6.0
+
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=5.6
+
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=integration
@@ -41,7 +51,7 @@ install:
 
 script:
   - ./.travis/script.sh
-  - ./.travis/runSonarQubeAnalysis.sh
+  - [ "${SQ_RUN}" == "yes" ] && ./.travis/runSonarQubeAnalysis.sh
 
 sudo: false
 
