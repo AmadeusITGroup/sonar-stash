@@ -231,10 +231,6 @@ public class StashClient implements AutoCloseable {
     delete(request, MessageFormat.format(TASK_DELETION_ERROR_MESSAGE, task.getId()));
   }
 
-  void setHttpClient(AsyncHttpClient httpClient) {
-    this.httpClient = httpClient;
-  }
-
   @Override
   public void close() {
     httpClient.close();
