@@ -70,18 +70,9 @@ public final class PluginUtils {
                 doesMatch = true;
             }
 
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException|InstantiationException|IllegalAccessException e) {
             LOGGER.warn(ERROR_DETAILS, e.getMessage());
             LOGGER.debug(ERROR_STACK, e);
-
-        } catch (InstantiationException e) {
-            LOGGER.warn(ERROR_DETAILS, e.getMessage());
-            LOGGER.debug(ERROR_STACK, e);
-
-        } catch (IllegalAccessException e) {
-            LOGGER.warn(ERROR_DETAILS, e.getMessage());
-            LOGGER.debug(ERROR_STACK, e);
-
         }
         return doesMatch;
     }
