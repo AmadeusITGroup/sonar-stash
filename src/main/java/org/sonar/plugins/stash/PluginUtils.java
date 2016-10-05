@@ -11,15 +11,14 @@ import org.slf4j.LoggerFactory;
 
 public final class PluginUtils {
 
-    // Hiding implicit public constructor with an explicit private one (squid:S1118)
-    private PluginUtils() {
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginUtils.class);
 
     private static final String ERROR_DETAILS = "Exception detected: {}";
     private static final String ERROR_STACK   = "Exception stack trace";
 
+    // Hiding implicit public constructor with an explicit private one (squid:S1118)
+    private PluginUtils() {
+    }
 
     public static PluginInfo infoForPluginClass(Class klass) {
         try {
@@ -70,18 +69,9 @@ public final class PluginUtils {
                 doesMatch = true;
             }
 
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException|InstantiationException|IllegalAccessException e) {
             LOGGER.warn(ERROR_DETAILS, e.getMessage());
             LOGGER.debug(ERROR_STACK, e);
-
-        } catch (InstantiationException e) {
-            LOGGER.warn(ERROR_DETAILS, e.getMessage());
-            LOGGER.debug(ERROR_STACK, e);
-
-        } catch (IllegalAccessException e) {
-            LOGGER.warn(ERROR_DETAILS, e.getMessage());
-            LOGGER.debug(ERROR_STACK, e);
-
         }
         return doesMatch;
     }
