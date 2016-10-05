@@ -5,3 +5,5 @@ target
 .settings
 *.iml
 /bin/
+/release.properties
+/pom.xml.releaseBackup
