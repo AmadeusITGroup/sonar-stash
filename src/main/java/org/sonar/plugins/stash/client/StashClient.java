@@ -132,7 +132,6 @@ public class StashClient implements AutoCloseable {
     } catch (StashReportExtractionException e) {
       throw new StashClientException(e);
     }
-
     return result;
   }
 
@@ -156,34 +155,26 @@ public class StashClient implements AutoCloseable {
     json.put("text", message);
     json.put("anchor", anchor);
 
-    JSONObject response = postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId));
-    try {
-      return StashCollector.extractComment(response, path, line);
-    } catch (StashReportExtractionException e) {
-        throw new StashClientException(e);
-    }
+    JSONObject response = postCreate(request, json,
+    		                         MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId));
+    
+    return StashCollector.extractComment(response, path, line);
   }
 
-  public StashUser getUser(String userSlug)
-          throws StashClientException {
+  public StashUser getUser(String userSlug) throws StashClientException {
+
     String request = MessageFormat.format(USER_API, baseUrl, userSlug);
     JSONObject response = get(request, MessageFormat.format(USER_GET_ERROR_MESSAGE, userSlug));
-    try {
-      return StashCollector.extractUser(response);
-    } catch (StashReportExtractionException e) {
-      throw new StashClientException(e);
-    }
+
+    return StashCollector.extractUser(response);
   }
   
   public StashPullRequest getPullRequest(String project, String repository, String pullRequestId)
       throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR, baseUrl, project, repository, pullRequestId);
     JSONObject response = get(request, MessageFormat.format(PULL_REQUEST_GET_ERROR_MESSAGE, repository, pullRequestId));
-    try {
-      return StashCollector.extractPullRequest(project, repository, pullRequestId, response);
-    } catch (StashReportExtractionException e) {
-      throw new StashClientException(e);
-    }
+
+    return StashCollector.extractPullRequest(project, repository, pullRequestId, response);
   }
   
   public void addPullRequestReviewer(String project, String repository, String pullRequestId, long pullRequestVersion, ArrayList<StashUser> reviewers)

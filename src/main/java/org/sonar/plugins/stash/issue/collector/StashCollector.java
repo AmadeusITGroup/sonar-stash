@@ -42,8 +42,7 @@ public final class StashCollector {
     return result;
   }
   
-  public static StashComment extractComment(JSONObject jsonComment, String path, Long line)
-         throws StashReportExtractionException {
+  public static StashComment extractComment(JSONObject jsonComment, String path, Long line) {
 
     long id = (long)jsonComment.get("id");
     String message = (String)jsonComment.get("text");
@@ -75,7 +74,7 @@ public final class StashCollector {
   public static StashPullRequest extractPullRequest(String project,
                                                     String repository,
                                                     String pullRequestId,
-                                                    JSONObject jsonPullRequest) throws StashReportExtractionException {
+                                                    JSONObject jsonPullRequest) {
     StashPullRequest result = new StashPullRequest(project, repository, pullRequestId);
 
     long version = (long)jsonPullRequest.get(VERSION);
@@ -97,7 +96,7 @@ public final class StashCollector {
     return result;
   }
 
-  public static StashUser extractUser(JSONObject jsonUser) throws StashReportExtractionException {
+  public static StashUser extractUser(JSONObject jsonUser) {
     long id      = (long)jsonUser.get("id");
     String name  = (String)jsonUser.get("name");
     String slug  = (String)jsonUser.get("slug");
