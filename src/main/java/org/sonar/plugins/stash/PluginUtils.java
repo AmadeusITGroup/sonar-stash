@@ -17,6 +17,9 @@ public final class PluginUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginUtils.class);
 
+    private static final String ERROR_DETAILS = "Exception detected: {}";
+    private static final String ERROR_STACK   = "Exception stack trace";
+
 
     public static PluginInfo infoForPluginClass(Class klass) {
         try {
@@ -35,7 +38,8 @@ public final class PluginUtils {
                 if (pluginClass == null) {
                     continue;
                 }
-                if (!pluginClass.equals(klass.getName())) {
+
+                if ( ! classesMatching(pluginClass, klass) ) {
                     continue;
                 }
 
@@ -44,11 +48,42 @@ public final class PluginUtils {
                 return new PluginInfo(pluginName, pluginVersion);
             }
         } catch (IOException e) {
-            LOGGER.warn("Exception detected: {}", e.getMessage());
-            LOGGER.debug("Exception stack trace", e);
+            LOGGER.warn(ERROR_DETAILS, e.getMessage());
+            LOGGER.debug(ERROR_STACK, e);
             return null;
         }
 
         return null;
+    }
+
+    private static boolean classesMatching(String className, Class right) {
+
+        boolean doesMatch = false; 
+
+        // Let's compare the plugin's class with another one (without '==', see SQUID:S1872)
+        try {
+            Class<?> left   = Class.forName(className);
+            Object leftObj  = left.getClass().newInstance();
+            Object rightObj = right.getClass().newInstance();
+        
+            if (  left.isInstance(rightObj)
+             ||  right.isInstance(leftObj) ) {
+                doesMatch = true;
+            }
+
+        } catch (ClassNotFoundException e) {
+            LOGGER.warn(ERROR_DETAILS, e.getMessage());
+            LOGGER.debug(ERROR_STACK, e);
+
+        } catch (InstantiationException e) {
+            LOGGER.warn(ERROR_DETAILS, e.getMessage());
+            LOGGER.debug(ERROR_STACK, e);
+
+        } catch (IllegalAccessException e) {
+            LOGGER.warn(ERROR_DETAILS, e.getMessage());
+            LOGGER.debug(ERROR_STACK, e);
+
+        }
+        return doesMatch;
     }
 }
