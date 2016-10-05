@@ -215,12 +215,8 @@ public final class StashCollector {
           // Add comment attached to the current line
           JSONArray jsonCommentIds = (JSONArray)jsonLine.get("commentIds");
 
-          if (jsonCommentIds == null) {
-            result.add(diff);
-          } else {
-            // To keep this method depth under control (squid:S134), we outsourced the comments extraction
-            result.add(extractCommentsForDiff(diff, jsonDiff, jsonCommentIds));
-          }
+          // To keep this method depth under control (squid:S134), we outsourced the comments extraction
+          result.add(extractCommentsForDiff(diff, jsonDiff, jsonCommentIds));
         }
       }
     }
@@ -229,6 +225,11 @@ public final class StashCollector {
 
   private static StashDiff extractCommentsForDiff(StashDiff diff, JSONObject jsonDiff, JSONArray jsonCommentIds)
           throws StashReportExtractionException {
+
+    // If there is no comments, we just return the diff as-is
+    if (jsonCommentIds == null) {
+            return diff;
+    }
 
     // Let's call this for loop "objcomm_loop"
     for (Object objCommentId: jsonCommentIds.toArray()) {
