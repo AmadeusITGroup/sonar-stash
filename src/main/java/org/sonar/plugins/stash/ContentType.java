@@ -7,7 +7,9 @@ import org.apache.commons.lang3.StringUtils;
  * subset of javax.mail.internet.ContentType
  */
 public class ContentType {
-    private String primaryType, subType;
+
+    private String primaryType;
+    private String subType;
 
     public ContentType(String primaryType, String subType, Object list) {
         if (list != null) {

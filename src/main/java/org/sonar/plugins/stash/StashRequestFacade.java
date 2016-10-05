@@ -138,42 +138,52 @@ public class StashRequestFacade implements BatchComponent {
       
       // Severity available to create a task
       List<String> taskSeverities = getReportedSeverities();
-      
+
+      // Let's call this "issue_loop"
       for (SonarQubeIssue issue : issueReport.getIssues()) {
         StashCommentReport comments = commentsByFile.get(issue.getPath());
         
         // if comment not already pushed to Stash
         if ((comments != null) &&
-            (comments.contains(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL), issue.getPath(), issue.getLine()))) {
-          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getRule(), issue.getPath(), issue.getLine());
-        } else {
-        
-          // check if issue belongs to the Stash diff view
-          String type = diffReport.getType(issue.getPath(), issue.getLine());
-          if (type == null){
-            LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})", issue.getRule(), issue.getPath(), issue.getLine());
-          } else{
-          
-            long line = diffReport.getLine(issue.getPath(), issue.getLine());
-            
-            StashComment comment = stashClient.postCommentLineOnPullRequest(project,
-                                                                           repository,
-                                                                           pullRequestId,
-                                                                           MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
-                                                                           issue.getPath(),
-                                                                           line,
-                                                                           type);
-  
-            LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getRule(), type, issue.getPath(), line);
-            
-            // Create task linked to the comment if configured
-            if (taskSeverities.contains(issue.getSeverity())) {
-              stashClient.postTaskOnComment(issue.getMessage(), comment.getId());
-              
-              LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
-            }
-          }
+            (comments.contains(MarkdownPrinter.printIssueMarkdown(issue, sonarQubeURL),
+                                                                       issue.getPath(), issue.getLine())
+            )
+           ) {
+          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getRule(),
+                                                                        issue.getPath(), issue.getLine());
+          continue;  // Next element in "issue_loop"
         }
+        
+        // check if issue belongs to the Stash diff view
+        String type = diffReport.getType(issue.getPath(), issue.getLine());
+        if (type == null) {
+          LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
+                                                                   issue.getRule(), issue.getPath(), issue.getLine());
+          continue;  // Next element in "issue_loop"
+        }
+
+        long line = diffReport.getLine(issue.getPath(), issue.getLine());
+
+        StashComment comment = stashClient.postCommentLineOnPullRequest(project,
+                                                                       repository,
+                                                                       pullRequestId,
+                                                                       MarkdownPrinter.printIssueMarkdown(issue,
+                                                                                                         sonarQubeURL),
+                                                                       issue.getPath(),
+                                                                       line,
+                                                                       type);
+  
+        LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getRule(), type,
+                                                                             issue.getPath(), line);
+
+        // Create task linked to the comment if configured
+        if (taskSeverities.contains(issue.getSeverity())) {
+          stashClient.postTaskOnComment(issue.getMessage(), comment.getId());
+
+          LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+        }
+
+
       }
       
       LOGGER.info("New SonarQube issues have been reported to Stash.");
@@ -279,7 +289,8 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Get all changes exposed through the Stash pull-request.
    */
-  public StashDiffReport getPullRequestDiffReport(String project, String repository, String pullRequestId, StashClient stashClient){
+  public StashDiffReport getPullRequestDiffReport(String project, String repository,
+                                                  String pullRequestId, StashClient stashClient){
     StashDiffReport result = null;
     
     try {
@@ -297,26 +308,32 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Reset all comments linked to a pull-request.
    */
-  public void resetComments(String project, String repository, String pullRequestId, StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
+  public void resetComments(String project, String repository, String pullRequestId,
+                            StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
     try {
+      // Let's call this "diffRep_loop"
       for (StashComment comment : diffReport.getComments()) {
         
-        // delete comment if published by the current SQ user
-        if (sonarUser.getId() == comment.getAuthor().getId()) {
-          
-          // comment contains tasks which cannot be deleted => do nothing
-          if (comment.containsPermanentTasks()) {
-            LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\") CANNOT be deleted because one of its tasks is not deletable.", comment.getId(), comment.getPath(), comment.getLine());
-          } else {
-          
-            // delete tasks linked to the current comment
-            for (StashTask task : comment.getTasks()) {
-              stashClient.deleteTaskOnComment(task);
-            }
-            
-            stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
-          }
+        // delete comment only if published by the current SQ user
+        if (sonarUser.getId() != comment.getAuthor().getId()) {
+          continue;
+          // Next element in "diffRep_loop"
+
+        // comment contains tasks which cannot be deleted => do nothing
+        } else if (comment.containsPermanentTasks()) {
+          LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")" +
+                       "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
+                                                                                       comment.getPath(),
+                                                                                       comment.getLine());
+          continue;  // Next element in "diffRep_loop"
         }
+
+        // delete tasks linked to the current comment
+        for (StashTask task : comment.getTasks()) {
+          stashClient.deleteTaskOnComment(task);
+        }
+
+        stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
       }
       
       LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset", sonarUser.getName());

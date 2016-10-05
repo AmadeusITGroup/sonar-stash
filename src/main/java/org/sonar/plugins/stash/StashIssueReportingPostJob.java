@@ -91,17 +91,15 @@ public class StashIssueReportingPostJob implements PostJob {
 
         stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL,
                                                               issueThreshold, issueReport, stashClient);
-       
-        if (canApprovePullrequest) {
-       
-          // if no new issues, plugin approves the pull-request 
-          if (issueReport.countIssues() == 0) {
-            stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId,
-                                                                stashCredentials.getLogin(), stashClient);
-          } else {
-            stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId,
+
+        // if no new issues, plugin approves the pull-request
+        if (canApprovePullrequest && issueReport.countIssues() == 0) {
+          stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId,
                                                                       stashCredentials.getLogin(), stashClient);
-          }
+
+        } else if ( canApprovePullrequest && issueReport.countIssues() != 0 ) {
+          stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId,
+                                                                      stashCredentials.getLogin(), stashClient);
         }
       }
     } catch (StashConfigurationException e) {
