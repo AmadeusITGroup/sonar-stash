@@ -6,13 +6,18 @@ import java.net.URL;
 import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class PluginUtils {
 
     // Hiding implicit public constructor with an explicit private one (squid:S1118)
     private PluginUtils() {
     }
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PluginUtils.class);
+
+
     public static PluginInfo infoForPluginClass(Class klass) {
         try {
             Enumeration<URL> resources = klass.getClassLoader().getResources("META-INF/MANIFEST.MF");
@@ -39,6 +44,8 @@ public final class PluginUtils {
                 return new PluginInfo(pluginName, pluginVersion);
             }
         } catch (IOException e) {
+            LOGGER.warn("Exception detected: {}", e.getMessage());
+            LOGGER.debug("Exception stack trace", e);
             return null;
         }
 
