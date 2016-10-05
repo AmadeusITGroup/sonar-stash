@@ -30,16 +30,15 @@ public final class PluginUtils {
                 try (InputStream ms = resource.openStream()) {
                     man = new Manifest(ms);
                 }
+
                 Attributes attrs = man.getMainAttributes();
                 if (attrs == null) {
                     continue;
                 }
-                String pluginClass = attrs.getValue("Plugin-Class");
-                if (pluginClass == null) {
-                    continue;
-                }
 
-                if ( ! classesMatching(pluginClass, klass) ) {
+                String pluginClass = attrs.getValue("Plugin-Class");
+
+                if (pluginClass == null || ! classesMatching(pluginClass, klass)) {
                     continue;
                 }
 
