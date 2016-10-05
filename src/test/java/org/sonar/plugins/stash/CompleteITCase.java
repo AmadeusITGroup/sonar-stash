@@ -13,6 +13,7 @@ import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
 import org.sonar.plugins.stash.fixtures.SonarQubeRule;
 import org.sonar.plugins.stash.fixtures.SonarScanner;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class CompleteITCase {
     @Test
     public void basicTest() throws Exception {
         String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
-        String jsonPullRequest = "{\"version\": 1, \"title\":\"PR-Test\", \"description\":\"PR-test\", \"reviewers\": []}";
+        String jsonPullRequest = DiffReportSample.baseReport;
         wireMock.stubFor(
                 WireMock.get(WireMock.urlPathEqualTo(
                         urlPath("rest", "api", "1.0", "users", stashUser)))
