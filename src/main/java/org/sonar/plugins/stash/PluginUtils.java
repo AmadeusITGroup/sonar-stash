@@ -11,15 +11,14 @@ import org.slf4j.LoggerFactory;
 
 public final class PluginUtils {
 
-    // Hiding implicit public constructor with an explicit private one (squid:S1118)
-    private PluginUtils() {
-    }
-
     private static final Logger LOGGER = LoggerFactory.getLogger(PluginUtils.class);
 
     private static final String ERROR_DETAILS = "Exception detected: {}";
     private static final String ERROR_STACK   = "Exception stack trace";
 
+    // Hiding implicit public constructor with an explicit private one (squid:S1118)
+    private PluginUtils() {
+    }
 
     public static PluginInfo infoForPluginClass(Class klass) {
         try {
