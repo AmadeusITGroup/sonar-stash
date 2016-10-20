@@ -37,7 +37,7 @@ public final class PluginUtils {
 
                 String pluginClass = attrs.getValue("Plugin-Class");
 
-                if (pluginClass == null || ! classesMatching(pluginClass, klass)) {
+                if (!klass.getName().equals(pluginClass)) {
                     continue;
                 }
 
@@ -52,27 +52,5 @@ public final class PluginUtils {
         }
 
         return null;
-    }
-
-    private static boolean classesMatching(String className, Class right) {
-
-        boolean doesMatch = false; 
-
-        // Let's compare the plugin's class with another one (without '==', see SQUID:S1872)
-        try {
-            Class<?> left   = Class.forName(className);
-            Object leftObj  = left.getClass().newInstance();
-            Object rightObj = right.getClass().newInstance();
-        
-            if (  left.isInstance(rightObj)
-             ||  right.isInstance(leftObj) ) {
-                doesMatch = true;
-            }
-
-        } catch (ClassNotFoundException|InstantiationException|IllegalAccessException e) {
-            LOGGER.warn(ERROR_DETAILS, e.getMessage());
-            LOGGER.debug(ERROR_STACK, e);
-        }
-        return doesMatch;
     }
 }
