@@ -92,7 +92,7 @@ public class CompleteITCase {
         wireMock.stubFor(WireMock.any(WireMock.anyUrl()).willReturn(WireMock.aResponse().withHeader("Content-Type", "application/json").withBody(jsonUser)));
         StashClient client = new StashClient("http://127.0.0.1:" + wireMock.port(), new StashCredentials("some", "thing"), 300);
         client.getUser("sonarqube");
-        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing("SonarQube")));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing(" Stash/")));
     }
 
     private String repoPath(String project, String repo, String... parts) {
