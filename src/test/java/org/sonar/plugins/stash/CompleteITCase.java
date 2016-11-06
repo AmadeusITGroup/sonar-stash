@@ -13,6 +13,7 @@ import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
 import org.sonar.plugins.stash.fixtures.SonarQubeRule;
 import org.sonar.plugins.stash.fixtures.SonarScanner;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ public class CompleteITCase {
     protected static final String stashPassword = "myPassword";
     protected static final String stashProject = "PROJ";
     protected static final String stashRepo = "REPO";
+    protected static final String sonarQubeKey = "SomeKey";
+    protected static final String sonarQubeName = "Integration test project";
     protected static final int stashPullRequest = 42;
 
     @Rule
@@ -40,6 +43,7 @@ public class CompleteITCase {
     public static void setUpClass() throws Exception {
         sonarqube.get().installPlugin(new File(System.getProperty("test.plugin.archive")));
         sonarqube.start();
+        sonarqube.get().createProject(sonarQubeKey, sonarQubeName);
 
         sonarScanner = MavenSonarFixtures.getSonarScanner();
 
@@ -50,7 +54,7 @@ public class CompleteITCase {
     @Test
     public void basicTest() throws Exception {
         String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
-        String jsonPullRequest = "{\"version\": 1, \"title\":\"PR-Test\", \"description\":\"PR-test\", \"reviewers\": []}";
+        String jsonPullRequest = DiffReportSample.baseReport;
         wireMock.stubFor(
                 WireMock.get(WireMock.urlPathEqualTo(
                         urlPath("rest", "api", "1.0", "users", stashUser)))
@@ -88,7 +92,7 @@ public class CompleteITCase {
         wireMock.stubFor(WireMock.any(WireMock.anyUrl()).willReturn(WireMock.aResponse().withHeader("Content-Type", "application/json").withBody(jsonUser)));
         StashClient client = new StashClient("http://127.0.0.1:" + wireMock.port(), new StashCredentials("some", "thing"), 300);
         client.getUser("sonarqube");
-        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing("SonarQube")));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing(" Stash/")));
     }
 
     private String repoPath(String project, String repo, String... parts) {
@@ -120,6 +124,6 @@ public class CompleteITCase {
         extraProps.setProperty("sonar.stash.repository", stashRepo);
         extraProps.setProperty("sonar.stash.pullrequest.id", String.valueOf(stashPullRequest));
         extraProps.setProperty("sonar.log.level", "DEBUG");
-        sonarScanner.scan(sonarqube.get(), sourcesDir, sources, "KEY", "Some Project", "0.0.0Final39", extraProps);
+        sonarScanner.scan(sonarqube.get(), sourcesDir, sources, sonarQubeKey, sonarQubeName, "0.0.0Final39", extraProps);
     }
 }

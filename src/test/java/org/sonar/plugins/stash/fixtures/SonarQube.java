@@ -7,8 +7,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -131,5 +133,18 @@ public class SonarQube {
         } catch (MalformedURLException e) {
             return null;
         }
+    }
+
+    public boolean createProject(String key, String name) throws IOException {
+        URL url = new URL(getUrl(),
+                "/api/projects/create?"
+                + "key=" + URLEncoder.encode(key, "UTF-8")
+                + "&"
+                + "name=" + URLEncoder.encode(key, "UTF-8")
+        );
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.connect();
+        return (conn.getResponseCode() == 200);
     }
 }
