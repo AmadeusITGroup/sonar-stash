@@ -71,11 +71,11 @@ public class StashClient implements AutoCloseable {
 
   private static final ContentType JSON = new ContentType("application", "json", null);
 
-  public StashClient(String url, StashCredentials credentials, int stashTimeout) {
+  public StashClient(String url, StashCredentials credentials, int stashTimeout, String sonarQubeVersion) {
     this.baseUrl = url;
     this.credentials = credentials;
     this.stashTimeout = stashTimeout;
-    this.httpClient = createHttpClient();
+    this.httpClient = createHttpClient(sonarQubeVersion);
   }
 
   public void postCommentOnPullRequest(String project, String repository, String pullRequestId, String report)
@@ -339,23 +339,25 @@ public class StashClient implements AutoCloseable {
 
   // We can't test this, as the manifest can only be loaded when deployed from a JAR-archive.
   // During unit testing this is not the case
-  public static String getUserAgent() {
+  private static String getUserAgent(String sonarQubeVersion) {
     PluginInfo info = PluginUtils.infoForPluginClass(StashPlugin.class);
     String name;
     String version;
-    String sonarQubeVersion;
-    name = version = sonarQubeVersion = "unknown";
+    name = version = "unknown";
     if (info != null) {
       name = info.getName();
       version = info.getVersion();
       // FIXME: add SonarQube version
     }
     return MessageFormat.format("SonarQube/{0} {1}/{2} {3}",
-    sonarQubeVersion, name, version, AsyncHttpClientConfigDefaults.defaultUserAgent());
+    sonarQubeVersion == null ? "unknown" : sonarQubeVersion,
+    name,
+    version,
+    AsyncHttpClientConfigDefaults.defaultUserAgent());
   }
   
-  AsyncHttpClient createHttpClient(){
+  AsyncHttpClient createHttpClient(String sonarQubeVersion){
     return new AsyncHttpClient(
-            new AsyncHttpClientConfig.Builder().setUserAgent(getUserAgent()).build());
+            new AsyncHttpClientConfig.Builder().setUserAgent(getUserAgent(sonarQubeVersion)).build());
   }
 }

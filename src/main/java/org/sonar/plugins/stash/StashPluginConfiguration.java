@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash;
 
 import org.sonar.api.BatchComponent;
+import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.config.Settings;
 
@@ -63,5 +64,9 @@ public class StashPluginConfiguration implements BatchComponent {
   
   public String getTaskIssueSeverityThreshold() {
     return settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
+  }
+
+  public String getSonarQubeVersion() {
+    return settings.getString(CoreProperties.SERVER_VERSION);
   }
 }

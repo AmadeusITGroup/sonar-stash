@@ -52,7 +52,7 @@ public class StashIssueReportingPostJob implements PostJob {
 
           StashCredentials stashCredentials = stashRequestFacade.getCredentials();
 
-          try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout)) {
+          try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
 
               StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
 

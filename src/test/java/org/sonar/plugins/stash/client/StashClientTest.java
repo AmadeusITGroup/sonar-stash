@@ -58,7 +58,8 @@ public class StashClientTest extends StashTest {
     primeWireMock();
     client = new StashClient("http://127.0.0.1:" + wireMock.port(),
             new StashCredentials("login", "password"),
-            timeout);
+            timeout,
+            "dummyVersion");
   }
 
   @Test
