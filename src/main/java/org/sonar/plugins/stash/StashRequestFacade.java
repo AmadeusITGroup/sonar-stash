@@ -153,8 +153,7 @@ public class StashRequestFacade implements BatchComponent {
           String type = diffReport.getType(issue.getPath(), issue.getLine(), config.includeVicinityIssues());
           if (type == null){
             LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})", issue.getRule(), issue.getPath(), issue.getLine());
-          } else{
-          
+          } else if (!config.excludedRules().contains(issue.getRule())){
             long line = diffReport.getLine(issue.getPath(), issue.getLine());
             
             StashComment comment = stashClient.postCommentLineOnPullRequest(project,

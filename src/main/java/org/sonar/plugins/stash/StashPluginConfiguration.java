@@ -4,6 +4,9 @@ import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.config.Settings;
 
+import java.util.Arrays;
+import java.util.List;
+
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration implements BatchComponent {
 
@@ -75,5 +78,9 @@ public class StashPluginConfiguration implements BatchComponent {
 
   public boolean includeVicinityIssues() {
     return settings.getBoolean(StashPlugin.STASH_INCLUDE_VICINITY_ISSUES);
+  }
+
+  public List<String> excludedRules() {
+    return Arrays.asList(settings.getStringArray(StashPlugin.STASH_EXCLUDE_RULES));
   }
 }

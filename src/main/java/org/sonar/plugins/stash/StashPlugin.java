@@ -25,6 +25,7 @@ public class StashPlugin extends SonarPlugin {
   private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
   private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
   private static final boolean DEFAULT_STASH_INCLUDE_VICINITY_ISSUES = false;
+  private static final String DEFAULT_STASH_EXCLUDE_RULES = "";
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
   
@@ -53,6 +54,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.analysis.overview";
   public static final String STASH_INCLUDE_EXISTING_ISSUES = "sonar.stash.include.existing.issues";
   public static final String STASH_INCLUDE_VICINITY_ISSUES = "sonar.stash.include.vicinity.issues";
+  public static final String STASH_EXCLUDE_RULES = "sonar.stash.exclude.rules";
   
   @Override
   public List getExtensions() {
@@ -100,7 +102,7 @@ public class StashPlugin extends SonarPlugin {
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
             .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
-        PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
+       PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
             .name("Include Analysis Overview Comment")
             .description("Set to false to prevent creation of the analysis overview comment.")
             .type(PropertyType.BOOLEAN)
@@ -120,7 +122,14 @@ public class StashPlugin extends SonarPlugin {
             .type(PropertyType.BOOLEAN)
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
-            .defaultValue(Boolean.toString(DEFAULT_STASH_INCLUDE_VICINITY_ISSUES)).build());
+            .defaultValue(Boolean.toString(DEFAULT_STASH_INCLUDE_VICINITY_ISSUES)).build(),
+        PropertyDefinition.builder(STASH_EXCLUDE_RULES)
+            .name("Excluded Rules")
+            .description("Comma separated list of rules for which no comments should be created.")
+            .type(PropertyType.STRING)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .defaultValue(DEFAULT_STASH_EXCLUDE_RULES).build());
   }
 }
 
