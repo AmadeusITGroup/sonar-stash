@@ -5,15 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -26,9 +23,8 @@ import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Measure;
-import org.sonar.api.measures.MeasuresFilter;
-import org.sonar.api.measures.Metric;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.InputFileCache;
@@ -65,16 +61,22 @@ public class SonarQubeCollectorTest {
   SensorContext context;
   
   @Mock
-  Metric<Serializable> metric1;
+  Resource resource1;
   
   @Mock
-  Metric<Serializable> metric2;
+  Resource resource2;
+    
+  @Mock
+  Measure<Integer> measure1;
   
   @Mock
-  Collection<Measure> measures1;
+  Measure<Integer> measure2;
   
   @Mock
-  Collection<Measure> measures2;
+  Measure<Integer> measure3;
+  
+  @Mock
+  Measure<Integer> measure4;
   
   @Mock
   InputFile inputFile1;
@@ -90,6 +92,8 @@ public class SonarQubeCollectorTest {
   public void setUp() throws Exception {
     
     ///////// File system objects /////////
+    
+    context = mock(SensorContext.class);
     
     projectBaseDir = new File("baseDir");
     
@@ -121,46 +125,27 @@ public class SonarQubeCollectorTest {
     
     ///////// Metric object ////////
     
-    metric1 = mock(Metric.class);
-    when(metric1.getName()).thenReturn(CoverageIssue.UNCOVERED_LINES_MEASURE_NAME);
-    
-    metric2 = mock(Metric.class);
-    when(metric2.getName()).thenReturn(CoverageIssue.LINES_TO_COVER_MEASURE_NAME);
-    
-    Measure<Serializable> measure1 = mock(Measure.class); 
-    when(measure1.getMetric()).thenReturn(metric1);
+    measure1 = mock(Measure.class); 
     when(measure1.getValue()).thenReturn(33.33);
     
-    Measure<Serializable> measure2 = mock(Measure.class); 
-    when(measure2.getMetric()).thenReturn(metric2);
+    measure2 = mock(Measure.class); 
     when(measure2.getValue()).thenReturn(100.0);
     
-    Measure<Serializable> measure3 = mock(Measure.class); 
-    when(measure3.getMetric()).thenReturn(metric1);
+    measure3 = mock(Measure.class); 
     when(measure3.getValue()).thenReturn(66.66);
     
-    Measure<Serializable> measure4 = mock(Measure.class); 
-    when(measure4.getMetric()).thenReturn(metric2);
+    measure4 = mock(Measure.class); 
     when(measure4.getValue()).thenReturn(100.0);
     
-    measures1 = new ArrayList<Measure>();
-    measures1.add(measure1);
-    measures1.add(measure2);
-    
-    measures2 = new ArrayList<Measure>();
-    measures2.add(measure3);
-    measures2.add(measure4);
-    
-    context = mock(SensorContext.class);
-    
-    Resource resource1 = mock(Resource.class);
+    resource1 = mock(Resource.class);
     when(context.getResource(inputFile1)).thenReturn(resource1);
-    when(context.getMeasures(eq(resource1), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures1);
+    when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure1);
+    when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(measure2);
     
-    Resource resource2 = mock(Resource.class);
+    resource2 = mock(Resource.class);
     when(context.getResource(inputFile2)).thenReturn(resource2);
-    when(context.getMeasures(eq(resource2), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures2);
-    
+    when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure3);
+    when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(measure4);
     
     ///////// SonarQube Rest client /////////
     
@@ -329,29 +314,11 @@ public class SonarQubeCollectorTest {
   
   @Test
   public void testExtractCoverageReportWithNoUncoveredMeasure() throws SonarQubeClientException {
-    Measure<Serializable> measure1 = mock(Measure.class); 
-    when(measure1.getMetric()).thenReturn(metric2);
-    when(measure1.getValue()).thenReturn(100.0);
+    when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(null);
+    when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(measure2);
     
-    Measure<Serializable> measure2 = mock(Measure.class); 
-    when(measure2.getMetric()).thenReturn(metric2);
-    when(measure2.getValue()).thenReturn(100.0);
-    
-    ArrayList<Measure> measures1 = new ArrayList<Measure>();
-    measures1.add(measure1);
-    
-    ArrayList<Measure> measures2 = new ArrayList<Measure>();
-    measures2.add(measure2);
-    
-    SensorContext context = mock(SensorContext.class);
-    
-    Resource resource1 = mock(Resource.class);
-    when(context.getResource(inputFile1)).thenReturn(resource1);
-    when(context.getMeasures(eq(resource1), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures1);
-    
-    Resource resource2 = mock(Resource.class);
-    when(context.getResource(inputFile2)).thenReturn(resource2);
-    when(context.getMeasures(eq(resource2), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures2);  
+    when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(null);
+    when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(measure4);
     
     CoverageIssuesReport result = SonarQubeCollector.extractCoverageReport("SonarQubeProject", context, inputFileCacheSensor, "MAJOR", sonarqubeClient);
   
@@ -362,29 +329,11 @@ public class SonarQubeCollectorTest {
   
   @Test
   public void testExtractCoverageReportWithNoLinesToCoverMeasure() throws SonarQubeClientException {
-    Measure<Serializable> measure1 = mock(Measure.class); 
-    when(measure1.getMetric()).thenReturn(metric1);
-    when(measure1.getValue()).thenReturn(40.0);
+    when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure1);
+    when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(null);
     
-    Measure<Serializable> measure2 = mock(Measure.class); 
-    when(measure2.getMetric()).thenReturn(metric1);
-    when(measure2.getValue()).thenReturn(80.0);
-    
-    ArrayList<Measure> measures1 = new ArrayList<Measure>();
-    measures1.add(measure1);
-    
-    ArrayList<Measure> measures2 = new ArrayList<Measure>();
-    measures2.add(measure2);
-    
-    SensorContext context = mock(SensorContext.class);
-    
-    Resource resource1 = mock(Resource.class);
-    when(context.getResource(inputFile1)).thenReturn(resource1);
-    when(context.getMeasures(eq(resource1), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures1);
-    
-    Resource resource2 = mock(Resource.class);
-    when(context.getResource(inputFile2)).thenReturn(resource2);
-    when(context.getMeasures(eq(resource2), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures2);  
+    when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure3);
+    when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(null);
     
     CoverageIssuesReport result = SonarQubeCollector.extractCoverageReport("SonarQubeProject", context, inputFileCacheSensor, "MAJOR", sonarqubeClient);
   
@@ -394,17 +343,13 @@ public class SonarQubeCollectorTest {
   }
   
   @Test
-  public void testExtractCoverageReportWithNoMeasures() throws SonarQubeClientException {
-    SensorContext context = mock(SensorContext.class);
+  public void testExtractCoverageReportWithOnlyOneMeasure() throws SonarQubeClientException {
+    when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(null);
+    when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(null);
     
-    Resource resource1 = mock(Resource.class);
-    when(context.getResource(inputFile1)).thenReturn(resource1);
-    when(context.getMeasures(eq(resource1), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(null);
-    
-    Resource resource2 = mock(Resource.class);
-    when(context.getResource(inputFile2)).thenReturn(resource2);
-    when(context.getMeasures(eq(resource2), (MeasuresFilter<Collection<Measure>>) anyObject())).thenReturn(measures2);  
-    
+    when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure3);
+    when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(measure4);
+     
     CoverageIssuesReport result = SonarQubeCollector.extractCoverageReport("SonarQubeProject", context, inputFileCacheSensor, "MAJOR", sonarqubeClient);
   
     assertEquals(1, result.countIssues());
@@ -416,6 +361,19 @@ public class SonarQubeCollectorTest {
     
     assertTrue("Previous expected project code coverage: 65.0 but was " + result.getPreviousProjectCoverage(), result.getPreviousProjectCoverage() == 65.0);
     assertTrue("Expected project code coverage: 33.3 but was " + result.getProjectCoverage(), result.getProjectCoverage() == 33.3);
+  }
+  
+  @Test
+  public void testExtractCoverageReportWithNoMeasure() throws SonarQubeClientException {
+    when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(null);
+    when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(null);
+    
+    when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(null);
+    when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(null);
+     
+    CoverageIssuesReport result = SonarQubeCollector.extractCoverageReport("SonarQubeProject", context, inputFileCacheSensor, "MAJOR", sonarqubeClient);
+  
+    assertEquals(0, result.countIssues());
   }
   
   @Test

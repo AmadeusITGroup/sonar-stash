@@ -1,8 +1,6 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
@@ -16,8 +14,8 @@ import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Measure;
-import org.sonar.api.measures.MeasuresFilters;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.InputFileCache;
 import org.sonar.plugins.stash.InputFileCacheSensor;
@@ -86,39 +84,31 @@ public final class SonarQubeCollector {
     
     FileSystem fileSystem = inputFileCacheSensor.getFileSystem();
     for (org.sonar.api.batch.fs.InputFile f : fileSystem.inputFiles(fileSystem.predicates().all())) {
-      Collection<Measure> allMeasures = context.getMeasures(context.getResource(f), MeasuresFilters.all());
-
+      
       Double linesToCover = null;
       Double uncoveredLines = null;
 
-      if (allMeasures != null) {
-        
-        for (Measure<Serializable> measure : allMeasures) {
-          String measureName = measure.getMetric().getName();
+      Measure<Integer> linesToCoverMeasure = context.getMeasure(context.getResource(f), CoreMetrics.LINES_TO_COVER);
+      if (linesToCoverMeasure != null) {
+        linesToCover = linesToCoverMeasure.getValue();
+      }
+      
+      Measure<Integer> uncoveredLinesMeasure = context.getMeasure(context.getResource(f), CoreMetrics.UNCOVERED_LINES);
+      if (uncoveredLinesMeasure != null) {
+        uncoveredLines = uncoveredLinesMeasure.getValue();
+      }
+      
+      // get lines_to_cover, uncovered_lines
+      if ((linesToCover != null) && (uncoveredLines != null)) {
+        double previousCoverage = sonarqubeClient.getCoveragePerFile(sonarQubeProjectKey, f.relativePath());
   
-          if (StringUtils.equals(measureName,
-              CoverageIssue.UNCOVERED_LINES_MEASURE_NAME)) {
-            uncoveredLines = measure.getValue();
-          }
+        CoverageIssue issue = new CoverageIssue(codeCoverageSeverity, f.relativePath());
+        issue.setLinesToCover(linesToCover);
+        issue.setUncoveredLines(uncoveredLines);
+        issue.setPreviousCoverage(previousCoverage);
   
-          if (StringUtils.equals(measureName,
-              CoverageIssue.LINES_TO_COVER_MEASURE_NAME)) {
-            linesToCover = measure.getValue();
-          }
-        }
-  
-        // get lines_to_cover, uncovered_lines
-        if ((linesToCover != null) && (uncoveredLines != null)) {
-          double previousCoverage = sonarqubeClient.getCoveragePerFile(sonarQubeProjectKey, f.relativePath());
-  
-          CoverageIssue issue = new CoverageIssue(codeCoverageSeverity, f.relativePath());
-          issue.setLinesToCover(linesToCover);
-          issue.setUncoveredLines(uncoveredLines);
-          issue.setPreviousCoverage(previousCoverage);
-  
-          result.add(issue);
-          LOGGER.debug(issue.getMessage());
-        }
+        result.add(issue);
+        LOGGER.debug(issue.getMessage());
       }
     }
   

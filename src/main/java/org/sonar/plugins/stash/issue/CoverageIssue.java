@@ -5,10 +5,7 @@ import org.sonar.plugins.stash.StashPluginUtils;
 public class CoverageIssue extends Issue {
 
   public static final String CODE_COVERAGE_ISSUE_KEY = "sonar.coverage.lowered";
-  
-  public static final String UNCOVERED_LINES_MEASURE_NAME = "uncovered_lines";
-  public static final String LINES_TO_COVER_MEASURE_NAME = "lines_to_cover";
-
+ 
   private double uncoveredLines;
   private double linesToCover;
   
