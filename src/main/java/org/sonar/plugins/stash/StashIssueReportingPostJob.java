@@ -57,13 +57,13 @@ public class StashIssueReportingPostJob implements PostJob {
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
 
-        stashClient = new StashClient(stashURL, stashCredentials, stashTimeout);
+        stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion());
         SonarQubeClient sonarqubeClient = new SonarQubeClient(sonarQubeURL);
 
         StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
 
         if (stashUser == null) {
-          throw new StashMissingElementException("no SonarQube reviewer identified"
+          throw new StashMissingElementException("No SonarQube reviewer identified"
                                                 + " to publish to Stash the SQ analysis");
         }
           
@@ -132,11 +132,6 @@ public class StashIssueReportingPostJob implements PostJob {
     } catch (StashMissingElementException e) {
       LOGGER.error("Process stopped: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
-
-    } finally {
-      if (stashClient != null) {
-        stashClient.close();
-      }
     }
   }
 

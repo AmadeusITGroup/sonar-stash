@@ -233,8 +233,6 @@ public class StashRequestFacade implements BatchComponent {
 
       }
       
-      LOGGER.info("New SonarQube issues have been reported to Stash.");
-      
     } catch (StashClientException e){
         LOGGER.error("Unable to link SonarQube issues to Stash", e);
     }

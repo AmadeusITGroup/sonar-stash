@@ -84,15 +84,9 @@ public class CompleteITCase {
         wireMock.verify(WireMock.getRequestedFor(WireMock.urlPathMatching(".*" + stashUser + "$")));
         wireMock.verify(WireMock.getRequestedFor(WireMock.urlPathMatching(".*diff$")));
         wireMock.verify(WireMock.postRequestedFor(WireMock.urlPathMatching(".*comments$")));
-    }
 
-    @Test
-    public void testUserAgent() throws Exception {
-        String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
-        wireMock.stubFor(WireMock.any(WireMock.anyUrl()).willReturn(WireMock.aResponse().withHeader("Content-Type", "application/json").withBody(jsonUser)));
-        StashClient client = new StashClient("http://127.0.0.1:" + wireMock.port(), new StashCredentials("some", "thing"), 300);
-        client.getUser("sonarqube");
-        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.containing(" Stash/")));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.matching("Stash/[0-9]+")));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.matching("SonarQube/[0-9]+")));
     }
 
     private String repoPath(String project, String repo, String... parts) {
