@@ -73,7 +73,7 @@ public class CompleteITCase {
         wireMock.stubFor(
                 WireMock.post(WireMock.urlPathEqualTo(
                         repoPath(stashProject, stashRepo, "pull-requests", String.valueOf(stashPullRequest), "comments")))
-                        .withRequestBody(WireMock.equalToJson("{\"text\":\"## SonarQube analysis Overview\\n### No new issues detected!\"}"))
+                        .withRequestBody(WireMock.equalToJson("{\"text\":\"## SonarQube analysis Overview\\n### No new issues detected!\\n\\n\"}"))
                         .willReturn(aJsonResponse()
                                 .withStatus(201)
                                 .withBody("{}")
