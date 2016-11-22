@@ -73,7 +73,7 @@ public class CompleteITCase {
         wireMock.stubFor(
                 WireMock.post(WireMock.urlPathEqualTo(
                         repoPath(stashProject, stashRepo, "pull-requests", String.valueOf(stashPullRequest), "comments")))
-                        .withRequestBody(WireMock.equalToJson("{\"text\":\"## SonarQube analysis Overview\\n### No new issues detected!\"}"))
+                        .withRequestBody(WireMock.equalToJson("{\"text\":\"## SonarQube analysis Overview\\n### No new issues detected!\\n\\n\"}"))
                         .willReturn(aJsonResponse()
                                 .withStatus(201)
                                 .withBody("{}")
@@ -85,8 +85,9 @@ public class CompleteITCase {
         wireMock.verify(WireMock.getRequestedFor(WireMock.urlPathMatching(".*diff$")));
         wireMock.verify(WireMock.postRequestedFor(WireMock.urlPathMatching(".*comments$")));
 
-        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.matching("Stash/[0-9]+")));
-        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.matching("SonarQube/[0-9]+")));
+        // Making sure we find the proper agent info in a string like: User-Agent: SonarQube/4.5.7 Stash/1.2.0 AHC/1.0
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.matching("^(.*)Stash/[0-9.]+(.*)$")));
+        wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl()).withHeader("User-Agent", WireMock.matching("^(.*)SonarQube/[0-9.]+(.*)$")));
     }
 
     private String repoPath(String project, String repo, String... parts) {
