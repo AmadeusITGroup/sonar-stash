@@ -10,7 +10,11 @@ import org.slf4j.LoggerFactory;
 public class StashPluginUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashPluginUtils.class);
-  
+
+  // Hiding implicit public constructor with an explicit private one (squid:S1118)
+  private StashPluginUtils() {
+  }
+
   /**
    * Format double with pattern #.#
    * For instance, 1.2345 => 1.2
