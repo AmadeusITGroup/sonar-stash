@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,19 +33,14 @@ import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
-import java.io.File;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashRequestFacade implements BatchComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
-  private static final String EXCEPTION_STASH_CONF  = "Unable to get {0} from plugin configuration (value is null)";
+  private static final String EXCEPTION_STASH_CONF = "Unable to get {0} from plugin configuration (value is null)";
+  private static final String STACK_TRACE = "Exception stack trace";
   
   private StashPluginConfiguration config;
   private File projectBaseDir;
@@ -141,7 +137,7 @@ public class StashRequestFacade implements BatchComponent {
       
     } catch (StashClientException e){
       LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
-      LOGGER.debug("Exception stack trace", e);
+      LOGGER.debug(STACK_TRACE, e);
     }
   }
   
@@ -158,7 +154,7 @@ public class StashRequestFacade implements BatchComponent {
       }
     } catch (StashClientException e){
       LOGGER.error("Unable to push code coverage report to Stash: {}", e.getMessage());
-      LOGGER.debug("Exception stack trace", e);
+      LOGGER.debug(STACK_TRACE, e);
     }
   }
   
@@ -432,7 +428,7 @@ public class StashRequestFacade implements BatchComponent {
     
     } catch (SonarQubeClientException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
-      LOGGER.debug("Exception stack trace", e);
+      LOGGER.debug(STACK_TRACE, e);
     }
     
     return result;
