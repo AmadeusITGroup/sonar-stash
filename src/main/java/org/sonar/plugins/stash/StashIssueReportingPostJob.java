@@ -132,6 +132,9 @@ public class StashIssueReportingPostJob implements PostJob {
     } catch (StashMissingElementException e) {
       LOGGER.error("Process stopped: {}", e.getMessage());
       LOGGER.debug("Exception stack trace", e);
+
+    } finally {
+        stashClient.close();  // squid:S2095
     }
   }
 
