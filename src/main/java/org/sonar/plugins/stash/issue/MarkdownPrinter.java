@@ -42,8 +42,10 @@ public final class MarkdownPrinter {
     StringBuilder sb = new StringBuilder();
 
     Map<String, SonarQubeIssue> rules = report.getUniqueRulesBySeverity(severity);
-    for (String rule : rules.keySet()) {
-      SonarQubeIssue issue = rules.get(rule);
+
+    // applying squid:S2864 optimization
+    for (Map.Entry<String, SonarQubeIssue> rule : rules.entrySet()) {
+      SonarQubeIssue issue = rule.getValue();
       sb.append("| ").append(issue.printIssueMarkdown(sonarQubeURL)).append(" |").append(NEW_LINE);
     }
 
