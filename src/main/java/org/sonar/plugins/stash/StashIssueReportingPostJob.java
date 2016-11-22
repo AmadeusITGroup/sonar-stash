@@ -37,6 +37,7 @@ public class StashIssueReportingPostJob implements PostJob {
 
   @Override
   public void executeOn(Project project, SensorContext context) {
+
     StashClient stashClient = null;
     try {
       boolean notifyStash = config.hasToNotifyStash();
@@ -131,7 +132,9 @@ public class StashIssueReportingPostJob implements PostJob {
       LOGGER.debug("Exception stack trace", e);
 
     } finally {
-        stashClient.close();  // squid:S2095
+      if( stashClient != null ) {
+        stashClient.close();
+      }
     }
   }
 
