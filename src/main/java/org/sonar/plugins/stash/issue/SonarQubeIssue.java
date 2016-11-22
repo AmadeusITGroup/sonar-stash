@@ -14,11 +14,13 @@ public class SonarQubeIssue extends Issue {
   public String getRule() {
     return rule;
   }
-  
+
+  @Override
   public String getMessage() {
     return message;
   }
-    
+
+  @Override
   public String printIssueMarkdown(String sonarQubeURL) {
     StringBuilder sb = new StringBuilder();
     sb.append(MarkdownPrinter.printSeverityMarkdown(severity)).append(getMessage()).append(" [[").append(rule)

@@ -47,7 +47,8 @@ public class CoverageIssue extends Issue {
   public void setPreviousCoverage(double previousCoverage) {
     this.previousCoverage = previousCoverage;
   }
-  
+
+  @Override
   public String getMessage() {
    return "Code coverage of file " + path + " lowered from " + previousCoverage + "% to " + getCoverage() + "%.";
   }
@@ -55,7 +56,8 @@ public class CoverageIssue extends Issue {
   public boolean isLowered() {
      return (previousCoverage - getCoverage()) > 0;
   }
-  
+
+  @Override
   public String printIssueMarkdown(String sonarQubeURL) {
     StringBuilder sb = new StringBuilder();
     sb.append(MarkdownPrinter.printSeverityMarkdown(severity)).append(getMessage());
