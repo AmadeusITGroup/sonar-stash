@@ -26,7 +26,7 @@ public class CoverageIssuesReport extends Report {
   }
   
   public boolean isEmpty() {
-    return (getProjectCoverage().intValue() == 0) && getIssues().isEmpty();
+    return (Double.valueOf(getProjectCoverage()).intValue() == 0) && getIssues().isEmpty();
   }
   
   public Collection getLoweredIssues() {
@@ -64,7 +64,7 @@ public class CoverageIssuesReport extends Report {
       sumUncoveredLines += ((CoverageIssue) issue).getUncoveredLines();
     }
     
-    if (sumLinesToCover.intValue() != 0) {
+    if (Double.valueOf(sumLinesToCover).intValue() != 0) {
       result = StashPluginUtils.formatDouble((1 - (sumUncoveredLines / sumLinesToCover)) * 100);
     }
     
