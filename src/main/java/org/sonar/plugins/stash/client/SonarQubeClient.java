@@ -25,7 +25,7 @@ public class SonarQubeClient {
   
   static final String REST_API = "/api/";
   static final String RESOURCE_API = REST_API + "resources"; 
-  static final String COVERAGE_RESOURCE_API = RESOURCE_API + "?resource={0}&metrics=line_coverage&format=json"; 
+  static final String COVERAGE_RESOURCE_API = "{0}" + RESOURCE_API + "?resource={1}&metrics=line_coverage&format=json"; 
   
   private final String sonarHostUrl;
    
@@ -46,7 +46,7 @@ public class SonarQubeClient {
     AsyncHttpClient httpClient = createHttpClient();
     
     try {
-      String request = MessageFormat.format(sonarHostUrl + COVERAGE_RESOURCE_API, key);
+      String request = MessageFormat.format(COVERAGE_RESOURCE_API, sonarHostUrl, key);
       BoundRequestBuilder requestBuilder = httpClient.prepareGet(request);
   
       Response response = executeRequest(requestBuilder);
@@ -67,7 +67,7 @@ public class SonarQubeClient {
   }
   
   Response executeRequest(final BoundRequestBuilder requestBuilder) throws InterruptedException, IOException, ExecutionException, TimeoutException {
-    //addAuthorization(requestBuilder);
+
     requestBuilder.addHeader("Content-Type", "application/json");
     return requestBuilder.execute().get(SONAR_TIMEOUT, TimeUnit.MILLISECONDS);
   }
