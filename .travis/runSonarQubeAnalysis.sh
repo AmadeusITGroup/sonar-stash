@@ -19,7 +19,7 @@ fi
 
 # And run the analysis
 # It assumes that the project uses Maven and has a POM at the root of the repo
-if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
+if [ "$TRAVIS_BRANCH" = "master" ] && [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then
 	# => This will run a full analysis of the project and push results to the SonarQube server.
 	#
 	# Analysis is done only on master so that build of branches don't push analyses to the same project and therefore "pollute" the results
@@ -28,7 +28,7 @@ if [ "$TRAVIS_BRANCH" = "master" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ]; then
 		-Dsonar.host.url=$SONAR_HOST_URL \
 		-Dsonar.login=$SONAR_TOKEN
 
-elif [ "$TRAVIS_PULL_REQUEST" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
+elif [ "${TRAVIS_PULL_REQUEST}" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
 	# => This will analyse the PR and display found issues as comments in the PR, but it won't push results to the SonarQube server
 	#
 	# For security reasons environment variables are not available on the pull requests
@@ -48,19 +48,19 @@ else
 	# When neither on master branch nor on a non-external pull request => nothing to do
 	#
 	# However, it is good to know why we are here
-	echo "No SonarQube anaysis necessary in this case (current branch: ${TRAVIS_BRANCH})..."
+	echo "No SonarQube anaysis necessary in this case (current branch: ${TRAVIS_BRANCH} & PR context: ${TRAVIS_PULL_REQUEST})..."
 
 	# It is useful to know what is the status of the secure entries (can explain why it was not started)
 	if [ -n "${GITHUB_TOKEN-}" ]; then
-		echo -e "\t=> GITHUB_TOKEN is defined"
+		echo "\t=> GITHUB_TOKEN is defined"
 	else
-		echo -e "\t=> GITHUB_TOKEN is  NOT defined"
+		echo "\t=> GITHUB_TOKEN is NOT defined"
 	fi
 
 	if [ -n "${SONAR_TOKEN-}" ]; then
-		echo -e "\t=> SONAR_TOKEN is defined"
+		echo "\t=> SONAR_TOKEN is defined"
 	else
-		echo -e "\t=> SONAR_TOKEN is NOT defined"
+		echo "\t=> SONAR_TOKEN is NOT defined"
 	fi
 
 fi
