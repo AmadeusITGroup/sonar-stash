@@ -128,7 +128,7 @@ public final class SonarQubeCollector {
     
     try {
       JSONArray jsonFiles = (JSONArray) new JSONParser().parse(jsonBody);
-      if (jsonFiles != null) {
+      if (jsonFiles == null) {
         return result;
       }
 
@@ -136,7 +136,7 @@ public final class SonarQubeCollector {
 
         JSONObject jsonFile = (JSONObject) objectFile;
         JSONArray jsonMeasures = (JSONArray) jsonFile.get("msr");
-        
+
         if (jsonMeasures == null) {
           continue; // Let's have a look at the next jsonFiles out of the list found
         }
