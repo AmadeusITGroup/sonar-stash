@@ -129,30 +129,45 @@ public final class SonarQubeCollector {
     try {
       JSONArray jsonFiles = (JSONArray) new JSONParser().parse(jsonBody);
       if (jsonFiles != null) {
-        
-        for (Object objectFile : jsonFiles.toArray()) {
-          JSONObject jsonFile = (JSONObject) objectFile;
-          
-          JSONArray jsonMeasures = (JSONArray) jsonFile.get("msr");
-          if (jsonMeasures != null) {
-        
-            for (Object obj : jsonMeasures.toArray()) {
-              JSONObject jsonMsr = (JSONObject) obj;
+        return result;
+      }
 
-              String key = (String) jsonMsr.get("key");
-              
-              if (StringUtils.equals(key, "line_coverage")) {
-                result = (Double) jsonMsr.get("val");
-                break;
-              }
-            }
-          }
+      for (Object objectFile : jsonFiles.toArray()) {
+
+        JSONObject jsonFile = (JSONObject) objectFile;
+        JSONArray jsonMeasures = (JSONArray) jsonFile.get("msr");
+        
+        if (jsonMeasures == null) {
+          continue; // Let's have a look at the next jsonFiles out of the list found
         }
+
+        result = getCoverageFromMeasures(jsonMeasures);
       }
     } catch (ParseException e) {
       throw new SonarQubeReportExtractionException(e);
     }
     
+    return result;
+  }
+
+
+  /*
+  * Extract Coverage data from Measures section found in the coverage report
+  */
+  private static double getCoverageFromMeasures(JSONArray jsonMeasures) throws SonarQubeReportExtractionException {
+    double result = 0;
+
+    for (Object obj : jsonMeasures.toArray()) {
+      JSONObject jsonMsr = (JSONObject) obj;
+
+      String key = (String) jsonMsr.get("key");
+
+      if (StringUtils.equals(key, "line_coverage")) {
+        result = (Double) jsonMsr.get("val");
+        break;
+      }
+    }
+
     return result;
   }
 }
