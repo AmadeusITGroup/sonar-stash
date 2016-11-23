@@ -33,7 +33,7 @@ public class CoverageIssue extends Issue {
   
   public double getCoverage() {
     double result = 0;
-    if (Double.valueOf(linesToCover).intValue() != 0) {
+    if ((int)linesToCover != 0) {
       result = StashPluginUtils.formatDouble((1 - (uncoveredLines / linesToCover)) * 100);
     }
     
