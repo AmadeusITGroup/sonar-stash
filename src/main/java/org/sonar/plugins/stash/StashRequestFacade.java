@@ -67,8 +67,6 @@ public class StashRequestFacade implements BatchComponent {
     String project       = idCard[0];
     String repository    = idCard[1];
     String pullRequestId = idCard[2];
-    String sonarQubeURL  = idCard[3];
-    String stashURL      = idCard[4];
 
     try {
       stashClient.postCommentOnPullRequest(project,
