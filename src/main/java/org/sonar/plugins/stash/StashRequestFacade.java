@@ -60,9 +60,16 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Post SQ analysis overview on Stash
    */
-  public void postAnalysisOverview(String project, String repository, String pullRequestId, String sonarQubeURL, String stashURL,
-      int issueThreshold, SonarQubeIssuesReport issueReport, CoverageIssuesReport coverageReport, StashClient stashClient){
-    
+  public void postAnalysisOverview(String[] idCard, int issueThreshold, SonarQubeIssuesReport issueReport,
+                                   CoverageIssuesReport coverageReport, StashClient stashClient){
+
+    // Splitting the idCard into variables
+    String project       = idCard[0];
+    String repository    = idCard[1];
+    String pullRequestId = idCard[2];
+    String sonarQubeURL  = idCard[3];
+    String stashURL      = idCard[4];
+
     try {
       stashClient.postCommentOnPullRequest(project,
                                          repository,

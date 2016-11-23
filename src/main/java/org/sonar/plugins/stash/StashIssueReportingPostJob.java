@@ -133,8 +133,10 @@ public class StashIssueReportingPostJob implements PostJob {
                                                         coverageReport, diffReport, stashClient);
       }
 
-      stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL, stashURL,
-                                                        issueThreshold, issueReport, coverageReport, stashClient);
+      // Compacting all string info into an array to match the method's compact signature (squid:S00107)
+      String[] info = {stashProject, repository, stashPullRequestId, sonarQubeURL, stashURL};
+
+      stashRequestFacade.postAnalysisOverview(info, issueThreshold, issueReport, coverageReport, stashClient);
 
       // if no new issues and coverage is improved,
       // plugin approves the pull-request
