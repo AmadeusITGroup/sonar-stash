@@ -52,11 +52,18 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
   
-  public static String printReportMarkdown(String stashProject, String stashRepo, String pullRequestId,
-      SonarQubeIssuesReport report, CoverageIssuesReport coverageReport, String sonarQubeURL, String stashURL, int issueThreshold) {
+  public static String printReportMarkdown(String[] idCard, SonarQubeIssuesReport report,
+                                                     CoverageIssuesReport coverageReport, int issueThreshold) {
     
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
+
+    // Splitting the idCard into variables
+    String stashProject  = idCard[0];
+    String stashRepo     = idCard[1];
+    String pullRequestId = idCard[2];
+    String sonarQubeURL  = idCard[3];
+    String stashURL      = idCard[4];
 
     if ((report.getIssues() == null) || (report.getIssues().isEmpty() && coverageReport.getLoweredIssues().isEmpty())) {
     

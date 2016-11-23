@@ -18,6 +18,9 @@ public class MarkdownPrinterTest {
   private static final String SONAR_URL = "sonarqube/URL";
   private static final String STASH_URL = "stash/URL";
   
+  private static final String[] INFO = {"stashProject", "stashRepo", "1", SONAR_URL, STASH_URL};
+  
+  
   @Before
   public void setUp(){
     SonarQubeIssue issueBlocker = new SonarQubeIssue("key1", "BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
@@ -130,7 +133,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdown() {
     int issueThreshold = 100;
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown("stashProject", "stashRepo", "1", issueReport, coverageReport, SONAR_URL, STASH_URL, issueThreshold);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, issueThreshold);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 4 |\n"
         + "|-----------------|------|\n"
@@ -155,7 +158,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithIssueLimitation() {
     int issueThreshold = 3;
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown("stashProject", "stashRepo", "1", issueReport, coverageReport, SONAR_URL, STASH_URL, issueThreshold);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, issueThreshold);
     String reportString = "## SonarQube analysis Overview\n"
         + "### Too many issues detected (4/3): Issues cannot be displayed in Diff view.\n\n"
         + "| Total New Issues | 4 |\n"
@@ -184,7 +187,7 @@ public class MarkdownPrinterTest {
     SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
     CoverageIssuesReport coverageReport = new CoverageIssuesReport();
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown("stashProject", "stashRepo", "1", issueReport, coverageReport, SONAR_URL, STASH_URL, issueThreshold);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, issueThreshold);
     String reportString = "## SonarQube analysis Overview\n"
         + "### No new issues detected!\n\n";
         
@@ -195,7 +198,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithEmptySonarQubeReportAndWithLoweredIssues() {
     issueReport = new SonarQubeIssuesReport();
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown("stashProject", "stashRepo", "1", issueReport, coverageReport, SONAR_URL, STASH_URL, 100);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 1 |\n"
         + "|-----------------|------|\n"
@@ -217,7 +220,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithEmptyCoverageReport() {
     coverageReport = new CoverageIssuesReport();
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown("stashProject", "stashRepo", "1", issueReport, coverageReport, SONAR_URL, STASH_URL, 100);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 3 |\n"
         + "|-----------------|------|\n"

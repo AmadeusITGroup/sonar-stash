@@ -74,7 +74,7 @@ public class StashRequestFacade implements BatchComponent {
       stashClient.postCommentOnPullRequest(project,
                                          repository,
                                          pullRequestId,
-                                         MarkdownPrinter.printReportMarkdown(project, repository, pullRequestId, issueReport, coverageReport, sonarQubeURL, stashURL, issueThreshold));
+                                         MarkdownPrinter.printReportMarkdown(idCard, issueReport, coverageReport, issueThreshold));
     
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
       
