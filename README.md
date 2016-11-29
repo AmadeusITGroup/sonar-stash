@@ -45,6 +45,8 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository. **Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password in commandline**.
 
+**Stash coverage severity** (sonar.stash.coverage.severity.threshold): If the contribution reduced the coverage on a file, the plugin generates an issue with the following severity.
+
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
 
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
@@ -81,6 +83,23 @@ sonar-runner -Dsonar.analysis.mode=preview \
 #### Reset comments of previous SonarQube analysis
 
 If needed, you can reset comments published during the previous SonarQube analysis of your pull-request. Please add **sonar.stash.comments.reset** option to your SonarQube analysis. Please notice only comments linked to the **sonar.stash.login** user will be deleted. This reset will be the first action performed by the plugin.
+ ```
+sonar-runner -Dsonar.analysis.mode=incremental -Dsonar.stash.notification -Dsonar.stash.comments.reset -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
+```
+
+## How to activate the coverage inside the pull-request
+
+The plugin can push into the pull-request the coverage computed with the help of the Unit Tests.
+This feature is based on "line coverage" metric, which compares the "uncovered lines" with the "lines to cover" on a file. 
+
+![Screenshot SonarQube plugin](resources/Stash-plugin-coverage.PNG)
+
+To activate this feature,
+```
+sonar-runner -Dsonar.branch=<BRANCH_TO_BE_COMPARED> -Dsonar.stash.notification -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD> -Dsonar.scanAllFiles...
+```
+
+**Be careful, with SonarQube 4.5.6, this feature does not work with incremental mode.**
 
 # How to contribute
 
