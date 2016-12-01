@@ -30,6 +30,10 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getString(StashPlugin.STASH_PULL_REQUEST_ID);
   }
 
+  public String getPullRequestBranch() {
+    return settings.getString(StashPlugin.STASH_PULL_REQUEST_BRANCH);
+  }
+  
   public String getStashURL() {
     return settings.getString(StashPlugin.STASH_URL);
   }
@@ -69,4 +73,13 @@ public class StashPluginConfiguration implements BatchComponent {
   public String getSonarQubeVersion() {
     return settings.getString(CoreProperties.SERVER_VERSION);
   }
+  
+  public String failForIssuesWithSeverity() {
+	    return settings.getString(StashPlugin.STASH_FAIL_FOR_ISSUES_WITH_SEVERITY);
+	  }
+
+  public boolean includeAnalysisOverview() {
+    return settings.getBoolean(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW);
+  }  
+  
 }

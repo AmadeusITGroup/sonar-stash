@@ -18,6 +18,7 @@ import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
+import org.sonar.plugins.stash.exceptions.GitBranchNotFoundOrNotUniqueException;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -25,6 +26,9 @@ import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -37,8 +41,10 @@ import java.util.concurrent.TimeoutException;
 
 import static java.net.HttpURLConnection.HTTP_CREATED;
 
-public class StashClient implements AutoCloseable {
 
+public class StashClient implements AutoCloseable {
+  private static final Logger LOGGER = LoggerFactory.getLogger(StashClient.class);
+  
   private final String baseUrl;
   private final StashCredentials credentials;
   private final int stashTimeout;
@@ -61,6 +67,7 @@ public class StashClient implements AutoCloseable {
   
   private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0} #{1}.";
   private static final String PULL_REQUEST_GET_ERROR_MESSAGE = "Unable to retrieve pull-request {0} #{1}.";
+  private static final String PULL_REQUEST_GET_FOR_BRANCH_ERROR_MESSAGE = "Unable to retrieve pull-request in repo {0} for branch {1}.";
   private static final String PULL_REQUEST_PUT_ERROR_MESSAGE = "Unable to update pull-request {0} #{1}.";
   private static final String USER_GET_ERROR_MESSAGE = "Unable to retrieve user {0}.";
   private static final String COMMENT_POST_ERROR_MESSAGE = "Unable to post a comment to {0} #{1}.";
@@ -176,6 +183,25 @@ public class StashClient implements AutoCloseable {
     JSONObject response = get(request, MessageFormat.format(PULL_REQUEST_GET_ERROR_MESSAGE, repository, pullRequestId));
 
     return StashCollector.extractPullRequest(project, repository, pullRequestId, response);
+  }
+  
+  public StashPullRequest getPullRequestByBranchName(String project, String repository, String branchName)
+      throws StashClientException {
+    String request = MessageFormat.format(REPO_API + "pull-requests?at=refs/heads/{3}&direction=OUTGOING", baseUrl, project, repository, branchName);
+    
+    JSONObject response = get(request, MessageFormat.format(PULL_REQUEST_GET_FOR_BRANCH_ERROR_MESSAGE, repository, branchName));
+    
+    Long size = (Long) response.get("size");
+    if(size==0) {
+      throw new GitBranchNotFoundOrNotUniqueException("Found no PR for branch "+branchName + " in repo "+repository);
+    } else if(size==1) {
+      // the expected case
+      JSONObject prJsonObject = (JSONObject) ((JSONArray) response.get("values")).get(0);
+      Long prId = (Long) prJsonObject.get("id");
+      return StashCollector.extractPullRequest(project, repository, String.valueOf(prId), prJsonObject);
+    } else {
+      throw new GitBranchNotFoundOrNotUniqueException("Found "+size+" PRs for branch "+branchName + " in repo "+repository);
+    }
   }
   
   public void addPullRequestReviewer(String project, String repository, String pullRequestId, long pullRequestVersion, ArrayList<StashUser> reviewers)

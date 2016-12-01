@@ -1,14 +1,21 @@
 package org.sonar.plugins.stash;
 
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
+import org.sonar.plugins.stash.exceptions.GitBranchNotFoundOrNotUniqueException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
+import org.sonar.plugins.stash.exceptions.StashFailBuildException;
+import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
@@ -32,12 +39,14 @@ public class StashIssueReportingPostJob implements PostJob {
 
   @Override
   public void executeOn(Project project, SensorContext context) {
+    
       if (!config.hasToNotifyStash()) {
           return;
       }
-
+      
+      SonarQubeIssuesReport issueReport = stashRequestFacade.extractIssueReport(projectIssues, inputFileCache);
+      
       try {
-          SonarQubeIssuesReport issueReport = stashRequestFacade.extractIssueReport(projectIssues, inputFileCache);
 
           int issueThreshold = stashRequestFacade.getIssueThreshold();
           String sonarQubeURL = config.getSonarQubeURL();
@@ -90,8 +99,11 @@ public class StashIssueReportingPostJob implements PostJob {
                           issueReport, diffReport, stashClient);
               }
 
-              stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL,
-                      issueThreshold, issueReport, stashClient);
+              boolean includeAnalysisOverview = config.includeAnalysisOverview();
+              if (includeAnalysisOverview) {
+                stashRequestFacade.postAnalysisOverview(stashProject, repository, stashPullRequestId, sonarQubeURL,
+                    issueThreshold, issueReport, stashClient);
+              }
 
               // if no new issues, plugin approves the pull-request
               if (canApprovePullrequest && issueReport.countIssues() == 0) {
@@ -102,7 +114,12 @@ public class StashIssueReportingPostJob implements PostJob {
                   stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId,
                           stashCredentials.getLogin(), stashClient);
               }
+              
           }
+
+
+      } catch (GitBranchNotFoundOrNotUniqueException e) {
+          LOGGER.info("No unique PR: "+ e.getMessage());
       } catch (StashConfigurationException e) {
           LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
           LOGGER.debug("Exception stack trace", e);
@@ -110,7 +127,51 @@ public class StashIssueReportingPostJob implements PostJob {
       } catch (StashMissingElementException e) {
           LOGGER.error("Process stopped: {}", e.getMessage());
           LOGGER.debug("Exception stack trace", e);
+      } catch (Exception e) {
+        LOGGER.error("Something unexpected went wrong: {}", e.getMessage(), e);
       }
+
+      failBuildIfNecessary(project, issueReport);              
+
+  }
+
+  private void failBuildIfNecessary(Project project, SonarQubeIssuesReport issueReport) {
+    // also, if there are issues plugin can fail the build
+    String failForIssuesWithSeverity = config.failForIssuesWithSeverity();
+    LOGGER.debug("issueReport={}",issueReport);
+    
+    if (issueReport!=null 
+        && issueReport.countIssues() > 0
+        && StringUtils.isNotBlank(failForIssuesWithSeverity) 
+        && !StringUtils.equals(failForIssuesWithSeverity, StashPlugin.SEVERITY_NONE)) {
+      List<SonarQubeIssue> issues = issueReport.getIssues();
+
+      int failForIssueSeverityAsInt = Severity.ALL.indexOf(failForIssuesWithSeverity.trim().toUpperCase());
+
+      if (failForIssueSeverityAsInt > -1) {
+        int issueCountToFailFor = 0;
+
+        for (SonarQubeIssue issue : issues) {
+          int issueSeverityAsInt = Severity.ALL.indexOf(String.valueOf(issue.getSeverity()).trim().toUpperCase());
+          if (issueSeverityAsInt >= failForIssueSeverityAsInt) {
+            LOGGER.debug("Breaking build because of issue {} that has a severity equal or higher than '{}'",
+                issue, failForIssuesWithSeverity);
+            issueCountToFailFor++;
+          }
+        }
+
+        if (issueCountToFailFor > 0) {
+          String msg = "Project " + project.getName() + " has " + issueCountToFailFor
+              + " issues that are of severity equal or higher than " + failForIssuesWithSeverity;
+          LOGGER.error(msg);
+          throw new StashFailBuildException(msg);
+        }
+      } else {
+        LOGGER.warn("Invalid configuration for {}: '{}' is not a valid Sonar severity, skipping fail-build-check.",
+            StashPlugin.STASH_FAIL_FOR_ISSUES_WITH_SEVERITY, failForIssuesWithSeverity);
+      }
+      
+    }
   }
 
   /*

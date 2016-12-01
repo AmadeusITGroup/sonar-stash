@@ -261,6 +261,17 @@ public class StashRequestFacade implements BatchComponent {
    */
   public String getStashPullRequestId() throws StashConfigurationException {
     String result = config.getPullRequestId();
+    
+    if(StringUtils.isNotBlank(config.getPullRequestBranch())) {
+      try (StashClient stashClient = new StashClient(getStashURL(), getCredentials(), config.getStashTimeout(), config.getSonarQubeVersion())) {
+        StashPullRequest pullRequest = stashClient.getPullRequestByBranchName(config.getStashProject(), config.getStashRepository(), config.getPullRequestBranch());
+        LOGGER.debug("Found PR for branch {}: {}", config.getPullRequestBranch(), pullRequest);
+        return pullRequest.getId();
+      } catch (StashClientException e) {
+        throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF, StashPlugin.STASH_PULL_REQUEST_ID));
+      }
+    }
+    
     if (result == null){
       throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF, StashPlugin.STASH_PULL_REQUEST_ID));
     }

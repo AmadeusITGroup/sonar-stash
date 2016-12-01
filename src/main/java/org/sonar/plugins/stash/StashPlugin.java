@@ -23,6 +23,8 @@ public class StashPlugin extends SonarPlugin {
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
 
+  private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = false;
+
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
   
   public static final String SEVERITY_NONE = "NONE";
@@ -38,11 +40,14 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_PROJECT = "sonar.stash.project";
   public static final String STASH_REPOSITORY = "sonar.stash.repository";
   public static final String STASH_PULL_REQUEST_ID = "sonar.stash.pullrequest.id";
+  public static final String STASH_PULL_REQUEST_BRANCH = "sonar.stash.pullrequest.branch";
+  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.analysis.overview";
   public static final String STASH_RESET_COMMENTS = "sonar.stash.comments.reset";
   public static final String STASH_URL = "sonar.stash.url";
   public static final String STASH_LOGIN = "sonar.stash.login";
   public static final String STASH_PASSWORD = "sonar.stash.password";
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
+  public static final String STASH_FAIL_FOR_ISSUES_WITH_SEVERITY = "sonar.stash.failForIssuesWithSeverity";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
@@ -63,11 +68,17 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT).build(),
         PropertyDefinition.builder(STASH_LOGIN)
-            .name("Stash base User")
+            .name("Stash base user")
             .description("User to push data on Stash instance")
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT).build(),
-        PropertyDefinition.builder(STASH_TIMEOUT)
+        PropertyDefinition.builder(STASH_PASSWORD)
+            .name("Password for base user")
+            .description("PW for stash user")
+            .type(PropertyType.PASSWORD)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT).build(),
+            PropertyDefinition.builder(STASH_TIMEOUT)
             .name("Stash issue Timeout")
             .description("Timeout when pushing a new issue to Stash (in ms)")
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
@@ -80,6 +91,14 @@ public class StashPlugin extends SonarPlugin {
             .onQualifiers(Qualifiers.PROJECT)
             .type(PropertyType.BOOLEAN)
             .defaultValue("false").build(),
+        PropertyDefinition.builder(STASH_FAIL_FOR_ISSUES_WITH_SEVERITY)
+            .name("Stash Fail Build")
+            .description("Fails build if issues with equal or higher severity exist")
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .type(PropertyType.SINGLE_SELECT_LIST)
+            .defaultValue(SEVERITY_NONE)
+            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
         PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
             .name("Stash issue Threshold")
             .description("Threshold to limit the number of issues pushed to Stash server")
@@ -93,7 +112,15 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
-            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build());
+            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
+            .name("Include Analysis Overview Comment")
+            .description("Set to false to prevent creation of the analysis overview comment.")
+            .type(PropertyType.BOOLEAN)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW)).build()
+            );
   }
 }
 

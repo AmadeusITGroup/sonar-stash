@@ -77,6 +77,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     config = mock(StashPluginConfiguration.class);
     when(config.hasToNotifyStash()).thenReturn(true);
     when(config.canApprovePullRequest()).thenReturn(false);
+    when(config.includeAnalysisOverview()).thenReturn(true);
     when(config.getStashURL()).thenReturn(STASH_URL);
     when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
     when(config.getStashTimeout()).thenReturn(STASH_TIMEOUT);
