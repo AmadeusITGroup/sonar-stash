@@ -22,6 +22,7 @@ public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
+  private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
   
@@ -48,7 +49,8 @@ public class StashPlugin extends SonarPlugin {
   public static final String SONARQUBE_URL = "sonar.host.url";
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
   public static final String STASH_CODE_COVERAGE_SEVERITY = "sonar.stash.coverage.severity.threshold";
-  
+  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.overview";
+
   @Override
   public List getExtensions() {
     return Arrays.asList(
@@ -105,7 +107,15 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
-            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build());
+            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
+            .name("Include Analysis Overview Comment")
+            .description("Create a comment to  the Pull Request providing a overview of the results")
+            .type(PropertyType.BOOLEAN)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onQualifiers(Qualifiers.PROJECT)
+            .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW)).build()
+    );
   }
 }
 
