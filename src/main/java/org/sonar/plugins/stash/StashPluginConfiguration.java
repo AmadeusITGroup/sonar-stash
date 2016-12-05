@@ -42,6 +42,10 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getString(StashPlugin.STASH_PASSWORD);
   }
 
+  public String getStashPasswordEnvironmentVariable() {
+    return settings.getString(StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
+  }
+
   public String getSonarQubeURL() {
     return settings.getString(StashPlugin.SONARQUBE_URL);
   }

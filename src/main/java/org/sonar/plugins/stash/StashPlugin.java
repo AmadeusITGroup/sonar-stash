@@ -43,6 +43,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_URL = "sonar.stash.url";
   public static final String STASH_LOGIN = "sonar.stash.login";
   public static final String STASH_PASSWORD = "sonar.stash.password";
+  public static final String STASH_PASSWORD_ENVIRONMENT_VARIABLE = "sonar.stash.password.variable";
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";

@@ -22,6 +22,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -49,6 +50,9 @@ public class StashRequestFacadeTest extends StashTest {
   
   @Rule
   public ExpectedException thrown = ExpectedException.none();
+
+  @Rule
+  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
   
   @Mock
   StashPluginConfiguration config;
@@ -196,7 +200,7 @@ public class StashRequestFacadeTest extends StashTest {
   }
   
   @Test
-  public void testGetCredentials(){
+  public void testGetCredentials() throws StashConfigurationException {
     when(config.getStashLogin()).thenReturn("login");
     when(config.getStashPassword()).thenReturn("password");
     
@@ -206,7 +210,7 @@ public class StashRequestFacadeTest extends StashTest {
   }
   
   @Test
-  public void testGetNoCredentials(){
+  public void testGetNoCredentials() throws StashConfigurationException {
     when(config.getStashLogin()).thenReturn(null);
     when(config.getStashPassword()).thenReturn(null);
     
@@ -214,7 +218,29 @@ public class StashRequestFacadeTest extends StashTest {
     assertNull(credentials.getLogin());
     assertNull(credentials.getPassword());
   }
-  
+
+  @Test
+  public void testGetPasswordFromEnvironment() throws StashConfigurationException {
+    when(config.getStashLogin()).thenReturn("login");
+    when(config.getStashPasswordEnvironmentVariable()).thenReturn("SONAR_STASH_PASSWORD");
+    environmentVariables.set("SONAR_STASH_PASSWORD", "envPassword");
+
+    StashCredentials credentials = myFacade.getCredentials();
+    assertEquals(credentials.getPassword(), "envPassword");
+
+    when(config.getStashPassword()).thenReturn("password");
+    credentials = myFacade.getCredentials();
+    assertEquals(credentials.getPassword(), "envPassword");
+  }
+
+  @Test (expected = StashConfigurationException.class)
+  public void testGetPasswordFromUnconfiguredEnvironment() throws StashConfigurationException {
+    when(config.getStashLogin()).thenReturn("login");
+    when(config.getStashPasswordEnvironmentVariable()).thenReturn("SONAR_STASH_PASSWORD");
+
+    StashCredentials credentials = myFacade.getCredentials();
+  }
+
   @Test
   public void testGetIssueThreshold() throws StashConfigurationException {
     when(config.getIssueThreshold()).thenReturn(1);
