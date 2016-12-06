@@ -347,7 +347,6 @@ public class StashClient implements AutoCloseable {
     if (info != null) {
       name = info.getName();
       version = info.getVersion();
-      // FIXME: add SonarQube version
     }
     return MessageFormat.format("SonarQube/{0} {1}/{2} {3}",
     sonarQubeVersion == null ? "unknown" : sonarQubeVersion,
