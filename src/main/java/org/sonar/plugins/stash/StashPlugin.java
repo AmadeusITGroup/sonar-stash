@@ -23,6 +23,7 @@ public class StashPlugin extends SonarPlugin {
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
   private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
+  private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
   
@@ -50,7 +51,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String SONARQUBE_URL = "sonar.host.url";
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
   public static final String STASH_CODE_COVERAGE_SEVERITY = "sonar.stash.coverage.severity.threshold";
-  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.overview";
+  public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.overview";
 
   @Override
   public List getExtensions() {
