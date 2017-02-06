@@ -5,6 +5,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
@@ -71,11 +72,9 @@ public final class StashCollector {
     return extractComment(jsonComment, path, line);
   }
   
-  public static StashPullRequest extractPullRequest(String project,
-                                                    String repository,
-                                                    String pullRequestId,
+  public static StashPullRequest extractPullRequest(PullRequestRef pr,
                                                     JSONObject jsonPullRequest) {
-    StashPullRequest result = new StashPullRequest(project, repository, pullRequestId);
+    StashPullRequest result = new StashPullRequest(pr);
 
     long version = (long)jsonPullRequest.get(VERSION);
     result.setVersion(version);

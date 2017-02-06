@@ -72,11 +72,7 @@ public class StashIssueReportingPostJob implements PostJob {
       int issueThreshold  = stashRequestFacade.getIssueThreshold();
       String sonarQubeURL = config.getSonarQubeURL();
 
-      // Stash MANDATORY options
-      String stashURL           = stashRequestFacade.getStashURL();
-      String stashProject       = stashRequestFacade.getStashProject();
-      String repository         = stashRequestFacade.getStashRepository();
-      String stashPullRequestId = stashRequestFacade.getStashPullRequestId();
+      PullRequestRef pr = stashRequestFacade.getPullRequest();
 
       // SonarQube objects
       SonarQubeClient sonarqubeClient   = new SonarQubeClient(sonarQubeURL);
@@ -90,22 +86,19 @@ public class StashIssueReportingPostJob implements PostJob {
       }
 
       // Get all changes exposed from Stash differential view of the pull-request
-      StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(stashProject, repository,
-                                                                               stashPullRequestId, stashClient);
+      StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(pr, stashClient);
       if (diffReport == null) {
         throw new StashMissingElementException("No Stash differential report available to process the SQ analysis");
       }
 
       // if requested, reset all comments linked to the pull-request
       if (config.resetComments()) {
-        stashRequestFacade.resetComments(stashProject, repository, stashPullRequestId,
-                                           diffReport, stashUser, stashClient);
+        stashRequestFacade.resetComments(pr, diffReport, stashUser, stashClient);
       }
 
       boolean canApprovePullrequest = config.canApprovePullRequest();
       if (canApprovePullrequest) {
-        stashRequestFacade.addPullRequestReviewer(stashProject, repository, stashPullRequestId,
-                                                                   stashCredentials.getLogin(), stashClient);
+        stashRequestFacade.addPullRequestReviewer(pr, stashCredentials.getLogin(), stashClient);
       }
 
       // build code coverage if requested
@@ -119,19 +112,7 @@ public class StashIssueReportingPostJob implements PostJob {
                                                                    codeCoverageSeverity, sonarqubeClient);
       }
 
-      String stashUsername = stashCredentials.getLogin();
-
-      // Compacting all string info into an array to match the method's compact signature (squid:S00107)
-      String[] info = {stashProject, repository, stashPullRequestId, sonarQubeURL, stashURL};
-
-      // Grouping also all the issue totals for easier re-use
-      int[] issueInfo = {
-                         issueThreshold,
-                         issueReport.countIssues(),
-                         coverageReport.countLoweredIssues()
-                        };
-
-      postInfoAndPRsActions(issueInfo, info, issueReport, diffReport, coverageReport, stashClient, stashUsername);
+      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, coverageReport, stashClient, sonarqubeClient);
 
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
@@ -148,24 +129,17 @@ public class StashIssueReportingPostJob implements PostJob {
   * Second part of the code necessary for the updateStashWithSonarInfo() method
   *   and third part of the executeOn() method (call of a call) -- squid:MethodCyclomaticComplexity
   */
-  private void postInfoAndPRsActions(int[] issueInfo, String[] info, SonarQubeIssuesReport issueReport,
+  private void postInfoAndPRsActions(PullRequestRef pr, SonarQubeIssuesReport issueReport, int issueThreshold,
                                        StashDiffReport diffReport, CoverageIssuesReport coverageReport,
-                                       StashClient stashClient, String stashUsername) {
+                                       StashClient stashClient, SonarQubeClient sonarQubeClient) {
 
     // Some local definitions
     boolean canApprovePullrequest = config.canApprovePullRequest();
 
-    // Unwrapping issueInfo into useful variables
-    int issueThreshold = issueInfo[0];
-    int issueNumber    = issueInfo[1] + issueInfo[2];
-    int issueTotal     = issueInfo[1];
+    int issueNumber    = issueReport.countIssues() + coverageReport.countLoweredIssues();
+    int issueTotal     = issueReport.countIssues();
 
-    // Unwrapping the info array too (it feels like Xmas :oD )
-    String stashProject       = info[0];
-    String repository         = info[1];
-    String stashPullRequestId = info[2];
-    String sonarQubeURL       = info[3];
-
+    String sonarQubeURL = sonarQubeClient.getBaseUrl();
 
     // if threshold exceeded, do not push issue list to Stash
     if (issueNumber >= issueThreshold) {
@@ -173,27 +147,23 @@ public class StashIssueReportingPostJob implements PostJob {
                                                      issueTotal, issueThreshold);
     } else {
       // publish SonarQube issue and code coverage
-      stashRequestFacade.postSonarQubeReport(stashProject, repository, stashPullRequestId, sonarQubeURL,
-                                                          issueReport, diffReport, stashClient);
-      stashRequestFacade.postCoverageReport(stashProject, repository, stashPullRequestId, sonarQubeURL,
-                                                      coverageReport, diffReport, stashClient);
+      stashRequestFacade.postSonarQubeReport(pr, sonarQubeURL, issueReport, diffReport, stashClient);
+      stashRequestFacade.postCoverageReport(pr, sonarQubeURL, coverageReport, diffReport, stashClient);
     }
 
     if (config.includeAnalysisOverview()) {
-      stashRequestFacade.postAnalysisOverview(info, issueThreshold, issueReport, coverageReport, stashClient);
+      stashRequestFacade.postAnalysisOverview(pr, sonarQubeURL, issueThreshold, issueReport, coverageReport, stashClient);
     }
 
     // if no new issues and coverage is improved,
     // plugin approves the pull-request
     if (canApprovePullrequest && (issueNumber == 0) && (coverageReport.getEvolution() >= 0)){
 
-      stashRequestFacade.approvePullRequest(stashProject, repository, stashPullRequestId,
-                                                             stashUsername, stashClient);
+      stashRequestFacade.approvePullRequest(pr, stashClient);
 
     } else if (canApprovePullrequest && ( (issueNumber != 0) || coverageReport.getEvolution() < 0) ) {
 
-      stashRequestFacade.resetPullRequestApproval(stashProject, repository, stashPullRequestId,
-                                                                   stashUsername, stashClient);
+      stashRequestFacade.resetPullRequestApproval(pr, stashClient);
     }
   }
 

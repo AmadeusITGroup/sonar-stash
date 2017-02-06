@@ -2,7 +2,6 @@ package org.sonar.plugins.stash.client;
 
 import org.apache.commons.lang3.StringUtils;
 import org.asynchttpclient.AsyncHttpClient;
-import org.asynchttpclient.AsyncHttpClientConfig;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
@@ -16,6 +15,7 @@ import org.json.simple.parser.ParseException;
 import org.sonar.plugins.stash.ContentType;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PluginUtils;
+import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -45,21 +45,21 @@ public class StashClient implements AutoCloseable {
   private final int stashTimeout;
   private AsyncHttpClient httpClient;
 
-  private static final String REST_API  = "/rest/api/1.0/";
-  private static final String USER_API  = "{0}" + REST_API + "users/{1}";
-  private static final String REPO_API  = "{0}" + REST_API + "projects/{1}/repos/{2}/";
+  private static final String REST_API = "/rest/api/1.0/";
+  private static final String USER_API = "{0}" + REST_API + "users/{1}";
+  private static final String REPO_API = "{0}" + REST_API + "projects/{1}/repos/{2}/";
   private static final String TASKS_API = REST_API + "tasks";
 
   private static final String API_ALL_PR = REPO_API + "pull-requests/";
   private static final String API_ONE_PR = API_ALL_PR + "{3}";
 
   private static final String API_ONE_PR_ALL_COMMENTS = API_ONE_PR + "/comments";
-  private static final String API_ONE_PR_DIFF         = API_ONE_PR + "/diff?withComments=true";
-  private static final String API_ONE_PR_APPROVAL     = API_ONE_PR + "/approve";
+  private static final String API_ONE_PR_DIFF = API_ONE_PR + "/diff?withComments=true";
+  private static final String API_ONE_PR_APPROVAL = API_ONE_PR + "/approve";
   private static final String API_ONE_PR_COMMENT_PATH = API_ONE_PR + "/comments?path={4}&start={5}";
-  
-  private static final String API_ONE_PR_ONE_COMMENT  = API_ONE_PR_ALL_COMMENTS + "/{4}?version={5}";
-  
+
+  private static final String API_ONE_PR_ONE_COMMENT = API_ONE_PR_ALL_COMMENTS + "/{4}?version={5}";
+
   private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0} #{1}.";
   private static final String PULL_REQUEST_GET_ERROR_MESSAGE = "Unable to retrieve pull-request {0} #{1}.";
   private static final String PULL_REQUEST_PUT_ERROR_MESSAGE = "Unable to update pull-request {0} #{1}.";
@@ -79,17 +79,25 @@ public class StashClient implements AutoCloseable {
     this.httpClient = createHttpClient(sonarQubeVersion);
   }
 
-  public void postCommentOnPullRequest(String project, String repository, String pullRequestId, String report)
+  public String getBaseUrl() {
+    return baseUrl;
+  }
+
+  public String getLogin() {
+    return credentials.getLogin();
+  }
+
+  public void postCommentOnPullRequest(PullRequestRef pr, String report)
       throws StashClientException {
 
-    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, project, repository, pullRequestId);
+    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
     JSONObject json = new JSONObject();
     json.put("text", report);
 
-    postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId));
+    postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
 
-  public StashCommentReport getPullRequestComments(String project, String repository, String pullRequestId, String path)
+  public StashCommentReport getPullRequestComments(PullRequestRef pr, String path)
       throws StashClientException {
     StashCommentReport result = new StashCommentReport();
 
@@ -98,8 +106,8 @@ public class StashClient implements AutoCloseable {
     
     while (! isLastPage){
       try {
-        String request = MessageFormat.format(API_ONE_PR_COMMENT_PATH, baseUrl, project, repository, pullRequestId, path, start);
-        JSONObject jsonComments = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, pullRequestId));
+        String request = MessageFormat.format(API_ONE_PR_COMMENT_PATH, baseUrl, pr.project(), pr.repository(), pr.pullRequestId(), path, start);
+        JSONObject jsonComments = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
         result.add(StashCollector.extractComments(jsonComments));
 
         // Stash pagination: check if you get all comments linked to the pull-request
@@ -113,22 +121,22 @@ public class StashClient implements AutoCloseable {
     return result;
   } 
   
-  public void deletePullRequestComment(String project, String repository, String pullRequestId, StashComment comment)
+  public void deletePullRequestComment(PullRequestRef pr, StashComment comment)
       throws StashClientException {
 
-    String request = MessageFormat.format(API_ONE_PR_ONE_COMMENT, baseUrl, project, repository, pullRequestId,
+    String request = MessageFormat.format(API_ONE_PR_ONE_COMMENT, baseUrl, pr.project(), pr.repository(), pr.pullRequestId(),
                                           Long.toString(comment.getId()), Long.toString(comment.getVersion()));
 
-    delete(request, MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), repository, pullRequestId));
+    delete(request, MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), pr.repository(), pr.pullRequestId()));
   }
-  
-  public StashDiffReport getPullRequestDiffs(String project, String repository, String pullRequestId)
+
+  public StashDiffReport getPullRequestDiffs(PullRequestRef pr)
       throws StashClientException {
-    StashDiffReport result = new StashDiffReport();
+    StashDiffReport result = null;
 
     try {
-      String request = MessageFormat.format(API_ONE_PR_DIFF, baseUrl, project, repository, pullRequestId);
-      JSONObject jsonDiffs = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, repository, pullRequestId));
+      String request = MessageFormat.format(API_ONE_PR_DIFF, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
+      JSONObject jsonDiffs = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
       result = StashCollector.extractDiffs(jsonDiffs);
     } catch (StashReportExtractionException e) {
       throw new StashClientException(e);
@@ -137,9 +145,9 @@ public class StashClient implements AutoCloseable {
     return result;
   }
 
-  public StashComment postCommentLineOnPullRequest(String project, String repository, String pullRequestId, String message, String path, long line, String type)
+  public StashComment postCommentLineOnPullRequest(PullRequestRef pr, String message, String path, long line, String type)
       throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, project, repository, pullRequestId);
+    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
 
     JSONObject anchor = new JSONObject();
     anchor.put("line", line);
@@ -158,7 +166,7 @@ public class StashClient implements AutoCloseable {
     json.put("anchor", anchor);
 
     JSONObject response = postCreate(request, json,
-    		                         MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, repository, pullRequestId));
+    		                         MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
     
     return StashCollector.extractComment(response, path, line);
   }
@@ -171,17 +179,17 @@ public class StashClient implements AutoCloseable {
     return StashCollector.extractUser(response);
   }
   
-  public StashPullRequest getPullRequest(String project, String repository, String pullRequestId)
+  public StashPullRequest getPullRequest(PullRequestRef pr)
       throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR, baseUrl, project, repository, pullRequestId);
-    JSONObject response = get(request, MessageFormat.format(PULL_REQUEST_GET_ERROR_MESSAGE, repository, pullRequestId));
+    String request = MessageFormat.format(API_ONE_PR, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
+    JSONObject response = get(request, MessageFormat.format(PULL_REQUEST_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
 
-    return StashCollector.extractPullRequest(project, repository, pullRequestId, response);
+    return StashCollector.extractPullRequest(pr, response);
   }
   
-  public void addPullRequestReviewer(String project, String repository, String pullRequestId, long pullRequestVersion, ArrayList<StashUser> reviewers)
+  public void addPullRequestReviewer(PullRequestRef pr, long pullRequestVersion, ArrayList<StashUser> reviewers)
       throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR, baseUrl, project, repository, pullRequestId);
+    String request = MessageFormat.format(API_ONE_PR, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
 
     JSONObject json = new JSONObject();
 
@@ -197,20 +205,20 @@ public class StashClient implements AutoCloseable {
     }
     
     json.put("reviewers", jsonReviewers);
-    json.put("id", pullRequestId);
+    json.put("id", pr.pullRequestId());
     json.put("version", pullRequestVersion);
 
-    put(request, json, MessageFormat.format(PULL_REQUEST_PUT_ERROR_MESSAGE, repository, pullRequestId));
+    put(request, json, MessageFormat.format(PULL_REQUEST_PUT_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
 
-  public void approvePullRequest(String project, String repository, String pullRequestId) throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, project, repository, pullRequestId);
-    post(request, null, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, repository, pullRequestId));
+  public void approvePullRequest(PullRequestRef pr) throws StashClientException {
+    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
+    post(request, null, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
   
-  public void resetPullRequestApproval(String project, String repository, String pullRequestId) throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, project, repository, pullRequestId);
-    delete(request, HttpURLConnection.HTTP_OK, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, repository, pullRequestId));
+  public void resetPullRequestApproval(PullRequestRef pr) throws StashClientException {
+    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, pr);
+    delete(request, HttpURLConnection.HTTP_OK, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
   
   public void postTaskOnComment(String message, Long commentId) throws StashClientException {

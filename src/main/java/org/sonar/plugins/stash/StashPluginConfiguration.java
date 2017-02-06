@@ -26,8 +26,8 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getString(StashPlugin.STASH_REPOSITORY);
   }
 
-  public String getPullRequestId() {
-    return settings.getString(StashPlugin.STASH_PULL_REQUEST_ID);
+  public Integer getPullRequestId() {
+    return settings.getInt(StashPlugin.STASH_PULL_REQUEST_ID);
   }
 
   public String getStashURL() {

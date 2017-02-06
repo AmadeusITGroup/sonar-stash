@@ -32,7 +32,11 @@ public class SonarQubeClient {
   public SonarQubeClient(String sonarHostUrl) {
     this.sonarHostUrl = sonarHostUrl;
   }
-  
+
+  public String getBaseUrl() {
+      return this.sonarHostUrl;
+  }
+
   public double getCoveragePerProject(String projectKey) throws SonarQubeClientException {
     return getCoverage(projectKey);
   }

@@ -41,151 +41,144 @@ public class StashRequestFacade implements BatchComponent {
 
   private static final String EXCEPTION_STASH_CONF = "Unable to get {0} from plugin configuration (value is null)";
   private static final String STACK_TRACE = "Exception stack trace";
-  
+
   private StashPluginConfiguration config;
   private File projectBaseDir;
-  
+
   public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration) {
     this.config = stashPluginConfiguration;
   }
-  
+
   public void initialize(File projectBaseDir) {
     this.projectBaseDir = projectBaseDir;
   }
-  
-  public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache){
+
+  public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache) {
     return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
   }
 
   /**
    * Post SQ analysis overview on Stash
    */
-  public void postAnalysisOverview(String[] idCard, int issueThreshold, SonarQubeIssuesReport issueReport,
-                                   CoverageIssuesReport coverageReport, StashClient stashClient){
-
-    // Splitting the idCard into variables
-    String project       = idCard[0];
-    String repository    = idCard[1];
-    String pullRequestId = idCard[2];
+  public void postAnalysisOverview(PullRequestRef pr, String sonarQubeURL, int issueThreshold, SonarQubeIssuesReport issueReport,
+                                   CoverageIssuesReport coverageReport, StashClient stashClient) {
 
     try {
-      stashClient.postCommentOnPullRequest(project,
-                                         repository,
-                                         pullRequestId,
-                                         MarkdownPrinter.printReportMarkdown(idCard, issueReport, coverageReport, issueThreshold));
-    
+      stashClient.postCommentOnPullRequest(pr, MarkdownPrinter.printReportMarkdown(pr, stashClient.getBaseUrl(), sonarQubeURL, issueReport, coverageReport, issueThreshold));
+
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
-      
-    } catch(StashClientException e){
-        LOGGER.error("Unable to push SonarQube analysis overview to Stash", e);
+
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to push SonarQube analysis overview to Stash", e);
     }
   }
-  
+
   /**
    * Approve pull-request
    */
-  public void approvePullRequest(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+  public void approvePullRequest(PullRequestRef pr, StashClient stashClient) {
     try {
-      stashClient.approvePullRequest(project, repository, pullRequestId);
-      
-      LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"", pullRequestId, project, repository, user);
-      
-    } catch(StashClientException e){
-        LOGGER.error("Unable to approve pull-request", e);
+      stashClient.approvePullRequest(pr);
+
+      LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
+        pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to approve pull-request", e);
     }
   }
-  
+
   /**
    * Reset pull-request approval
    */
-  public void resetPullRequestApproval(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+  public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) {
     try {
-      stashClient.resetPullRequestApproval(project, repository, pullRequestId);
-      
-      LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"", pullRequestId, project, repository, user);
-      
-    } catch(StashClientException e){
-        LOGGER.error("Unable to reset pull-request approval", e);
+      stashClient.resetPullRequestApproval(pr);
+
+      LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
+              pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to reset pull-request approval", e);
     }
   }
-  
+
   /**
    * Add a reviewer to the current pull-request.
    */
-  public void addPullRequestReviewer(String project, String repository, String pullRequestId, String user, StashClient stashClient){
+  public void addPullRequestReviewer(PullRequestRef pr, String user, StashClient stashClient) {
     try {
-      StashPullRequest pullRequest = stashClient.getPullRequest(project, repository, pullRequestId);
-      
+      StashPullRequest pullRequest = stashClient.getPullRequest(pr);
+
       // user not yet in reviewer list
       StashUser reviewer = pullRequest.getReviewer(user);
       if (reviewer == null) {
         ArrayList<StashUser> reviewers = new ArrayList<>(pullRequest.getReviewers());
         reviewers.add(stashClient.getUser(user));
-        
-        stashClient.addPullRequestReviewer(project, repository, pullRequestId, pullRequest.getVersion(), reviewers);
-      
-        LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", user, pullRequestId, project, repository);
+
+        stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);
+
+        LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", user, pr.pullRequestId(), pr.project(), pr.repository());
       }
-    } catch(StashClientException e){
-        LOGGER.error("Unable to add a new reviewer to the pull-request", e);
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to add a new reviewer to the pull-request", e);
     }
   }
-  
+
   /**
    * Push SonarQube report into the pull-request as comments.
    */
-  public void postSonarQubeReport(String project, String repository, String pullRequestId, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient) {
+  public void postSonarQubeReport(PullRequestRef pr, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient) {
     try {
-      postCommentPerIssue(project, repository, pullRequestId, sonarQubeURL, issueReport.getIssues(), diffReport, stashClient);
-      
+      postCommentPerIssue(pr, sonarQubeURL, issueReport.getIssues(), diffReport, stashClient);
+
       LOGGER.info("New SonarQube issues have been reported to Stash.");
-      
-    } catch (StashClientException e){
+
+    } catch (StashClientException e) {
       LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
       LOGGER.debug(STACK_TRACE, e);
     }
   }
-  
+
   /**
    * Push Code Coverage report into the pull-request as comments.
    */
-  public void postCoverageReport(String project, String repository, String pullRequestId, String sonarQubeURL, CoverageIssuesReport coverageReport, StashDiffReport diffReport, StashClient stashClient) {
+  public void postCoverageReport(PullRequestRef pr, String sonarQubeURL, CoverageIssuesReport coverageReport, StashDiffReport diffReport, StashClient stashClient) {
     try {
-      if (! coverageReport.isEmpty()) {
-        
-        postCommentPerIssue(project, repository, pullRequestId, sonarQubeURL, coverageReport.getLoweredIssues(), diffReport, stashClient);
-      
+      if (!coverageReport.isEmpty()) {
+
+        postCommentPerIssue(pr, sonarQubeURL, coverageReport.getLoweredIssues(), diffReport, stashClient);
+
         LOGGER.info("Code coverage report has been reported to Stash.");
       }
-    } catch (StashClientException e){
+    } catch (StashClientException e) {
       LOGGER.error("Unable to push code coverage report to Stash: {}", e.getMessage());
       LOGGER.debug(STACK_TRACE, e);
     }
   }
-  
+
   /**
    * Post one comment by found issue on Stash.
-   * @throws StashClientException 
    */
-  void postCommentPerIssue(String project, String repository, String pullRequestId, String sonarQubeURL,
-      Collection issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
-    
+  void postCommentPerIssue(PullRequestRef pr, String sonarQubeURL,
+                           Collection issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
+
     // to optimize request to Stash, builds comment match ordered by filepath
-    Map<String,StashCommentReport> commentsByFile = new HashMap<>();
+    Map<String, StashCommentReport> commentsByFile = new HashMap<>();
     for (Object object : issues) {
       Issue issue = (Issue) object;
-      
-      if (commentsByFile.get(issue.getPath()) == null){
-        StashCommentReport comments = stashClient.getPullRequestComments(project, repository, pullRequestId, issue.getPath());
-          
+
+      if (commentsByFile.get(issue.getPath()) == null) {
+        StashCommentReport comments = stashClient.getPullRequestComments(pr, issue.getPath());
+
         // According to the type of the comment
         // if type == CONTEXT, comment.line is set to source line instead of destination line
         comments.applyDiffReport(diffReport);
-          
+
         commentsByFile.put(issue.getPath(), comments);
       }
     }
-        
+
     try {
       // Severity available to create a task
       List<String> taskSeverities = getReportedSeverities();
@@ -194,35 +187,33 @@ public class StashRequestFacade implements BatchComponent {
       for (Object object : issues) {
         Issue issue = (Issue) object;
         StashCommentReport comments = commentsByFile.get(issue.getPath());
-        
+
         // if comment not already pushed to Stash
         if ((comments != null) &&
-            (comments.contains(issue.printIssueMarkdown(sonarQubeURL), issue.getPath(), issue.getLine()))) {
+                (comments.contains(issue.printIssueMarkdown(sonarQubeURL), issue.getPath(), issue.getLine()))) {
           LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getKey(),
-                                                                        issue.getPath(), issue.getLine());
+                  issue.getPath(), issue.getLine());
           continue;  // Next element in "issue_loop"
         }
-        
+
         // check if issue belongs to the Stash diff view
         String type = diffReport.getType(issue.getPath(), issue.getLine());
         if (type == null) {
           LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                                                                   issue.getKey(), issue.getPath(), issue.getLine());
+                  issue.getKey(), issue.getPath(), issue.getLine());
           continue;  // Next element in "issue_loop"
         }
 
         long line = diffReport.getLine(issue.getPath(), issue.getLine());
 
-        StashComment comment = stashClient.postCommentLineOnPullRequest(project,
-                                                                       repository,
-                                                                       pullRequestId,
-                                                                       issue.printIssueMarkdown(sonarQubeURL),
-                                                                       issue.getPath(),
-                                                                       line,
-                                                                       type);
-  
+        StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
+                issue.printIssueMarkdown(sonarQubeURL),
+                issue.getPath(),
+                line,
+                type);
+
         LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getKey(), type,
-                                                                             issue.getPath(), line);
+                issue.getPath(), line);
 
         // Create task linked to the comment if configured
         if (taskSeverities.contains(issue.getSeverity())) {
@@ -233,47 +224,49 @@ public class StashRequestFacade implements BatchComponent {
 
 
       }
-      
-    } catch (StashClientException e){
-        LOGGER.error("Unable to link SonarQube issues to Stash", e);
+
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to link SonarQube issues to Stash", e);
     }
   }
-  
+
   public StashCredentials getCredentials() throws StashConfigurationException {
     String passwordEnvVariable = config.getStashPasswordEnvironmentVariable();
     String password = config.getStashPassword();
     if (passwordEnvVariable != null) {
       password = System.getenv(passwordEnvVariable);
       if (password == null) {
-          throw new StashConfigurationException(
-                  "Unable to retrieve password from configured environment variable " +
-                  StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
+        throw new StashConfigurationException(
+                "Unable to retrieve password from configured environment variable " +
+                        StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
       }
     }
     return new StashCredentials(config.getStashLogin(), password);
   }
-  
+
   /**
    * Mandatory Issue Threshold option.
+   *
    * @throws StashConfigurationException if unable to get parameter as Integer
    */
   public int getIssueThreshold() throws StashConfigurationException {
     int result = 0;
     try {
       result = config.getIssueThreshold();
-    } catch(NumberFormatException e) {
+    } catch (NumberFormatException e) {
       throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_ISSUE_THRESHOLD + " from plugin configuration", e);
     }
     return result;
   }
-  
+
   /**
    * Mandatory Stash URL option.
+   *
    * @throws StashConfigurationException if unable to get parameter
    */
   public String getStashURL() throws StashConfigurationException {
     String result = config.getStashURL();
-    if (result == null){
+    if (result == null) {
       throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF, StashPlugin.STASH_URL));
     }
 
@@ -284,7 +277,15 @@ public class StashRequestFacade implements BatchComponent {
 
     return result;
   }
-  
+
+  public PullRequestRef getPullRequest() throws StashConfigurationException {
+    return PullRequestRef.builder()
+            .setProject(getStashProject())
+            .setRepository(getStashRepository())
+            .setPullRequestId(getStashPullRequestId())
+            .build();
+  }
+
   /**
    * Mandatory Stash Project option.
    * @throws StashConfigurationException if unable to get parameter
@@ -315,8 +316,8 @@ public class StashRequestFacade implements BatchComponent {
    * Mandatory Stash pull-request ID option.
    * @throws StashConfigurationException if unable to get parameter
    */
-  public String getStashPullRequestId() throws StashConfigurationException {
-    String result = config.getPullRequestId();
+  public int getStashPullRequestId() throws StashConfigurationException {
+    Integer result = config.getPullRequestId();
     if (result == null){
       throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF, StashPlugin.STASH_PULL_REQUEST_ID));
     }
@@ -345,14 +346,13 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Get all changes exposed through the Stash pull-request.
    */
-  public StashDiffReport getPullRequestDiffReport(String project, String repository,
-                                                  String pullRequestId, StashClient stashClient){
+  public StashDiffReport getPullRequestDiffReport(PullRequestRef pr, StashClient stashClient){
     StashDiffReport result = null;
     
     try {
-      result = stashClient.getPullRequestDiffs(project, repository, pullRequestId);
+      result = stashClient.getPullRequestDiffs(pr);
       
-      LOGGER.debug("Stash differential report retrieved from pull request {} #{}", repository, pullRequestId);
+      LOGGER.debug("Stash differential report retrieved from pull request {} #{}", pr.repository(), pr.pullRequestId());
       
     } catch(StashClientException e){
         LOGGER.error("Unable to get Stash differential report from Stash", e);
@@ -364,8 +364,7 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Reset all comments linked to a pull-request.
    */
-  public void resetComments(String project, String repository, String pullRequestId,
-                            StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
+  public void resetComments(PullRequestRef pr, StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
     try {
       // Let's call this "diffRep_loop"
       for (StashComment comment : diffReport.getComments()) {
@@ -389,7 +388,7 @@ public class StashRequestFacade implements BatchComponent {
           stashClient.deleteTaskOnComment(task);
         }
 
-        stashClient.deletePullRequestComment(project, repository, pullRequestId, comment);
+        stashClient.deletePullRequestComment(pr, comment);
       }
       
       LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset", sonarUser.getName());
@@ -448,5 +447,4 @@ public class StashRequestFacade implements BatchComponent {
     
     return result;
   }
-  
 }

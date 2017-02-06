@@ -2,6 +2,7 @@ package org.sonar.plugins.stash.issue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sonar.plugins.stash.PullRequestRef;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -16,7 +17,12 @@ public class StashPullRequestTest {
   
   @Before
   public void setUp(){
-    myPullRequest = new StashPullRequest("Project", "Repository", "123");
+    PullRequestRef pr = PullRequestRef.builder()
+            .setProject("Project")
+            .setRepository("Repository")
+            .setPullRequestId(123)
+            .build();
+    myPullRequest = new StashPullRequest(pr);
     
     stashUser1 = new StashUser(1, "SonarQube1", "sonarqube1", "sq1@email.com");
     stashUser2 = new StashUser(2, "SonarQube2", "sonarqube2", "sq2@email.com");
@@ -34,7 +40,7 @@ public class StashPullRequestTest {
 
   @Test
   public void testGetId() {
-    assertEquals(myPullRequest.getId(), "123");
+    assertEquals(myPullRequest.getId(), 123);
   }
 
   @Test

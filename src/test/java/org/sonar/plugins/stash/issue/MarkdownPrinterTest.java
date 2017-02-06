@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.sonar.plugins.stash.PullRequestRef;
 
 public class MarkdownPrinterTest {
   
@@ -18,8 +19,12 @@ public class MarkdownPrinterTest {
   private static final String SONAR_URL = "sonarqube/URL";
   private static final String STASH_URL = "stash/URL";
   
-  private static final String[] INFO = {"stashProject", "stashRepo", "1", SONAR_URL, STASH_URL};
-  
+  PullRequestRef pr = PullRequestRef.builder()
+          .setProject("stashProject")
+          .setRepository("stashRepo")
+          .setPullRequestId(1)
+          .build();
+
   
   @Before
   public void setUp(){
@@ -133,7 +138,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdown() {
     int issueThreshold = 100;
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, issueThreshold);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, issueThreshold);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 4 |\n"
         + "|-----------------|------|\n"
@@ -158,7 +163,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithIssueLimitation() {
     int issueThreshold = 3;
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, issueThreshold);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, issueThreshold);
     String reportString = "## SonarQube analysis Overview\n"
         + "### Too many issues detected (4/3): Issues cannot be displayed in Diff view.\n\n"
         + "| Total New Issues | 4 |\n"
@@ -187,7 +192,7 @@ public class MarkdownPrinterTest {
     SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
     CoverageIssuesReport coverageReport = new CoverageIssuesReport();
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, issueThreshold);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, issueThreshold);
     String reportString = "## SonarQube analysis Overview\n"
         + "### No new issues detected!\n\n";
         
@@ -198,7 +203,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithEmptySonarQubeReportAndWithLoweredIssues() {
     issueReport = new SonarQubeIssuesReport();
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, 100);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 1 |\n"
         + "|-----------------|------|\n"
@@ -220,7 +225,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithEmptyCoverageReport() {
     coverageReport = new CoverageIssuesReport();
     
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(INFO, issueReport, coverageReport, 100);
+    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 3 |\n"
         + "|-----------------|------|\n"
@@ -250,7 +255,7 @@ public class MarkdownPrinterTest {
     coverageReport.add(coverageIssue);
     coverageReport.setPreviousProjectCoverage(50.00);
     
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", "1", coverageReport, STASH_URL);
+    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
     String expectedReportMarkdown = "| Code Coverage: 40.0% (-10.0%) |\n" + 
                                     "|---------------|\n" +
                                     "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
@@ -270,7 +275,7 @@ public class MarkdownPrinterTest {
     coverageReport.setPreviousProjectCoverage(40.0);
     coverageReport.add(coverageIssue);
     
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", "1", coverageReport, STASH_URL);
+    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
     String expectedReportMarkdown = "| Code Coverage: 50.0% (+10.0%) |\n" + 
                                     "|---------------|\n";
     
@@ -289,7 +294,7 @@ public class MarkdownPrinterTest {
     coverageReport.setPreviousProjectCoverage(40.0);
     coverageReport.add(coverageIssue);
     
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", "1", coverageReport, STASH_URL);
+    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
     String expectedReportMarkdown = "| Code Coverage: 40.0% (0.0%) |\n" + 
                                     "|---------------|\n";
     
@@ -301,7 +306,7 @@ public class MarkdownPrinterTest {
     CoverageIssuesReport coverageReport = new CoverageIssuesReport();
     coverageReport.setPreviousProjectCoverage(40.0);
         
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", "1", coverageReport, STASH_URL);
+    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
     String expectedReportMarkdown = "| Code Coverage: 0.0% (-40.0%) |\n" + 
                                     "|---------------|\n";
     
@@ -320,7 +325,7 @@ public class MarkdownPrinterTest {
     coverageReport.setPreviousProjectCoverage(30.0);
     coverageReport.add(coverageIssue);
         
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", "1", coverageReport, STASH_URL);
+    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
     String expectedReportMarkdown = "| Code Coverage: 40.0% (+10.0%) |\n" + 
                                     "|---------------|\n";
     

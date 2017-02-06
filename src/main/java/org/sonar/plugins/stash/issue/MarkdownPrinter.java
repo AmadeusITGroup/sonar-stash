@@ -2,6 +2,7 @@ package org.sonar.plugins.stash.issue;
 
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.rule.Severity;
+import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.Map;
 
@@ -52,18 +53,15 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
   
-  public static String printReportMarkdown(String[] idCard, SonarQubeIssuesReport report,
-                                                     CoverageIssuesReport coverageReport, int issueThreshold) {
+  public static String printReportMarkdown(PullRequestRef pr, String stashURL, String sonarQubeURL, SonarQubeIssuesReport report,
+                                           CoverageIssuesReport coverageReport, int issueThreshold) {
     
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
 
-    // Splitting the idCard into variables
-    String stashProject  = idCard[0];
-    String stashRepo     = idCard[1];
-    String pullRequestId = idCard[2];
-    String sonarQubeURL  = idCard[3];
-    String stashURL      = idCard[4];
+    String stashProject  = pr.project();
+    String stashRepo     = pr.repository();
+    int pullRequestId = pr.pullRequestId();
 
     if ((report.getIssues() == null) || (report.getIssues().isEmpty() && coverageReport.getLoweredIssues().isEmpty())) {
     
@@ -109,7 +107,7 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
   
-  public static String printCoverageReportMarkdown(String stashProject, String stashRepo, String pullRequestId, CoverageIssuesReport coverageReport, String stashURL) {
+  public static String printCoverageReportMarkdown(String stashProject, String stashRepo, int pullRequestId, CoverageIssuesReport coverageReport, String stashURL) {
     StringBuilder sb = new StringBuilder("| Code Coverage: ");
 
     double projectCoverage = coverageReport.getProjectCoverage();
@@ -122,7 +120,7 @@ public final class MarkdownPrinter {
         CoverageIssue coverageIssue = (CoverageIssue) issue;
         
         if (coverageIssue.isLowered()) {
-          sb.append("| ").append(MarkdownPrinter.printCoverageIssueMarkdown(stashProject, stashRepo, pullRequestId, stashURL, coverageIssue)).append(" |").append(NEW_LINE);
+          sb.append("| ").append(MarkdownPrinter.printCoverageIssueMarkdown(stashProject, stashRepo, String.valueOf(pullRequestId), stashURL, coverageIssue)).append(" |").append(NEW_LINE);
         }
     }
     
