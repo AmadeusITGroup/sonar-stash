@@ -1,13 +1,14 @@
 package org.sonar.plugins.stash.client;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.AsyncHttpClientConfig;
-import com.ning.http.client.AsyncHttpClientConfigDefaults;
-import com.ning.http.client.Realm;
-import com.ning.http.client.Realm.AuthScheme;
-import com.ning.http.client.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.AsyncHttpClientConfig;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
+import org.asynchttpclient.Realm;
+import org.asynchttpclient.Response;
+import org.asynchttpclient.config.AsyncHttpClientConfigDefaults;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -233,7 +234,9 @@ public class StashClient implements AutoCloseable {
 
   @Override
   public void close() {
-    httpClient.close();
+    try {
+      httpClient.close();
+    } catch (IOException ignored) { }
   }
 
   private JSONObject get(String url, String errorMessage) throws StashClientException {
@@ -265,10 +268,10 @@ public class StashClient implements AutoCloseable {
     if (body != null) {
       requestBuilder.setBody(body.toString());
     }
-    Realm realm = new Realm.RealmBuilder().setPrincipal(credentials.getLogin()).setPassword(credentials.getPassword())
-            .setUsePreemptiveAuth(true).setScheme(AuthScheme.BASIC).build();
+    Realm realm = new Realm.Builder(credentials.getLogin(), credentials.getPassword())
+            .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
     requestBuilder.setRealm(realm);
-    requestBuilder.setFollowRedirects(true);
+    requestBuilder.setFollowRedirect(true);
     requestBuilder.addHeader("Content-Type", "application/json");
 
     try {
@@ -290,11 +293,7 @@ public class StashClient implements AutoCloseable {
 
   private static JSONObject extractResponse(Response response) throws StashClientException {
     String body = null;
-    try {
-      body = response.getResponseBody();
-    } catch (IOException e) {
-        throw new StashClientException("Could not load response body", e);
-    }
+    body = response.getResponseBody();
 
     if (StringUtils.isEmpty(body)) {
       return null;
@@ -356,7 +355,8 @@ public class StashClient implements AutoCloseable {
   }
   
   AsyncHttpClient createHttpClient(String sonarQubeVersion){
-    return new AsyncHttpClient(
-            new AsyncHttpClientConfig.Builder().setUserAgent(getUserAgent(sonarQubeVersion)).build());
+    return new DefaultAsyncHttpClient(
+            new DefaultAsyncHttpClientConfig.Builder().setUserAgent(getUserAgent(sonarQubeVersion)).build()
+    );
   }
 }

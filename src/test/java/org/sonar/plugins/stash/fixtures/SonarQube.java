@@ -1,8 +1,5 @@
 package org.sonar.plugins.stash.fixtures;
 
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.Response;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
-import java.util.concurrent.ExecutionException;
 
 public class SonarQube {
     protected Path installDir;
@@ -106,17 +102,17 @@ public class SonarQube {
     }
 
     public void waitForReady() {
-        AsyncHttpClient client = new AsyncHttpClient();
         while (true) {
             System.out.println("Waiting for SonarQube to be available at " + getUrl());
-            Response response = null;
             try {
-                response = client.prepareGet(getUrl().toString()).execute().get();
-            } catch (InterruptedException | ExecutionException e) {
+                HttpURLConnection conn = (HttpURLConnection) getUrl().openConnection();
+                conn.connect();
+                int code = conn.getResponseCode();
+                if (code == 200) {
+                    break;
+                }
+            } catch (IOException e) {
                 /* noop */
-            }
-            if (response != null && response.getStatusCode() == 200) {
-                break;
             }
             try {
                 Thread.sleep(5000);

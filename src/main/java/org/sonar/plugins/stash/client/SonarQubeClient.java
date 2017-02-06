@@ -7,15 +7,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.asynchttpclient.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.plugins.stash.exceptions.SonarQubeClientException;
 import org.sonar.plugins.stash.exceptions.SonarQubeReportExtractionException;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
-
-import com.ning.http.client.AsyncHttpClient;
-import com.ning.http.client.AsyncHttpClient.BoundRequestBuilder;
-import com.ning.http.client.Response;
 
 public class SonarQubeClient {
 
@@ -60,7 +60,11 @@ public class SonarQubeClient {
     } catch (ExecutionException | TimeoutException | InterruptedException | IOException | SonarQubeReportExtractionException e) {
       throw new SonarQubeClientException("Unable to get the coverage on resource " + key, e);
     } finally {
-      httpClient.close();
+      try {
+        httpClient.close();
+      } catch (IOException ignored) {
+          /* ignore */
+      }
     }
     
     return result;
@@ -73,7 +77,6 @@ public class SonarQubeClient {
   }
 
   AsyncHttpClient createHttpClient(){
-    return new AsyncHttpClient();
+    return new DefaultAsyncHttpClient();
   }
-  
 }
