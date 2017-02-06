@@ -52,6 +52,7 @@ Go to Stash general settings screen on SonarQube server to fill:
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
 
 **Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change. By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
+**Include Analysis Overview Comment** (sonar.stash.overview): Toggles whether a comment with overview information should be created.
 
 ![Screenshot SonarQube plugin](resources/Sonar-plugin-approver.PNG)
 
