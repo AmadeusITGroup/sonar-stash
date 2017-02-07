@@ -10,12 +10,6 @@ matrix:
         - SQ_RUN=yes
         # It is necessary only to run the analysis once ;)
 
-    - jdk: oraclejdk7
-      env: TEST_SUITE=unit
-
-    - jdk: openjdk7
-      env: TEST_SUITE=unit
-
     # The integration tests environments
     - jdk: oraclejdk8
       env:

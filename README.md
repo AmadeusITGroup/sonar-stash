@@ -18,7 +18,7 @@ After every run, in addition of the diff view, you may access to an overview of 
 #### Prerequisites
 - Git client to checkout the code
 - Maven 3.0.5+
-- JDK 1.7 or 1.8
+- JDK 1.8+
 - SonarQube 4.5.4 (LTS) or later
 - Stash (BitBucket) REST API 1.0 (3.x, 4.x)
 
