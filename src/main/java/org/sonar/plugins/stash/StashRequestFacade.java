@@ -161,13 +161,11 @@ public class StashRequestFacade implements BatchComponent {
    * Post one comment by found issue on Stash.
    */
   void postCommentPerIssue(PullRequestRef pr, String sonarQubeURL,
-                           Collection issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
+                           Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
-    for (Object object : issues) {
-      Issue issue = (Issue) object;
-
+    for (Issue issue : issues) {
       if (commentsByFile.get(issue.getPath()) == null) {
         StashCommentReport comments = stashClient.getPullRequestComments(pr, issue.getPath());
 
@@ -184,8 +182,7 @@ public class StashRequestFacade implements BatchComponent {
       List<String> taskSeverities = getReportedSeverities();
 
       // Let's call this "issue_loop"
-      for (Object object : issues) {
-        Issue issue = (Issue) object;
+      for (Issue issue : issues) {
         StashCommentReport comments = commentsByFile.get(issue.getPath());
 
         // if comment not already pushed to Stash

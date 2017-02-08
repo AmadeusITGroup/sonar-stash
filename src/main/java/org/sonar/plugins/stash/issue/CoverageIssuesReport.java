@@ -29,7 +29,7 @@ public class CoverageIssuesReport extends Report {
     return ((int)getProjectCoverage() == 0) && getIssues().isEmpty();
   }
   
-  public Collection getLoweredIssues() {
+  public Collection<Issue> getLoweredIssues() {
     return CollectionUtils.select(issues, new Predicate() {
       @Override
       public boolean evaluate(Object object) {
