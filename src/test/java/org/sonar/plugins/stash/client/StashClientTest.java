@@ -34,6 +34,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
@@ -341,6 +342,23 @@ public class StashClientTest extends StashTest {
     wireMock.stubFor(get(urlPathEqualTo("/foo")).atPriority(1).willReturn(aJsonResponse().withBody(jsonUser)));
     client.getUser("does not matter");
     wireMock.verify(getRequestedFor(urlPathEqualTo("/foo")));
+  }
+
+  @Test
+  public void testPullRequestHugePullRequestId() throws Exception {
+    // See https://github.com/AmadeusITGroup/sonar-stash/issues/98
+    int hugePullRequestId = 1234567890;
+
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse()));
+
+    PullRequestRef pr = PullRequestRef.builder()
+            .setProject("Project")
+            .setRepository("Repository")
+            .setPullRequestId(hugePullRequestId)
+            .build();
+
+    client.getPullRequestComments(pr, "something");
+    wireMock.verify(getRequestedFor(urlPathMatching(".*/pull-requests/1234567890/comments.*")));
   }
 
   private void addErrorResponse(MappingBuilder mapping, int statusCode) {
