@@ -101,6 +101,8 @@ public class StashPlugin extends SonarPlugin {
         PropertyDefinition.builder(STASH_CODE_COVERAGE_SEVERITY)
             .name("Stash code coverage severity")
             .description("Severity to be associated with Code Coverage issues")
+            .type(PropertyType.SINGLE_SELECT_LIST)
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
         PropertyDefinition.builder(STASH_TASK_SEVERITY_THRESHOLD)
             .name("Stash tasks severity threshold")
