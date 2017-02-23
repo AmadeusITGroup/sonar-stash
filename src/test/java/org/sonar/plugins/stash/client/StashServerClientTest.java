@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class StashClientTest extends StashTest {
+public class StashServerClientTest extends StashTest {
   private static final int timeout = 200;
   private static final int errorTimeout = timeout + 10;
 
@@ -64,7 +64,7 @@ public class StashClientTest extends StashTest {
   @Before
   public void setUp() throws Exception {
     primeWireMock();
-    client = new StashClient("http://127.0.0.1:" + wireMock.port(),
+    client = new StashServerClient("http://127.0.0.1:" + wireMock.port(),
             new StashCredentials("login", "password"),
             timeout,
             "dummyVersion");

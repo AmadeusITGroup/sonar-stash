@@ -8,7 +8,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
 import org.sonar.plugins.stash.fixtures.SonarQubeRule;
@@ -20,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
+import static org.sonar.plugins.stash.client.StashServerClientTest.aJsonResponse;
 
 public class CompleteITCase {
     protected static SonarScanner sonarScanner;

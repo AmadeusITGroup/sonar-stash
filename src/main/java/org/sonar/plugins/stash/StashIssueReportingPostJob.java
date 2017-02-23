@@ -10,6 +10,7 @@ import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.SonarQubeClient;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
+import org.sonar.plugins.stash.client.StashServerClient;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.CoverageIssuesReport;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
@@ -49,10 +50,12 @@ public class StashIssueReportingPostJob implements PostJob {
           
         StashCredentials stashCredentials = stashRequestFacade.getCredentials();
 
-        try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
+        try (StashClient stashClient = new StashServerClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
 
           // Down the rabbit hole...
           updateStashWithSonarInfo(stashClient, stashCredentials, project, context);
+        } catch (Exception e) {
+          // ignored
         }
       }
     } catch (StashConfigurationException e) {
