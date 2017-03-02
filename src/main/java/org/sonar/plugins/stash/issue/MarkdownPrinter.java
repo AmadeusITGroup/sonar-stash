@@ -108,7 +108,7 @@ public final class MarkdownPrinter {
   }
   
   public static String printCoverageReportMarkdown(String stashProject, String stashRepo, int pullRequestId, CoverageIssuesReport coverageReport, String stashURL) {
-    StringBuilder sb = new StringBuilder("| Code Coverage: ");
+    StringBuilder sb = new StringBuilder("| Line Coverage: ");
 
     double projectCoverage = coverageReport.getProjectCoverage();
     double diffProjectCoverage = coverageReport.getEvolution();

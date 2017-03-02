@@ -30,7 +30,7 @@ public class CoverageIssueTest {
     myIssue.setPreviousCoverage(60.0);
     when(myIssue.getCoverage()).thenReturn(50.0);
   
-    assertEquals("Code coverage of file " + PATH_COVERAGE + " lowered from 60.0% to 50.0%.", myIssue.getMessage());
+    assertEquals("Line coverage of file " + PATH_COVERAGE + " lowered from 60.0% to 50.0%.", myIssue.getMessage());
   }
   
   @Test
@@ -60,6 +60,6 @@ public class CoverageIssueTest {
     myIssue.setPreviousCoverage(60.0);
     when(myIssue.getCoverage()).thenReturn(50.0);
     
-    assertEquals("*INFO* - Code coverage of file " + PATH_COVERAGE + " lowered from 60.0% to 50.0%.", myIssue.printIssueMarkdown(SONARQUBE_URL));
+    assertEquals("*INFO* - Line coverage of file " + PATH_COVERAGE + " lowered from 60.0% to 50.0%.", myIssue.printIssueMarkdown(SONARQUBE_URL));
   };
 }

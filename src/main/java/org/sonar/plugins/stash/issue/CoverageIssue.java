@@ -50,7 +50,7 @@ public class CoverageIssue extends Issue {
 
   @Override
   public String getMessage() {
-   return "Code coverage of file " + path + " lowered from " + previousCoverage + "% to " + getCoverage() + "%.";
+   return "Line coverage of file " + path + " lowered from " + previousCoverage + "% to " + getCoverage() + "%.";
   }
   
   public boolean isLowered() {

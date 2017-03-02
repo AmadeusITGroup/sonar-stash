@@ -57,7 +57,7 @@ public class MarkdownPrinterTest {
   @Test
   public void testPrintCoverageIssueMarkdown() {
     String coverageMarkdown = MarkdownPrinter.printCoverageIssueMarkdown("project", "repo", "1", STASH_URL, coverageIssue);
-    assertEquals("*MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)]",
+    assertEquals("*MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)]",
                   coverageMarkdown);
   }
 
@@ -152,9 +152,9 @@ public class MarkdownPrinterTest {
         + "| *BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RuleCritical](sonarqube/URL/coding_rules#rule_key=RuleCritical)] |\n"
         + "| *MAJOR* - messageMajor [[RuleMajor](sonarqube/URL/coding_rules#rule_key=RuleMajor)] |\n\n\n"
-        + "| Code Coverage: 40.0% (-10.0%) |\n"
+        + "| Line Coverage: 40.0% (-10.0%) |\n"
         + "|---------------|\n"
-        + "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
+        + "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
         
     assertEquals(reportString, issueReportMarkdown);
   }
@@ -178,9 +178,9 @@ public class MarkdownPrinterTest {
         + "| *BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RuleCritical](sonarqube/URL/coding_rules#rule_key=RuleCritical)] |\n"
         + "| *MAJOR* - messageMajor [[RuleMajor](sonarqube/URL/coding_rules#rule_key=RuleMajor)] |\n\n\n"
-        + "| Code Coverage: 40.0% (-10.0%) |\n"
+        + "| Line Coverage: 40.0% (-10.0%) |\n"
         + "|---------------|\n"
-        + "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
+        + "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
   
     assertEquals(reportString, issueReportMarkdown);
   }
@@ -214,9 +214,9 @@ public class MarkdownPrinterTest {
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|------------|\n\n\n"
-        + "| Code Coverage: 40.0% (-10.0%) |\n"
+        + "| Line Coverage: 40.0% (-10.0%) |\n"
         + "|---------------|\n"
-        + "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
+        + "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
         
     assertEquals(reportString, issueReportMarkdown);
   }
@@ -256,9 +256,9 @@ public class MarkdownPrinterTest {
     coverageReport.setPreviousProjectCoverage(50.00);
     
     String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 40.0% (-10.0%) |\n" + 
+    String expectedReportMarkdown = "| Line Coverage: 40.0% (-10.0%) |\n" +
                                     "|---------------|\n" +
-                                    "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
+                                    "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
   }
@@ -276,7 +276,7 @@ public class MarkdownPrinterTest {
     coverageReport.add(coverageIssue);
     
     String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 50.0% (+10.0%) |\n" + 
+    String expectedReportMarkdown = "| Line Coverage: 50.0% (+10.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
@@ -295,7 +295,7 @@ public class MarkdownPrinterTest {
     coverageReport.add(coverageIssue);
     
     String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 40.0% (0.0%) |\n" + 
+    String expectedReportMarkdown = "| Line Coverage: 40.0% (0.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
@@ -307,7 +307,7 @@ public class MarkdownPrinterTest {
     coverageReport.setPreviousProjectCoverage(40.0);
         
     String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 0.0% (-40.0%) |\n" + 
+    String expectedReportMarkdown = "| Line Coverage: 0.0% (-40.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
@@ -326,7 +326,7 @@ public class MarkdownPrinterTest {
     coverageReport.add(coverageIssue);
         
     String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 40.0% (+10.0%) |\n" + 
+    String expectedReportMarkdown = "| Line Coverage: 40.0% (+10.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
