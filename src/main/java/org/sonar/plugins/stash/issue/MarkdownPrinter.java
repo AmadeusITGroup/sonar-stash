@@ -6,6 +6,8 @@ import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.Map;
 
+import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
+
 public final class MarkdownPrinter {
 
   static final String NEW_LINE = "\n";
@@ -113,7 +115,13 @@ public final class MarkdownPrinter {
     double projectCoverage = coverageReport.getProjectCoverage();
     double diffProjectCoverage = coverageReport.getEvolution();
     
-    sb.append(projectCoverage).append("% (").append((diffProjectCoverage > 0)? "+" : "").append(diffProjectCoverage).append("%)").append(" |").append(NEW_LINE);
+    sb.append(formatPercentage(projectCoverage))
+            .append("% (")
+            .append((diffProjectCoverage > 0)? "+" : "")
+            .append(formatPercentage(diffProjectCoverage))
+            .append("%)")
+            .append(" |")
+            .append(NEW_LINE);
     sb.append("|---------------|").append(NEW_LINE);
     
     for (Issue issue : coverageReport.getIssues()) {

@@ -2,6 +2,8 @@ package org.sonar.plugins.stash.issue;
 
 import org.sonar.plugins.stash.StashPluginUtils;
 
+import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
+
 public class CoverageIssue extends Issue {
 
   public static final String CODE_COVERAGE_ISSUE_KEY = "sonar.coverage.lowered";
@@ -34,7 +36,7 @@ public class CoverageIssue extends Issue {
   public double getCoverage() {
     double result = 0;
     if ((int)linesToCover != 0) {
-      result = StashPluginUtils.formatDouble((1 - (uncoveredLines / linesToCover)) * 100);
+      result = (1 - (uncoveredLines / linesToCover)) * 100;
     }
     
     return result;
@@ -50,9 +52,9 @@ public class CoverageIssue extends Issue {
 
   @Override
   public String getMessage() {
-   return "Line coverage of file " + path + " lowered from " + previousCoverage + "% to " + getCoverage() + "%.";
+   return "Line coverage of file " + path + " lowered from " + formatPercentage(previousCoverage) + "% to " + formatPercentage(getCoverage()) + "%.";
   }
-  
+
   public boolean isLowered() {
      return (previousCoverage - getCoverage()) > 0;
   }

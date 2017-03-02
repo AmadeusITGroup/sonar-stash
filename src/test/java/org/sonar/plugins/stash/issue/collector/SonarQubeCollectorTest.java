@@ -278,17 +278,17 @@ public class SonarQubeCollectorTest {
     assertEquals(2, result.countIssues());
     
     CoverageIssue coverageIssue1 = (CoverageIssue) result.getIssues().get(0);
-    assertTrue("Previous expected code coverage: 70.0 but was " + coverageIssue1.getPreviousCoverage(), coverageIssue1.getPreviousCoverage() == 70.0);
-    assertTrue("Expected code coverage: 66.7 but was " + coverageIssue1.getCoverage(), coverageIssue1.getCoverage() == 66.7);
+    assertEquals(70, coverageIssue1.getPreviousCoverage(), 0.00001);
+    assertEquals(66.67, coverageIssue1.getCoverage(), 0.00001);
     assertEquals("MAJOR", coverageIssue1.getSeverity());
     
     CoverageIssue coverageIssue2 = (CoverageIssue) result.getIssues().get(1);
-    assertTrue("Previous expected code coverage: 60.0 but was " + coverageIssue2.getPreviousCoverage(), coverageIssue2.getPreviousCoverage() == 60.0);
-    assertTrue("Expected code coverage: 33.3 but was " + coverageIssue2.getCoverage(), coverageIssue2.getCoverage() == 33.3);
+    assertEquals(60.0, coverageIssue2.getPreviousCoverage(), 0.00001);
+    assertEquals(33.34,coverageIssue2.getCoverage(), 0.00001);
     assertEquals("MAJOR", coverageIssue2.getSeverity());
     
-    assertTrue("Previous expected project code coverage: 65.0 but was " + result.getPreviousProjectCoverage(), result.getPreviousProjectCoverage() == 65.0);
-    assertTrue("Expected project code coverage: 50.0 but was " + result.getProjectCoverage(), result.getProjectCoverage() == 50.0);
+    assertEquals(65.0, result.getPreviousProjectCoverage(), 0.00001);
+    assertEquals(50.00500, result.getProjectCoverage(), 0.00001);
   }
   
   @Test
@@ -355,12 +355,12 @@ public class SonarQubeCollectorTest {
     assertEquals(1, result.countIssues());
     
     CoverageIssue coverageIssue = (CoverageIssue) result.getIssues().get(0);
-    assertTrue("Previous expected code coverage: 60.0 but was " + coverageIssue.getPreviousCoverage(), coverageIssue.getPreviousCoverage() == 60.0);
-    assertTrue("Expected code coverage: 33.3 but was " + coverageIssue.getCoverage(), coverageIssue.getCoverage() == 33.3);
+    assertEquals(60.0, coverageIssue.getPreviousCoverage(), 0.00001);
+    assertEquals(33.34, coverageIssue.getCoverage(), 0.00001);
     assertEquals("MAJOR", coverageIssue.getSeverity());
     
-    assertTrue("Previous expected project code coverage: 65.0 but was " + result.getPreviousProjectCoverage(), result.getPreviousProjectCoverage() == 65.0);
-    assertTrue("Expected project code coverage: 33.3 but was " + result.getProjectCoverage(), result.getProjectCoverage() == 33.3);
+    assertEquals(65.0, result.getPreviousProjectCoverage(), 0.00001);
+    assertEquals(33.34, result.getProjectCoverage(), 0.00001);
   }
   
   @Test

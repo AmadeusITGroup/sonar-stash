@@ -32,7 +32,15 @@ public class CoverageIssueTest {
   
     assertEquals("Line coverage of file " + PATH_COVERAGE + " lowered from 60.0% to 50.0%.", myIssue.getMessage());
   }
-  
+
+  @Test
+  public void testGetMessageRoundedCoverage() {
+    myIssue.setPreviousCoverage(60.0004);
+    when(myIssue.getCoverage()).thenReturn(31.25);
+
+    assertEquals("Line coverage of file " + PATH_COVERAGE + " lowered from 60.0% to 31.3%.", myIssue.getMessage());
+  }
+
   @Test
   public void testGetCoverage() {
     myIssue.setLinesToCover(100);

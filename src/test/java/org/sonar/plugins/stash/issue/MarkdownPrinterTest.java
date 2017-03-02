@@ -262,7 +262,27 @@ public class MarkdownPrinterTest {
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
   }
-  
+
+  @Test
+  public void testPrintCoverageReportMarkdownWithRoundedPercentage() {
+    CoverageIssue coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");
+
+    coverageIssue.setLinesToCover(65);
+    coverageIssue.setUncoveredLines(60);
+    coverageIssue.setPreviousCoverage(50.25);
+
+    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
+    coverageReport.add(coverageIssue);
+    coverageReport.setPreviousProjectCoverage(50.25);
+
+    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
+    String expectedReportMarkdown = "| Line Coverage: 7.7% (-42.6%) |\n" +
+            "|---------------|\n" +
+            "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.3% to 7.7%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
+
+    assertEquals(expectedReportMarkdown, reportMarkdown);
+  }
+
   @Test
   public void testPrintCoverageReportMarkdownWithPositiveCoverage() {
     CoverageIssue coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");

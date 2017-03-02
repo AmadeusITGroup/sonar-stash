@@ -65,14 +65,13 @@ public class CoverageIssuesReport extends Report {
     }
     
     if ((int)sumLinesToCover != 0) {
-      result = StashPluginUtils.formatDouble((1 - (sumUncoveredLines / sumLinesToCover)) * 100);
+      result = (1 - (sumUncoveredLines / sumLinesToCover)) * 100;
     }
     
     return result;
   }
   
   public double getEvolution() {
-    double diffProjectCoverage = this.getProjectCoverage() - this.getPreviousProjectCoverage();
-    return StashPluginUtils.formatDouble(diffProjectCoverage);
+    return this.getProjectCoverage() - this.getPreviousProjectCoverage();
   }
 }

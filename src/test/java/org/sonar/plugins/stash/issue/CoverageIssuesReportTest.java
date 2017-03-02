@@ -219,7 +219,7 @@ public class CoverageIssuesReportTest extends Report {
     when(myReport.getProjectCoverage()).thenReturn(60.0);
     when(myReport.getPreviousProjectCoverage()).thenReturn(80.33333);
     
-    assertTrue("Expected coverage: -20.3, Found coverage: " + myReport.getEvolution(), myReport.getEvolution() == -20.3);
+    assertEquals(-20.33333, myReport.getEvolution(), 0.00000001);
   }
   
   @Test
