@@ -12,7 +12,6 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.sonar.plugins.stash.ContentType;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.PullRequestRef;

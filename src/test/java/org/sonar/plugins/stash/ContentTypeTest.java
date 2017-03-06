@@ -2,6 +2,7 @@ package org.sonar.plugins.stash;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.sonar.plugins.stash.client.ContentType;
 
 public class ContentTypeTest {
     @Test
