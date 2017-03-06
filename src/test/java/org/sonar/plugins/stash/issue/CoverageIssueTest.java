@@ -62,7 +62,18 @@ public class CoverageIssueTest {
     when(myIssue.getCoverage()).thenReturn(60.0);
     assertFalse(myIssue.isLowered());
   }
-  
+
+  @Test
+  public void testIsLoweredRounded() {
+    myIssue.setPreviousCoverage(60.0);
+    when(myIssue.getCoverage()).thenReturn(59.99);
+    assertFalse(myIssue.isLowered());
+
+    myIssue.setPreviousCoverage(59.99);
+    when(myIssue.getCoverage()).thenReturn(60.00);
+    assertFalse(myIssue.isLowered());
+  }
+
   @Test
   public void testPrintIssueMarkdown() {
     myIssue.setPreviousCoverage(60.0);

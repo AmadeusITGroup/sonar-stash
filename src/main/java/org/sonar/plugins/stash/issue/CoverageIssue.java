@@ -56,7 +56,9 @@ public class CoverageIssue extends Issue {
   }
 
   public boolean isLowered() {
-     return (previousCoverage - getCoverage()) > 0;
+    // Due to the rounding of the previous coverage we have to make sure that we do decrease for less than 0.1%
+    return (previousCoverage - getCoverage()) > 0.1;
+    //return (previousCoverage - getCoverage()) > 0;
   }
 
   @Override
