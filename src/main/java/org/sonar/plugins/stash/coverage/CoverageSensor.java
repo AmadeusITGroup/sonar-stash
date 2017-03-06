@@ -7,14 +7,13 @@ import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.component.ResourcePerspectives;
-import org.sonar.api.config.Settings;
 import org.sonar.api.issue.Issuable;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Measure;
 import org.sonar.api.resources.Project;
 import org.sonar.api.resources.Resource;
-import org.sonar.api.rule.Severity;
+import org.sonar.plugins.stash.StashPluginConfiguration;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.base.HttpException;
 import org.sonar.wsclient.services.ResourceQuery;
@@ -28,22 +27,22 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
 
     private final FileSystem fileSystem;
     private final ResourcePerspectives perspectives;
-    private final Settings settings;
-    private final String severity;
+    private final StashPluginConfiguration config;
     private Double projectCoverage = null;
     private Double previousProjectCoverage = null;
+    private final String severity;
 
 
-    public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, Settings settings) {
+    public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, StashPluginConfiguration config) {
         this.fileSystem = fileSystem;
         this.perspectives = perspectives;
-        this.settings = settings;
-        this.severity = settings.getString("sonar.coverage.severity");
+        this.config = config;
+        this.severity = config.getCodeCoverageSeverity();
     }
 
     @Override
     public void analyse(Project module, SensorContext context) {
-        String sonarQubeURL = settings.getString("sonar.host.url");
+        String sonarQubeURL = config.getSonarQubeURL();
         Sonar sonar = Sonar.create(sonarQubeURL);
 
         int totalLinesToCover = 0;
@@ -120,7 +119,7 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return (null != severity && !severity.isEmpty());
+        return (config.hasToNotifyStash() && null != severity && !severity.isEmpty());
     }
 
     private static double calculateCoverage(int linesToCover, int uncoveredLines) {
