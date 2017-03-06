@@ -38,9 +38,7 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
         this.fileSystem = fileSystem;
         this.perspectives = perspectives;
         this.settings = settings;
-        // FIXME
-        //this.severity = settings.getString("sonar.coverage.severity");
-        this.severity = Severity.BLOCKER;
+        this.severity = settings.getString("sonar.coverage.severity");
     }
 
     @Override
@@ -122,8 +120,7 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return true;
-        //return (null != severity && !severity.isEmpty());
+        return (null != severity && !severity.isEmpty());
     }
 
     private static double calculateCoverage(int linesToCover, int uncoveredLines) {
