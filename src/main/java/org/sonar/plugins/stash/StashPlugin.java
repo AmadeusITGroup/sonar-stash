@@ -61,7 +61,6 @@ public class StashPlugin extends SonarPlugin {
         StashIssueReportingPostJob.class,
         StashPluginConfiguration.class,
         InputFileCache.class,
-        InputFileCacheSensor.class,
         StashProjectBuilder.class,
         StashRequestFacade.class,
         CoverageRule.class,

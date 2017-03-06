@@ -410,6 +410,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   }
 
   // this lives here, as we need access to both the InputFileCache and the StashRequestFacade
+  @Override
   public String getIssuePath(Issue issue) {
     InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
     if (inputFile == null){

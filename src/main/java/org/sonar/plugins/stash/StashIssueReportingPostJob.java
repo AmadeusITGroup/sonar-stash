@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
+import org.sonar.api.batch.fs.FileSystem;
+import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
@@ -23,14 +25,16 @@ public class StashIssueReportingPostJob implements PostJob {
   private final ProjectIssues projectIssues;
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
-  private final InputFileCacheSensor inputFileCacheSensor;
+  private final InputFileCache inputFileCache;
+  private final FileSystem fileSystem;
 
   public StashIssueReportingPostJob(StashPluginConfiguration stashPluginConfiguration, ProjectIssues projectIssues,
-      InputFileCache inputFileCache, StashRequestFacade stashRequestFacade, InputFileCacheSensor inputFileCacheSensor) {
+                                    StashRequestFacade stashRequestFacade, InputFileCache inputFileCache, FileSystem fileSystem) {
     this.projectIssues = projectIssues;
     this.config = stashPluginConfiguration;
     this.stashRequestFacade = stashRequestFacade;
-    this.inputFileCacheSensor = inputFileCacheSensor;
+    this.inputFileCache = inputFileCache;
+    this.fileSystem = fileSystem;
   }
 
   @Override
@@ -39,6 +43,10 @@ public class StashIssueReportingPostJob implements PostJob {
       for (org.sonar.api.issue.Issue i : projectIssues.issues()) {
         System.out.println(i.ruleKey() + ": " + i.message());
       }
+    }
+
+    for (InputFile inputFile : fileSystem.inputFiles(fileSystem.predicates().all())) {
+      inputFileCache.putInputFile(context.getResource(inputFile).getEffectiveKey(), inputFile);
     }
 
     try {
