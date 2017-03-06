@@ -106,18 +106,7 @@ public class StashIssueReportingPostJob implements PostJob {
         stashRequestFacade.addPullRequestReviewer(pr, stashCredentials.getLogin(), stashClient);
       }
 
-      // build code coverage if requested
-      CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-
-      String codeCoverageSeverity = stashRequestFacade.getCodeCoverageSeverity();
-
-      if (! StringUtils.equals(codeCoverageSeverity, StashPlugin.SEVERITY_NONE)) {
-        coverageReport = stashRequestFacade.getCoverageReport(project.getKey(), context,
-                                                                   inputFileCacheSensor,
-                                                                   codeCoverageSeverity, sonarqubeClient);
-      }
-
-      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, coverageReport, stashClient, sonarqubeClient);
+      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient, sonarqubeClient);
 
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
@@ -135,38 +124,36 @@ public class StashIssueReportingPostJob implements PostJob {
   *   and third part of the executeOn() method (call of a call) -- squid:MethodCyclomaticComplexity
   */
   private void postInfoAndPRsActions(PullRequestRef pr, SonarQubeIssuesReport issueReport, int issueThreshold,
-                                       StashDiffReport diffReport, CoverageIssuesReport coverageReport,
+                                       StashDiffReport diffReport,
                                        StashClient stashClient, SonarQubeClient sonarQubeClient) {
 
     // Some local definitions
     boolean canApprovePullrequest = config.canApprovePullRequest();
 
-    int issueNumber    = issueReport.countIssues() + coverageReport.countLoweredIssues();
     int issueTotal     = issueReport.countIssues();
 
     String sonarQubeURL = sonarQubeClient.getBaseUrl();
 
     // if threshold exceeded, do not push issue list to Stash
-    if (issueNumber >= issueThreshold) {
+    if (issueTotal >= issueThreshold) {
       LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view",
                                                      issueTotal, issueThreshold);
     } else {
       // publish SonarQube issue and code coverage
       stashRequestFacade.postSonarQubeReport(pr, sonarQubeURL, issueReport, diffReport, stashClient);
-      stashRequestFacade.postCoverageReport(pr, sonarQubeURL, coverageReport, diffReport, stashClient);
     }
 
     if (config.includeAnalysisOverview()) {
-      stashRequestFacade.postAnalysisOverview(pr, sonarQubeURL, issueThreshold, issueReport, coverageReport, stashClient);
+      stashRequestFacade.postAnalysisOverview(pr, sonarQubeURL, issueThreshold, issueReport, stashClient);
     }
 
     // if no new issues and coverage is improved,
     // plugin approves the pull-request
-    if (canApprovePullrequest && (issueNumber == 0) && (coverageReport.getEvolution() >= 0)){
+    if (canApprovePullrequest && (issueTotal == 0)){
 
       stashRequestFacade.approvePullRequest(pr, stashClient);
 
-    } else if (canApprovePullrequest && ( (issueNumber != 0) || coverageReport.getEvolution() < 0) ) {
+    } else if (canApprovePullrequest && ( (issueTotal != 0)) ) {
 
       stashRequestFacade.resetPullRequestApproval(pr, stashClient);
     }

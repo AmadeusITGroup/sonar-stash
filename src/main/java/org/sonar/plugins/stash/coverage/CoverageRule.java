@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash.coverage;
 
+import org.sonar.api.issue.Issue;
 import org.sonar.api.resources.Language;
 import org.sonar.api.resources.Languages;
 import org.sonar.api.rule.RuleKey;
@@ -36,7 +37,15 @@ public class CoverageRule implements RulesDefinition {
         return RuleKey.of(getRepositoryName(language), decreasingLineCoverageRule);
     }
 
-    public static boolean isDecreasingLineCoverageRule(RuleKey rule) {
+    public static boolean isDecreasingLineCoverage(Issue issue) {
+        return isDecreasingLineCoverage(issue.ruleKey());
+    }
+
+    public static boolean isDecreasingLineCoverage(RuleKey rule) {
         return rule.repository().startsWith(repositoryName + "-");
+    }
+
+    public static boolean isDecreasingLineCoverage(String rule) {
+        return isDecreasingLineCoverage(RuleKey.parse(rule));
     }
 }

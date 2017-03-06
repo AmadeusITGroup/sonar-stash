@@ -3,7 +3,10 @@ package org.sonar.plugins.stash.issue;
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.coverage.CoverageRule;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
@@ -17,7 +20,7 @@ public final class MarkdownPrinter {
     // DO NOTHING
   }
     
-  public static String printCoverageIssueMarkdown(String stashProject, String stashRepo, String pullRequestId, String stashURL, CoverageIssue issue) {
+  public static String printCoverageIssueMarkdown(String stashProject, String stashRepo, String pullRequestId, String stashURL, Issue issue) {
     StringBuilder sb = new StringBuilder();
     sb.append(printSeverityMarkdown(issue.getSeverity())).append(issue.getMessage()).append(" [[").append("file").append("]")
         .append("(").append(stashURL).append("/projects/").append(stashProject).append("/repos/").append(stashRepo)
@@ -33,9 +36,9 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public static String printIssueNumberBySeverityMarkdown(SonarQubeIssuesReport report, CoverageIssuesReport coverageReport, String severity) {
+  public static String printIssueNumberBySeverityMarkdown(SonarQubeIssuesReport report, String severity) {
     StringBuilder sb = new StringBuilder();
-    int issueNumber = report.countIssues(severity) + coverageReport.countLoweredIssues(severity);
+    int issueNumber = report.countIssues(severity);
     sb.append("| ").append(severity).append(" | ").append(issueNumber).append(" |").append(NEW_LINE);
 
     return sb.toString();
@@ -54,9 +57,9 @@ public final class MarkdownPrinter {
 
     return sb.toString();
   }
-  
+
   public static String printReportMarkdown(PullRequestRef pr, String stashURL, String sonarQubeURL, SonarQubeIssuesReport report,
-                                           CoverageIssuesReport coverageReport, int issueThreshold) {
+                                           int issueThreshold, Double projectCoverage, Double previousProjectCoverage) {
     
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
@@ -65,7 +68,20 @@ public final class MarkdownPrinter {
     String stashRepo     = pr.repository();
     int pullRequestId = pr.pullRequestId();
 
-    if ((report.getIssues() == null) || (report.getIssues().isEmpty() && coverageReport.getLoweredIssues().isEmpty())) {
+    List<Issue> coverageIssues = new ArrayList<>();
+    List<Issue> generalIssues = new ArrayList<>();
+
+    if (report.getIssues() != null ) {
+      for (Issue issue : report.getIssues()) {
+        if (CoverageRule.isDecreasingLineCoverage(issue.getKey())) {
+          coverageIssues.add(issue);
+        } else {
+          generalIssues.add(issue);
+        }
+      }
+    }
+
+    if (generalIssues.isEmpty() && coverageIssues.isEmpty()) {
     
       sb.append("### No new issues detected!");
       sb.append(NEW_LINE).append(NEW_LINE);
@@ -73,7 +89,7 @@ public final class MarkdownPrinter {
     } else {
       
       // Number of issue per severity
-      int issueNumber = report.countIssues() + coverageReport.countLoweredIssues();
+      int issueNumber = generalIssues.size() + coverageIssues.size();
       
       if (issueNumber >= issueThreshold) {
         sb.append("### Too many issues detected ");
@@ -83,16 +99,17 @@ public final class MarkdownPrinter {
       
       sb.append("| Total New Issues | ").append(issueNumber).append(" |").append(NEW_LINE);
       sb.append("|-----------------|------|").append(NEW_LINE);
-      sb.append(printIssueNumberBySeverityMarkdown(report, coverageReport, Severity.BLOCKER));
-      sb.append(printIssueNumberBySeverityMarkdown(report, coverageReport, Severity.CRITICAL));
-      sb.append(printIssueNumberBySeverityMarkdown(report, coverageReport, Severity.MAJOR));
-      sb.append(printIssueNumberBySeverityMarkdown(report, coverageReport, Severity.MINOR));
-      sb.append(printIssueNumberBySeverityMarkdown(report, coverageReport, Severity.INFO));
+      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.BLOCKER));
+      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.CRITICAL));
+      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.MAJOR));
+      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.MINOR));
+      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.INFO));
       sb.append(NEW_LINE).append(NEW_LINE);
   
       // Issue list
       sb.append("| Issues list |").append(NEW_LINE);
       sb.append("|------------|").append(NEW_LINE);
+      // FIXME do not pass the whole report here, just general issues
       sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.BLOCKER));
       sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.CRITICAL));
       sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.MAJOR));
@@ -102,18 +119,18 @@ public final class MarkdownPrinter {
     }
     
     // Code coverage
-    if (! coverageReport.isEmpty()) {
-      sb.append(printCoverageReportMarkdown(stashProject, stashRepo, pullRequestId, coverageReport, stashURL));
+    if (!coverageIssues.isEmpty()) {
+      sb.append(printCoverageReportMarkdown(stashProject, stashRepo, pullRequestId, coverageIssues, stashURL, projectCoverage, previousProjectCoverage));
     }
 
     return sb.toString();
   }
   
-  public static String printCoverageReportMarkdown(String stashProject, String stashRepo, int pullRequestId, CoverageIssuesReport coverageReport, String stashURL) {
+  public static String printCoverageReportMarkdown(String stashProject, String stashRepo, int pullRequestId, List<Issue> coverageReport, String stashURL,
+                                                   Double projectCoverage, Double previousProjectCoverage) {
     StringBuilder sb = new StringBuilder("| Line Coverage: ");
 
-    double projectCoverage = coverageReport.getProjectCoverage();
-    double diffProjectCoverage = coverageReport.getEvolution();
+    double diffProjectCoverage = projectCoverage - previousProjectCoverage;
     
     sb.append(formatPercentage(projectCoverage))
             .append("% (")
@@ -124,12 +141,8 @@ public final class MarkdownPrinter {
             .append(NEW_LINE);
     sb.append("|---------------|").append(NEW_LINE);
     
-    for (Issue issue : coverageReport.getIssues()) {
-        CoverageIssue coverageIssue = (CoverageIssue) issue;
-        
-        if (coverageIssue.isLowered()) {
-          sb.append("| ").append(MarkdownPrinter.printCoverageIssueMarkdown(stashProject, stashRepo, String.valueOf(pullRequestId), stashURL, coverageIssue)).append(" |").append(NEW_LINE);
-        }
+    for (Issue issue : coverageReport) {
+      sb.append("| ").append(MarkdownPrinter.printCoverageIssueMarkdown(stashProject, stashRepo, String.valueOf(pullRequestId), stashURL, issue)).append(" |").append(NEW_LINE);
     }
     
     return sb.toString();

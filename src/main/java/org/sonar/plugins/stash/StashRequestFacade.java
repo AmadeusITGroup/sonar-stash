@@ -18,6 +18,7 @@ import org.sonar.api.issue.ProjectIssues;
 import org.sonar.plugins.stash.client.SonarQubeClient;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
+import org.sonar.plugins.stash.coverage.CoverageSensor;
 import org.sonar.plugins.stash.exceptions.SonarQubeClientException;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
@@ -44,9 +45,11 @@ public class StashRequestFacade implements BatchComponent {
 
   private StashPluginConfiguration config;
   private File projectBaseDir;
+  private CoverageSensor coverageSensor;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, CoverageSensor coverageSensor) {
     this.config = stashPluginConfiguration;
+    this.coverageSensor = coverageSensor;
   }
 
   public void initialize(File projectBaseDir) {
@@ -61,10 +64,14 @@ public class StashRequestFacade implements BatchComponent {
    * Post SQ analysis overview on Stash
    */
   public void postAnalysisOverview(PullRequestRef pr, String sonarQubeURL, int issueThreshold, SonarQubeIssuesReport issueReport,
-                                   CoverageIssuesReport coverageReport, StashClient stashClient) {
+                                   StashClient stashClient) {
 
     try {
-      stashClient.postCommentOnPullRequest(pr, MarkdownPrinter.printReportMarkdown(pr, stashClient.getBaseUrl(), sonarQubeURL, issueReport, coverageReport, issueThreshold));
+      String report = MarkdownPrinter.printReportMarkdown(
+              pr, stashClient.getBaseUrl(), sonarQubeURL, issueReport, issueThreshold,
+              coverageSensor.getProjectCoverage(), coverageSensor.getPreviousProjectCoverage()
+      );
+      stashClient.postCommentOnPullRequest(pr, report);
 
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
 
@@ -424,24 +431,5 @@ public class StashRequestFacade implements BatchComponent {
    */
   public String getCodeCoverageSeverity() {
     return config.getCodeCoverageSeverity();
-  }
-  
-  /**
-   * Extract Code Coverage report to be published into the pull-request.
-   */
-  public CoverageIssuesReport getCoverageReport(String sonarQubeProjectKey, SensorContext context,
-      InputFileCacheSensor inputFileCacheSensor, String codeCoverageSeverity, SonarQubeClient sonarqubeClient) {
-    
-    CoverageIssuesReport result = new CoverageIssuesReport();
-    
-    try {
-      result = SonarQubeCollector.extractCoverageReport(sonarQubeProjectKey, context, inputFileCacheSensor, codeCoverageSeverity, sonarqubeClient);
-    
-    } catch (SonarQubeClientException e) {
-      LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
-    }
-    
-    return result;
   }
 }

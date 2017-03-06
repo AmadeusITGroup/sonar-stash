@@ -31,6 +31,7 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
     private final Settings settings;
     private final String severity;
     private Double projectCoverage = null;
+    private Double previousProjectCoverage = null;
 
 
     public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, Settings settings) {
@@ -107,6 +108,11 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
         }
 
         this.projectCoverage = calculateCoverage(totalLinesToCover, totalUncoveredLines);
+
+        org.sonar.wsclient.services.Resource wsResource = sonar.find(ResourceQuery.createForMetrics(module.getEffectiveKey(), CoreMetrics.LINE_COVERAGE_KEY));
+        if (wsResource != null) {
+            previousProjectCoverage = wsResource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
+        }
     }
 
     @Override
@@ -130,5 +136,8 @@ public class CoverageSensor implements org.sonar.api.batch.Sensor {
 
     public Double getProjectCoverage() {
         return this.projectCoverage;
+    }
+    public Double getPreviousProjectCoverage() {
+        return this.previousProjectCoverage;
     }
 }
