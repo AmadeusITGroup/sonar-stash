@@ -1,16 +1,14 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
-import org.sonar.api.scan.filesystem.PathResolver;
-import org.sonar.plugins.stash.InputFileCache;
-import org.sonar.plugins.stash.issue.SonarQubeIssue;
-import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.IssuePathResolver;
 
 public final class SonarQubeCollector {
 
@@ -25,34 +23,22 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File projectBaseDir) {
-    SonarQubeIssuesReport result = new SonarQubeIssuesReport();
+  public static List<Issue> extractIssueReport(ProjectIssues projectIssues, IssuePathResolver issuePathResolver, File projectBaseDir) {
+    List<Issue> result = new ArrayList<>();
 
     for (Issue issue : projectIssues.issues()) {
-      if (! issue.isNew()){
+      if (issue.isNew()){
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
-      } else {
-        String key = issue.key();
-        String severity = issue.severity();
-        String rule = issue.ruleKey().toString();
-        String message = issue.message();
-  
-        int line = 0;
-        if (issue.line() != null) {
-          line = issue.line();
-        }
-  
-        InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
-        if (inputFile == null){
-          LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
-        } else {
-          String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
-             
-          // Create the issue and Add to report
-          SonarQubeIssue stashIssue = new SonarQubeIssue(key, severity, message, rule, path, line);
-          result.add(stashIssue);
-        } 
+        continue;
       }
+
+      String path = issuePathResolver.getIssuePath(issue);
+      if (path == null) {
+        LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
+        continue;
+      }
+
+      result.add(issue);
     }
 
     return result;

@@ -13,15 +13,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageSensor;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.Issue;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
-import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -32,7 +33,7 @@ import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class StashRequestFacade implements BatchComponent {
+public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
@@ -42,30 +43,33 @@ public class StashRequestFacade implements BatchComponent {
   private StashPluginConfiguration config;
   private File projectBaseDir;
   private CoverageSensor coverageSensor;
+  private final InputFileCache inputFileCache;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, CoverageSensor coverageSensor) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, CoverageSensor coverageSensor, InputFileCache inputFileCache) {
     this.config = stashPluginConfiguration;
     this.coverageSensor = coverageSensor;
+    this.inputFileCache = inputFileCache;
   }
 
   public void initialize(File projectBaseDir) {
     this.projectBaseDir = projectBaseDir;
   }
 
-  public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache) {
-    return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+  public List<Issue> extractIssueReport(ProjectIssues projectIssues) {
+    return SonarQubeCollector.extractIssueReport(projectIssues, this, projectBaseDir);
   }
 
   /**
    * Post SQ analysis overview on Stash
    */
-  public void postAnalysisOverview(PullRequestRef pr, int issueThreshold, SonarQubeIssuesReport issueReport,
+  public void postAnalysisOverview(PullRequestRef pr, int issueThreshold, List<Issue> issueReport,
                                    StashClient stashClient) {
 
     try {
       String report = MarkdownPrinter.printReportMarkdown(
               pr, stashClient.getBaseUrl(), config.getSonarQubeURL(), issueReport, issueThreshold,
-              coverageSensor.getProjectCoverage(), coverageSensor.getPreviousProjectCoverage()
+              coverageSensor.getProjectCoverage(), coverageSensor.getPreviousProjectCoverage(),
+              this
       );
       stashClient.postCommentOnPullRequest(pr, report);
 
@@ -131,9 +135,9 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Push SonarQube report into the pull-request as comments.
    */
-  public void postSonarQubeReport(PullRequestRef pr, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient) {
+  public void postSonarQubeReport(PullRequestRef pr, List<Issue> issueReport, StashDiffReport diffReport, StashClient stashClient) {
     try {
-      postCommentPerIssue(pr, issueReport.getIssues(), diffReport, stashClient);
+      postCommentPerIssue(pr, issueReport, diffReport, stashClient);
 
       LOGGER.info("New SonarQube issues have been reported to Stash.");
 
@@ -152,14 +156,15 @@ public class StashRequestFacade implements BatchComponent {
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
     for (Issue issue : issues) {
-      if (commentsByFile.get(issue.getPath()) == null) {
-        StashCommentReport comments = stashClient.getPullRequestComments(pr, issue.getPath());
+      String path = getIssuePath(issue);
+      if (commentsByFile.get(path) == null) {
+        StashCommentReport comments = stashClient.getPullRequestComments(pr, path);
 
         // According to the type of the comment
         // if type == CONTEXT, comment.line is set to source line instead of destination line
         comments.applyDiffReport(diffReport);
 
-        commentsByFile.put(issue.getPath(), comments);
+        commentsByFile.put(path, comments);
       }
     }
 
@@ -169,38 +174,37 @@ public class StashRequestFacade implements BatchComponent {
 
       // Let's call this "issue_loop"
       for (Issue issue : issues) {
-        StashCommentReport comments = commentsByFile.get(issue.getPath());
+        String path = getIssuePath(issue);
+        StashCommentReport comments = commentsByFile.get(path);
+        String commentContent = MarkdownPrinter.printIssueMarkdown(issue, config.getSonarQubeURL());
 
         // if comment not already pushed to Stash
         if ((comments != null) &&
-                (comments.contains(issue.printIssueMarkdown(config.getSonarQubeURL()), issue.getPath(), issue.getLine()))) {
-          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getKey(),
-                  issue.getPath(), issue.getLine());
+                (comments.contains(commentContent, path, issue.line()))) {
+          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
+                  path, issue.line());
           continue;  // Next element in "issue_loop"
         }
 
         // check if issue belongs to the Stash diff view
-        String type = diffReport.getType(issue.getPath(), issue.getLine());
+        String type = diffReport.getType(path, issue.line());
         if (type == null) {
           LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                  issue.getKey(), issue.getPath(), issue.getLine());
+                  issue.key(), path, issue.line());
           continue;  // Next element in "issue_loop"
         }
 
-        long line = diffReport.getLine(issue.getPath(), issue.getLine());
+        long line = diffReport.getLine(path, issue.line());
 
         StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
-                issue.printIssueMarkdown(config.getSonarQubeURL()),
-                issue.getPath(),
-                line,
-                type);
+                commentContent, path, line, type);
 
-        LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getKey(), type,
-                issue.getPath(), line);
+        LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
+                path, line);
 
         // Create task linked to the comment if configured
-        if (taskSeverities.contains(issue.getSeverity())) {
-          stashClient.postTaskOnComment(issue.getMessage(), comment.getId());
+        if (taskSeverities.contains(issue.severity())) {
+          stashClient.postTaskOnComment(issue.message(), comment.getId());
 
           LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
         }
@@ -404,7 +408,17 @@ public class StashRequestFacade implements BatchComponent {
       
       return result;
   }
-  
+
+  // this lives here, as we need access to both the InputFileCache and the StashRequestFacade
+  public String getIssuePath(Issue issue) {
+    InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
+    if (inputFile == null){
+      return null;
+    }
+
+    return new PathResolver().relativePath(projectBaseDir, inputFile.file());
+  }
+
   /**
    * Get severity to associate to Code Coverage issues.
    */

@@ -4,14 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
+import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
+
+import java.util.List;
 
 public class StashIssueReportingPostJob implements PostJob {
 
@@ -20,15 +22,13 @@ public class StashIssueReportingPostJob implements PostJob {
   
   private final ProjectIssues projectIssues;
   private final StashPluginConfiguration config;
-  private final InputFileCache inputFileCache;
   private final StashRequestFacade stashRequestFacade;
   private final InputFileCacheSensor inputFileCacheSensor;
-    
+
   public StashIssueReportingPostJob(StashPluginConfiguration stashPluginConfiguration, ProjectIssues projectIssues,
       InputFileCache inputFileCache, StashRequestFacade stashRequestFacade, InputFileCacheSensor inputFileCacheSensor) {
     this.projectIssues = projectIssues;
     this.config = stashPluginConfiguration;
-    this.inputFileCache = inputFileCache;
     this.stashRequestFacade = stashRequestFacade;
     this.inputFileCacheSensor = inputFileCacheSensor;
   }
@@ -77,7 +77,7 @@ public class StashIssueReportingPostJob implements PostJob {
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
       // SonarQube objects
-      SonarQubeIssuesReport issueReport = stashRequestFacade.extractIssueReport(projectIssues, inputFileCache);
+      List<Issue> issueReport = stashRequestFacade.extractIssueReport(projectIssues);
 
 
       StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
@@ -119,14 +119,14 @@ public class StashIssueReportingPostJob implements PostJob {
   * Second part of the code necessary for the updateStashWithSonarInfo() method
   *   and third part of the executeOn() method (call of a call) -- squid:MethodCyclomaticComplexity
   */
-  private void postInfoAndPRsActions(PullRequestRef pr, SonarQubeIssuesReport issueReport, int issueThreshold,
+  private void postInfoAndPRsActions(PullRequestRef pr, List<Issue> issueReport, int issueThreshold,
                                        StashDiffReport diffReport,
                                        StashClient stashClient) {
 
     // Some local definitions
     boolean canApprovePullrequest = config.canApprovePullRequest();
 
-    int issueTotal     = issueReport.countIssues();
+    int issueTotal     = issueReport.size();
 
     // if threshold exceeded, do not push issue list to Stash
     if (issueTotal >= issueThreshold) {
