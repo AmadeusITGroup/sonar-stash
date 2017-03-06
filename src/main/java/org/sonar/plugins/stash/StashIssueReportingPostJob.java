@@ -38,6 +38,11 @@ public class StashIssueReportingPostJob implements PostJob {
 
   @Override
   public void executeOn(Project project, SensorContext context) {
+    if (projectIssues != null && projectIssues.issues() != null) {
+      for (org.sonar.api.issue.Issue i : projectIssues.issues()) {
+        System.out.println(i.ruleKey() + ": " + i.message());
+      }
+    }
 
     try {
       boolean notifyStash = config.hasToNotifyStash();

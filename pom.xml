@@ -92,6 +92,23 @@
       <version>1.2</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.codehaus.sonar</groupId>
+      <artifactId>sonar-ws-client</artifactId>
+      <version>${sonar.version}</version>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.1.3</version>
+    </dependency>
+    -->
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+    </dependency>
 
     <!-- unit tests -->
     <dependency>
@@ -221,6 +238,33 @@
             <test.sources.dir>${test.sources.dir}</test.sources.dir>
           </systemPropertyVariables>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <includes>org.codehaus.sonar:sonar-ws-client</includes>
+                  <!--<includes>org.apache.httpcomponents:httpclient</includes>-->
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>org.sonar.wsclient</pattern>
+                  <shadedPattern>org.sonar.coverage.shaded.org.sonar.wsclient</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
