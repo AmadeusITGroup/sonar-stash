@@ -13,16 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.SensorContext;
 import org.sonar.api.issue.ProjectIssues;
-import org.sonar.plugins.stash.client.SonarQubeClient;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageSensor;
-import org.sonar.plugins.stash.exceptions.SonarQubeClientException;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.CoverageIssuesReport;
 import org.sonar.plugins.stash.issue.Issue;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
@@ -63,12 +59,12 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Post SQ analysis overview on Stash
    */
-  public void postAnalysisOverview(PullRequestRef pr, String sonarQubeURL, int issueThreshold, SonarQubeIssuesReport issueReport,
+  public void postAnalysisOverview(PullRequestRef pr, int issueThreshold, SonarQubeIssuesReport issueReport,
                                    StashClient stashClient) {
 
     try {
       String report = MarkdownPrinter.printReportMarkdown(
-              pr, stashClient.getBaseUrl(), sonarQubeURL, issueReport, issueThreshold,
+              pr, stashClient.getBaseUrl(), config.getSonarQubeURL(), issueReport, issueThreshold,
               coverageSensor.getProjectCoverage(), coverageSensor.getPreviousProjectCoverage()
       );
       stashClient.postCommentOnPullRequest(pr, report);
@@ -135,9 +131,9 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Push SonarQube report into the pull-request as comments.
    */
-  public void postSonarQubeReport(PullRequestRef pr, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient) {
+  public void postSonarQubeReport(PullRequestRef pr, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient) {
     try {
-      postCommentPerIssue(pr, sonarQubeURL, issueReport.getIssues(), diffReport, stashClient);
+      postCommentPerIssue(pr, issueReport.getIssues(), diffReport, stashClient);
 
       LOGGER.info("New SonarQube issues have been reported to Stash.");
 
@@ -148,26 +144,9 @@ public class StashRequestFacade implements BatchComponent {
   }
 
   /**
-   * Push Code Coverage report into the pull-request as comments.
-   */
-  public void postCoverageReport(PullRequestRef pr, String sonarQubeURL, CoverageIssuesReport coverageReport, StashDiffReport diffReport, StashClient stashClient) {
-    try {
-      if (!coverageReport.isEmpty()) {
-
-        postCommentPerIssue(pr, sonarQubeURL, coverageReport.getLoweredIssues(), diffReport, stashClient);
-
-        LOGGER.info("Code coverage report has been reported to Stash.");
-      }
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to push code coverage report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
-    }
-  }
-
-  /**
    * Post one comment by found issue on Stash.
    */
-  void postCommentPerIssue(PullRequestRef pr, String sonarQubeURL,
+  void postCommentPerIssue(PullRequestRef pr,
                            Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
@@ -194,7 +173,7 @@ public class StashRequestFacade implements BatchComponent {
 
         // if comment not already pushed to Stash
         if ((comments != null) &&
-                (comments.contains(issue.printIssueMarkdown(sonarQubeURL), issue.getPath(), issue.getLine()))) {
+                (comments.contains(issue.printIssueMarkdown(config.getSonarQubeURL()), issue.getPath(), issue.getLine()))) {
           LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getKey(),
                   issue.getPath(), issue.getLine());
           continue;  // Next element in "issue_loop"
@@ -211,7 +190,7 @@ public class StashRequestFacade implements BatchComponent {
         long line = diffReport.getLine(issue.getPath(), issue.getLine());
 
         StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
-                issue.printIssueMarkdown(sonarQubeURL),
+                issue.printIssueMarkdown(config.getSonarQubeURL()),
                 issue.getPath(),
                 line,
                 type);

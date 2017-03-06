@@ -1,17 +1,14 @@
 package org.sonar.plugins.stash;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
-import org.sonar.plugins.stash.client.SonarQubeClient;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.CoverageIssuesReport;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
@@ -80,7 +77,6 @@ public class StashIssueReportingPostJob implements PostJob {
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
       // SonarQube objects
-      SonarQubeClient sonarqubeClient   = new SonarQubeClient(sonarQubeURL);
       SonarQubeIssuesReport issueReport = stashRequestFacade.extractIssueReport(projectIssues, inputFileCache);
 
 
@@ -106,7 +102,7 @@ public class StashIssueReportingPostJob implements PostJob {
         stashRequestFacade.addPullRequestReviewer(pr, stashCredentials.getLogin(), stashClient);
       }
 
-      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient, sonarqubeClient);
+      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient);
 
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
@@ -125,14 +121,12 @@ public class StashIssueReportingPostJob implements PostJob {
   */
   private void postInfoAndPRsActions(PullRequestRef pr, SonarQubeIssuesReport issueReport, int issueThreshold,
                                        StashDiffReport diffReport,
-                                       StashClient stashClient, SonarQubeClient sonarQubeClient) {
+                                       StashClient stashClient) {
 
     // Some local definitions
     boolean canApprovePullrequest = config.canApprovePullRequest();
 
     int issueTotal     = issueReport.countIssues();
-
-    String sonarQubeURL = sonarQubeClient.getBaseUrl();
 
     // if threshold exceeded, do not push issue list to Stash
     if (issueTotal >= issueThreshold) {
@@ -140,11 +134,11 @@ public class StashIssueReportingPostJob implements PostJob {
                                                      issueTotal, issueThreshold);
     } else {
       // publish SonarQube issue and code coverage
-      stashRequestFacade.postSonarQubeReport(pr, sonarQubeURL, issueReport, diffReport, stashClient);
+      stashRequestFacade.postSonarQubeReport(pr, issueReport, diffReport, stashClient);
     }
 
     if (config.includeAnalysisOverview()) {
-      stashRequestFacade.postAnalysisOverview(pr, sonarQubeURL, issueThreshold, issueReport, stashClient);
+      stashRequestFacade.postAnalysisOverview(pr, issueThreshold, issueReport, stashClient);
     }
 
     // if no new issues and coverage is improved,

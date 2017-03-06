@@ -2,28 +2,13 @@ package org.sonar.plugins.stash.issue.collector;
 
 import java.io.File;
 
-import org.apache.commons.lang3.StringUtils;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.batch.SensorContext;
-import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
-import org.sonar.api.measures.CoreMetrics;
-import org.sonar.api.measures.Measure;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.InputFileCache;
-import org.sonar.plugins.stash.InputFileCacheSensor;
-import org.sonar.plugins.stash.client.SonarQubeClient;
-import org.sonar.plugins.stash.exceptions.SonarQubeClientException;
-import org.sonar.plugins.stash.exceptions.SonarQubeReportExtractionException;
-import org.sonar.plugins.stash.issue.CoverageIssue;
-import org.sonar.plugins.stash.issue.CoverageIssuesReport;
 import org.sonar.plugins.stash.issue.SonarQubeIssue;
 import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 
