@@ -177,24 +177,29 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
         String path = getIssuePath(issue);
         StashCommentReport comments = commentsByFile.get(path);
         String commentContent = MarkdownPrinter.printIssueMarkdown(issue, config.getSonarQubeURL());
+        Integer issueLine = issue.line();
+        // FIXME move this somewhere else
+        if (issueLine == null) {
+          issueLine = 0;
+        }
 
         // if comment not already pushed to Stash
         if ((comments != null) &&
-                (comments.contains(commentContent, path, issue.line()))) {
+                (comments.contains( commentContent, path, issueLine))) {
           LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
-                  path, issue.line());
+                  path, issueLine);
           continue;  // Next element in "issue_loop"
         }
 
         // check if issue belongs to the Stash diff view
-        String type = diffReport.getType(path, issue.line());
+        String type = diffReport.getType(path, issueLine);
         if (type == null) {
           LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                  issue.key(), path, issue.line());
+                  issue.key(), path, issueLine);
           continue;  // Next element in "issue_loop"
         }
 
-        long line = diffReport.getLine(path, issue.line());
+        long line = diffReport.getLine(path, issueLine);
 
         StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
                 commentContent, path, line, type);
