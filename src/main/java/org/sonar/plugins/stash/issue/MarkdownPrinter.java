@@ -83,7 +83,7 @@ public final class MarkdownPrinter {
     List<Issue> coverageIssues = new ArrayList<>();
     List<Issue> generalIssues = new ArrayList<>();
     for (Issue issue : report) {
-      if (CoverageRule.isDecreasingLineCoverage(issue.key())) {
+      if (CoverageRule.isDecreasingLineCoverage(issue.ruleKey())) {
         coverageIssues.add(issue);
       } else {
         generalIssues.add(issue);
