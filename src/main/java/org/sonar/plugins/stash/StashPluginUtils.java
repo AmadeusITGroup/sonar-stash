@@ -24,7 +24,7 @@ public class StashPluginUtils {
   }
 
   public static long countIssuesBySeverity(List<Issue> issues, final String severity) {
-      return issues.stream().filter(i -> i.severity() == severity).count();
+      return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
   public static Map<String, Issue> getUniqueRulesBySeverity(List<Issue> issues, final String severity) {
@@ -38,7 +38,7 @@ public class StashPluginUtils {
   }
 
   public static List<Issue> getIssuesBySeverity(List<Issue> issues, String severity) {
-    return issues.stream().filter(i -> i.severity() == severity).collect(Collectors.toList());
+    return issues.stream().filter(i -> severity.equals(i.severity())).collect(Collectors.toList());
   }
 
 }
