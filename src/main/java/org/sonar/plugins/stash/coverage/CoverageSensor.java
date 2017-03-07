@@ -72,7 +72,7 @@ public class CoverageSensor implements Sensor, BatchComponent {
                 double previousCoverage = -1;
 
                 try {
-                    org.sonar.wsclient.services.Resource wsResource = sonar.find(ResourceQuery.createForMetrics(fileResource.getKey(), CoreMetrics.LINE_COVERAGE_KEY));
+                    org.sonar.wsclient.services.Resource wsResource = sonar.find(ResourceQuery.createForMetrics(fileResource.getEffectiveKey(), CoreMetrics.LINE_COVERAGE_KEY));
                     if (wsResource != null) {
                         previousCoverage = wsResource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
                     }
