@@ -5,17 +5,15 @@ import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import java.io.File;
 
 public class StashProjectBuilder extends ProjectBuilder {
+  private File projectBaseDir = null;
 
-  private final StashRequestFacade stashRequestFacade;
-
-  public StashProjectBuilder(StashRequestFacade stashRequestFacade) {
-    this.stashRequestFacade = stashRequestFacade;
-  }
-  
   @Override
   public void build(Context context) {
-    File projectBaseDir = context.projectReactor().getRoot().getBaseDir();
-    stashRequestFacade.initialize(projectBaseDir);
+    projectBaseDir = context.projectReactor().getRoot().getBaseDir();
+  }
+
+  public File getProjectBaseDir() {
+    return projectBaseDir;
   }
 
 }

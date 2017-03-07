@@ -12,7 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
-import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
@@ -32,7 +31,6 @@ import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
@@ -45,14 +43,11 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   private CoverageSensor coverageSensor;
   private final InputFileCache inputFileCache;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, CoverageSensor coverageSensor, InputFileCache inputFileCache) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, CoverageSensor coverageSensor, InputFileCache inputFileCache, StashProjectBuilder projectBuilder) {
     this.config = stashPluginConfiguration;
     this.coverageSensor = coverageSensor;
     this.inputFileCache = inputFileCache;
-  }
-
-  public void initialize(File projectBaseDir) {
-    this.projectBaseDir = projectBaseDir;
+    this.projectBaseDir = projectBuilder.getProjectBaseDir();
   }
 
   public List<Issue> extractIssueReport(ProjectIssues projectIssues) {

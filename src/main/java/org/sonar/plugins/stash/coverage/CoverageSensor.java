@@ -2,7 +2,10 @@ package org.sonar.plugins.stash.coverage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.BatchComponent;
+import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.Phase;
+import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
@@ -22,7 +25,7 @@ import java.text.MessageFormat;
 
 // We have to execute after all coverage sensors, otherwise we are not able to read their measurements
 @Phase(name = Phase.Name.POST)
-public class CoverageSensor implements org.sonar.api.batch.Sensor {
+public class CoverageSensor implements Sensor, BatchComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoverageSensor.class);
 
     private final FileSystem fileSystem;
