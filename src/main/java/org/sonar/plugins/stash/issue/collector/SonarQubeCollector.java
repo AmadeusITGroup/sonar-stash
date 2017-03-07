@@ -27,7 +27,7 @@ public final class SonarQubeCollector {
     List<Issue> result = new ArrayList<>();
 
     for (Issue issue : projectIssues.issues()) {
-      if (issue.isNew()){
+      if (!issue.isNew()){
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
         continue;
       }
