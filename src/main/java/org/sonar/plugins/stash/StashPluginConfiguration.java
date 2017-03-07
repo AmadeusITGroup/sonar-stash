@@ -65,11 +65,7 @@ public class StashPluginConfiguration implements BatchComponent {
   public boolean resetComments() {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
   }
-  
-  public String getCodeCoverageSeverity() {
-    return settings.getString(StashPlugin.STASH_CODE_COVERAGE_SEVERITY);
-  }
-  
+
   public String getTaskIssueSeverityThreshold() {
     return settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
   }

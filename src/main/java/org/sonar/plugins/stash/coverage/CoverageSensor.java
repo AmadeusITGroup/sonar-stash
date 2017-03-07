@@ -33,14 +33,12 @@ public class CoverageSensor implements Sensor, BatchComponent {
     private final StashPluginConfiguration config;
     private Double projectCoverage = null;
     private Double previousProjectCoverage = null;
-    private final String severity;
 
 
     public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, StashPluginConfiguration config) {
         this.fileSystem = fileSystem;
         this.perspectives = perspectives;
         this.config = config;
-        this.severity = config.getCodeCoverageSeverity();
     }
 
     @Override
@@ -96,7 +94,6 @@ public class CoverageSensor implements Sensor, BatchComponent {
                         String message = MessageFormat.format("Code coverage of file {0} lowered from {1,number,#.##}% to {2,number,#.##}%",
                                 f.relativePath(), previousCoverage, coverage);
                         Issue issue = issuable.newIssueBuilder()
-                                .severity(severity)
                                 .ruleKey(CoverageRule.decreasingLineCoverageRule(f.language()))
                                 .message(message)
                                 .build();
@@ -122,7 +119,9 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return (config.hasToNotifyStash() && null != severity && !severity.isEmpty());
+        return true;
+        // FIXME check if rule is enabled
+        //return (config.hasToNotifyStash() && null != severity && !severity.isEmpty());
     }
 
     private static double calculateCoverage(int linesToCover, int uncoveredLines) {

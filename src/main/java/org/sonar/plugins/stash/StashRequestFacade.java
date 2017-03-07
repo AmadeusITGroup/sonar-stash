@@ -419,11 +419,4 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
     return new PathResolver().relativePath(projectBaseDir, inputFile.file());
   }
-
-  /**
-   * Get severity to associate to Code Coverage issues.
-   */
-  public String getCodeCoverageSeverity() {
-    return config.getCodeCoverageSeverity();
-  }
 }
