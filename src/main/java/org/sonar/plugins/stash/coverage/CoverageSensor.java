@@ -89,17 +89,7 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
                 // handle rounded coverage from API
                 if (previousCoverage > (coverage + 0.1)) {
-                    Issuable issuable = perspectives.as(Issuable.class, f);
-                    if (issuable != null) {
-                        String message = MessageFormat.format("Code coverage of file {0} lowered from {1,number,#.##}% to {2,number,#.##}%",
-                                f.relativePath(), previousCoverage, coverage);
-                        Issue issue = issuable.newIssueBuilder()
-                                .ruleKey(CoverageRule.decreasingLineCoverageRule(f.language()))
-                                .message(message)
-                                .build();
-                        LOGGER.warn("adding: " + issue.message());
-                        issuable.addIssue(issue);
-                    }
+                    addIssue(f, coverage, previousCoverage);
                 }
             }
         }
@@ -110,6 +100,22 @@ public class CoverageSensor implements Sensor, BatchComponent {
         if (wsResource != null) {
             previousProjectCoverage = wsResource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
         }
+    }
+
+    private void addIssue(InputFile file, double coverage, double previousCoverage) {
+        Issuable issuable = perspectives.as(Issuable.class, file);
+        if (issuable == null) {
+            LOGGER.warn("Could not get a perspective of Issuable to create an issue for {}, skipping", file);
+            return;
+        }
+
+        String message = MessageFormat.format("Code coverage of file {0} lowered from {1,number,#.##}% to {2,number,#.##}%",
+                file.relativePath(), previousCoverage, coverage);
+        Issue issue = issuable.newIssueBuilder()
+                .ruleKey(CoverageRule.decreasingLineCoverageRule(file.language()))
+                .message(message)
+                .build();
+        issuable.addIssue(issue);
     }
 
     @Override
