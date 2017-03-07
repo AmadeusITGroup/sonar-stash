@@ -28,7 +28,7 @@ public class CoverageRule implements RulesDefinition {
             NewRepository repo = context.createRepository(getRepositoryName(language.getKey()), language.getKey());
             repo.setName("Coverage evolution");
             repo.createRule(decreasingLineCoverageRule)
-                    .setName("Decreasing coverage on files")
+                    .setName("Coverage on files should not decrease")
                     .setMarkdownDescription("Reports if the coverage on a file has decreased.")
                     .setTags("bad-practice")
                     .setSeverity(Severity.BLOCKER)
