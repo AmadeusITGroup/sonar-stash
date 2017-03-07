@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
+import com.google.common.collect.Lists;
+
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.rule.Severity;
@@ -19,6 +21,7 @@ public final class MarkdownPrinter {
 
   static final String NEW_LINE = "\n";
   static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
+  static final List<String> orderedSeverities = Lists.reverse(Severity.ALL);
   
   private MarkdownPrinter(){
     // DO NOTHING
@@ -70,7 +73,7 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public static String printReportMarkdown(PullRequestRef pr, String stashURL, String sonarQubeURL, List<Issue> report,
+  public static String printReportMarkdown(PullRequestRef pr, String stashURL, String sonarQubeURL, List<Issue> allIssues,
                                            int issueThreshold, Double projectCoverage, Double previousProjectCoverage, IssuePathResolver issuePathResolver) {
     
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
@@ -82,7 +85,7 @@ public final class MarkdownPrinter {
 
     List<Issue> coverageIssues = new ArrayList<>();
     List<Issue> generalIssues = new ArrayList<>();
-    for (Issue issue : report) {
+    for (Issue issue : allIssues) {
       if (CoverageRule.isDecreasingLineCoverage(issue.ruleKey())) {
         coverageIssues.add(issue);
       } else {
@@ -97,8 +100,7 @@ public final class MarkdownPrinter {
     
     } else {
       
-      // Number of issue per severity
-      int issueNumber = generalIssues.size() + coverageIssues.size();
+      int issueNumber = allIssues.size();
       
       if (issueNumber >= issueThreshold) {
         sb.append("### Too many issues detected ");
@@ -108,22 +110,17 @@ public final class MarkdownPrinter {
       
       sb.append("| Total New Issues | ").append(issueNumber).append(" |").append(NEW_LINE);
       sb.append("|-----------------|------|").append(NEW_LINE);
-      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.BLOCKER));
-      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.CRITICAL));
-      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.MAJOR));
-      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.MINOR));
-      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.INFO));
+      for (String severity: orderedSeverities) {
+        sb.append(printIssueNumberBySeverityMarkdown(allIssues, severity));
+      }
       sb.append(NEW_LINE).append(NEW_LINE);
   
       // Issue list
       sb.append("| Issues list |").append(NEW_LINE);
       sb.append("|------------|").append(NEW_LINE);
-      // FIXME do not pass the whole report here, just general issues
-      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.BLOCKER));
-      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.CRITICAL));
-      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.MAJOR));
-      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.MINOR));
-      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.INFO));
+      for (String severity: orderedSeverities) {
+        sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, severity));
+      }
       sb.append(NEW_LINE).append(NEW_LINE);
     }
     
