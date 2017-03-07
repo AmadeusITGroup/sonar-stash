@@ -1,9 +1,12 @@
 package org.sonar.plugins.stash.coverage;
 
+import org.sonar.api.batch.rule.ActiveRule;
+import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.resources.Language;
 import org.sonar.api.resources.Languages;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.rule.Severity;
 import org.sonar.api.server.rule.RulesDefinition;
 
 public class CoverageRule implements RulesDefinition {
@@ -27,6 +30,8 @@ public class CoverageRule implements RulesDefinition {
             repo.createRule(decreasingLineCoverageRule)
                     .setName("Decreasing coverage on files")
                     .setMarkdownDescription("Reports if the coverage on a file has decreased.")
+                    .setTags("bad-practice")
+                    .setSeverity(Severity.BLOCKER)
             ;
 
             repo.done();
@@ -47,5 +52,11 @@ public class CoverageRule implements RulesDefinition {
 
     public static boolean isDecreasingLineCoverage(String rule) {
         return isDecreasingLineCoverage(RuleKey.parse(rule));
+    }
+
+    public static boolean shouldExecute(ActiveRules rules) {
+        return rules.findAll().stream()
+                .filter(r -> r.ruleKey().rule().equals(decreasingLineCoverageRule))
+                .findFirst().isPresent();
     }
 }

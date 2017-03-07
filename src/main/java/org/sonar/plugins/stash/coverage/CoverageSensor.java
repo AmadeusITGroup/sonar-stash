@@ -3,12 +3,12 @@ package org.sonar.plugins.stash.coverage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
-import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.Phase;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.issue.Issuable;
 import org.sonar.api.issue.Issue;
@@ -33,12 +33,14 @@ public class CoverageSensor implements Sensor, BatchComponent {
     private final StashPluginConfiguration config;
     private Double projectCoverage = null;
     private Double previousProjectCoverage = null;
+    private ActiveRules activeRules;
 
 
-    public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, StashPluginConfiguration config) {
+    public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, StashPluginConfiguration config, ActiveRules activeRules) {
         this.fileSystem = fileSystem;
         this.perspectives = perspectives;
         this.config = config;
+        this.activeRules = activeRules;
     }
 
     @Override
@@ -125,9 +127,7 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return true;
-        // FIXME check if rule is enabled
-        //return (config.hasToNotifyStash() && null != severity && !severity.isEmpty());
+        return CoverageRule.shouldExecute(activeRules);
     }
 
     private static double calculateCoverage(int linesToCover, int uncoveredLines) {
