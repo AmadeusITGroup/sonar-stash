@@ -108,22 +108,22 @@ public final class MarkdownPrinter {
       
       sb.append("| Total New Issues | ").append(issueNumber).append(" |").append(NEW_LINE);
       sb.append("|-----------------|------|").append(NEW_LINE);
-      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.BLOCKER));
-      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.CRITICAL));
-      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.MAJOR));
-      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.MINOR));
-      sb.append(printIssueNumberBySeverityMarkdown(report, Severity.INFO));
+      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.BLOCKER));
+      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.CRITICAL));
+      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.MAJOR));
+      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.MINOR));
+      sb.append(printIssueNumberBySeverityMarkdown(generalIssues, Severity.INFO));
       sb.append(NEW_LINE).append(NEW_LINE);
   
       // Issue list
       sb.append("| Issues list |").append(NEW_LINE);
       sb.append("|------------|").append(NEW_LINE);
       // FIXME do not pass the whole report here, just general issues
-      sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.BLOCKER));
-      sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.CRITICAL));
-      sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.MAJOR));
-      sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.MINOR));
-      sb.append(printIssueListBySeverityMarkdown(report, sonarQubeURL, Severity.INFO));
+      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.BLOCKER));
+      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.CRITICAL));
+      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.MAJOR));
+      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.MINOR));
+      sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, Severity.INFO));
       sb.append(NEW_LINE).append(NEW_LINE);
     }
     
