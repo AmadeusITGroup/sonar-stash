@@ -1,23 +1,52 @@
 package org.sonar.plugins.stash;
 
-import com.google.auto.value.AutoValue;
+public class PullRequestRef {
+    private String project, repository;
+    private int pullRequestId;
 
-@AutoValue
-public abstract class PullRequestRef {
-    public abstract String project();
-    public abstract String repository();
-    public abstract int pullRequestId();
-
-
-    public static Builder builder() {
-        return new AutoValue_PullRequestRef.Builder();
+    public String project() {
+        return project;
     }
 
-    @AutoValue.Builder
-    public abstract static class Builder {
-        public abstract Builder setProject(String value);
-        public abstract Builder setRepository(String value);
-        public abstract Builder setPullRequestId(int value);
-        public abstract PullRequestRef build();
+    public String repository() {
+        return repository;
+    }
+
+    public int pullRequestId() {
+        return pullRequestId;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    private PullRequestRef(String project, String repository, int pullRequestId) {
+        this.project = project;
+        this.repository = repository;
+        this.pullRequestId = pullRequestId;
+    }
+
+    public static class Builder {
+        private String project, repository;
+        private int pullRequestId;
+
+        public Builder setProject(String value) {
+            project = value;
+            return this;
+        }
+
+        public Builder setRepository(String value) {
+            repository = value;
+            return this;
+        }
+
+        public Builder setPullRequestId(int value) {
+            pullRequestId = value;
+            return this;
+        }
+
+        public PullRequestRef build() {
+            return new PullRequestRef(project, repository, pullRequestId);
+        }
     }
 }
