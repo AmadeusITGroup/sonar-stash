@@ -116,13 +116,17 @@ public class CoverageSensor implements Sensor, BatchComponent {
             return;
         }
 
-        String message = MessageFormat.format("Code coverage of file {0} lowered from {1}% to {2}%",
-                file.relativePath(), formatPercentage(previousCoverage), formatPercentage(coverage));
+        String message = formatIssueMessage(file.relativePath(), coverage, previousCoverage);
         Issue issue = issuable.newIssueBuilder()
                 .ruleKey(CoverageRule.decreasingLineCoverageRule(file.language()))
                 .message(message)
                 .build();
         issuable.addIssue(issue);
+    }
+
+    static String formatIssueMessage(String path, double coverage, double previousCoverage) {
+        return MessageFormat.format("Line coverage of file {0} lowered from {1}% to {2}%.",
+                                    path, formatPercentage(previousCoverage), formatPercentage(coverage));
     }
 
     @Override

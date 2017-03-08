@@ -1,4 +1,4 @@
-package org.sonar.plugins.stash;
+package org.sonar.plugins.stash.client;
 
 import org.junit.Assert;
 import org.junit.Test;
