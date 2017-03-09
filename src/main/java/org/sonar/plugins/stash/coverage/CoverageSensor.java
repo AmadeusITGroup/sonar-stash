@@ -23,6 +23,8 @@ import org.sonar.wsclient.services.ResourceQuery;
 
 import java.text.MessageFormat;
 
+import static org.sonar.plugins.stash.StashPluginUtils.roundedPercentageGreaterThan;
+
 // We have to execute after all coverage sensors, otherwise we are not able to read their measurements
 @Phase(name = Phase.Name.POST)
 public class CoverageSensor implements Sensor, BatchComponent {
@@ -89,8 +91,10 @@ public class CoverageSensor implements Sensor, BatchComponent {
                 totalLinesToCover += linesToCover;
                 totalUncoveredLines += uncoveredLines;
 
-                // handle rounded coverage from API
-                if (previousCoverage > (coverage + 0.1)) {
+                // The API returns the coverage rounded.
+                // So we can only report anything if the rounded value has changed,
+                // otherwise we won't could report false positives.
+                if (roundedPercentageGreaterThan(previousCoverage, coverage)) {
                     addIssue(f, coverage, previousCoverage);
                 }
             }

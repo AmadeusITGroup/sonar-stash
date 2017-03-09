@@ -23,6 +23,10 @@ public class StashPluginUtils {
     return df.format(d);
   }
 
+  public static boolean roundedPercentageGreaterThan(double left, double right) {
+    return (left > right) && !formatPercentage(left).equals(formatPercentage(right));
+  }
+
   public static long countIssuesBySeverity(List<Issue> issues, final String severity) {
       return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
