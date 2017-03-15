@@ -50,16 +50,7 @@ public class StashDiff {
     return StringUtils.equals(StashPlugin.CONTEXT_ISSUE_TYPE, type);
   }
   
-  public boolean containsComment(long commentId){
-    boolean result = false;
-    for (StashComment comment: comments){
-      long cid = comment.getId();
-      if (cid == commentId){
-        result = true;
-        break;
-      }
-    }
-    
-    return result;
+  public boolean containsComment(long commentId) {
+    return comments.stream().anyMatch(c -> c.getId() == commentId);
   }
 }
