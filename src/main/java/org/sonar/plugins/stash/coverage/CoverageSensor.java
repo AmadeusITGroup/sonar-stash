@@ -94,7 +94,7 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
                 // The API returns the coverage rounded.
                 // So we can only report anything if the rounded value has changed,
-                // otherwise we won't could report false positives.
+                // otherwise we could report false positives.
                 if (roundedPercentageGreaterThan(previousCoverage, coverage)) {
                     addIssue(f, coverage, previousCoverage);
                 }
