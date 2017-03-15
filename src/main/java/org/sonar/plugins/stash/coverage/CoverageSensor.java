@@ -23,6 +23,7 @@ import org.sonar.wsclient.services.ResourceQuery;
 
 import java.text.MessageFormat;
 
+import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
 import static org.sonar.plugins.stash.StashPluginUtils.roundedPercentageGreaterThan;
 
 // We have to execute after all coverage sensors, otherwise we are not able to read their measurements
@@ -115,8 +116,8 @@ public class CoverageSensor implements Sensor, BatchComponent {
             return;
         }
 
-        String message = MessageFormat.format("Code coverage of file {0} lowered from {1,number,#.##}% to {2,number,#.##}%",
-                file.relativePath(), previousCoverage, coverage);
+        String message = MessageFormat.format("Code coverage of file {0} lowered from {1}% to {2}%",
+                file.relativePath(), formatPercentage(previousCoverage), formatPercentage(coverage));
         Issue issue = issuable.newIssueBuilder()
                 .ruleKey(CoverageRule.decreasingLineCoverageRule(file.language()))
                 .message(message)
