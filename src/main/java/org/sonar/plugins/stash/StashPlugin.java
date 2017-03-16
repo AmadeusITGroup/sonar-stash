@@ -64,6 +64,7 @@ public class StashPlugin extends SonarPlugin {
         StashRequestFacade.class,
         CoverageRule.class,
         CoverageSensor.class,
+        InputFileCacheSensor.class,
         PropertyDefinition.builder(STASH_URL)
             .name("Stash base URL")
             .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")

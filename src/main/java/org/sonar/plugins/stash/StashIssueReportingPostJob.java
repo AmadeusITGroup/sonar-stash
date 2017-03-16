@@ -2,6 +2,7 @@ package org.sonar.plugins.stash;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FileSystem;
@@ -17,7 +18,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 
 import java.util.List;
 
-public class StashIssueReportingPostJob implements PostJob {
+public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashIssueReportingPostJob.class);
   private static final String STACK_TRACE = "Exception stack trace";
@@ -43,10 +44,6 @@ public class StashIssueReportingPostJob implements PostJob {
       for (org.sonar.api.issue.Issue i : projectIssues.issues()) {
         System.out.println(i.ruleKey() + ": " + i.message());
       }
-    }
-
-    for (InputFile inputFile : fileSystem.inputFiles(fileSystem.predicates().all())) {
-      inputFileCache.putInputFile(context.getResource(inputFile).getEffectiveKey(), inputFile);
     }
 
     try {
