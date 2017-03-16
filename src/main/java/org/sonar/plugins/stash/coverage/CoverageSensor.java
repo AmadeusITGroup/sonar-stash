@@ -83,14 +83,15 @@ public class CoverageSensor implements Sensor, BatchComponent {
                     LOGGER.error("Could not fetch previous coverage for file {}", f, e);
                 }
 
-                if (previousCoverage == -1) {
-                    continue;
-                }
 
                 double coverage = calculateCoverage(linesToCover, uncoveredLines);
 
                 totalLinesToCover += linesToCover;
                 totalUncoveredLines += uncoveredLines;
+
+                if (previousCoverage == -1) {
+                    continue;
+                }
 
                 // The API returns the coverage rounded.
                 // So we can only report anything if the rounded value has changed,
