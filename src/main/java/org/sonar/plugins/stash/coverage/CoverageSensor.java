@@ -137,7 +137,10 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return CoverageRule.shouldExecute(activeRules);
+        // We only execute when run in stash reporting mode
+        // This indicates we are running in preview mode,
+        // I don't know how we should behave during a normal scan
+        return config.hasToNotifyStash() && CoverageRule.shouldExecute(activeRules);
     }
 
     private static double calculateCoverage(int linesToCover, int uncoveredLines) {
