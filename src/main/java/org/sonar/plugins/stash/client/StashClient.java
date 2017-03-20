@@ -150,8 +150,10 @@ public class StashClient implements AutoCloseable {
     String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
 
     JSONObject anchor = new JSONObject();
-    anchor.put("line", line);
-    anchor.put("lineType", type);
+    if (line != 0L) {
+      anchor.put("line", line);
+      anchor.put("lineType", type);
+    }
     
     String fileType = "TO";
     if (StringUtils.equals(type, StashPlugin.CONTEXT_ISSUE_TYPE)){
