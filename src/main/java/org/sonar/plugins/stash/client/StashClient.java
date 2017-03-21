@@ -36,8 +36,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static java.net.HttpURLConnection.HTTP_CREATED;
-
 public class StashClient implements AutoCloseable {
 
   private final String baseUrl;
@@ -258,7 +256,7 @@ public class StashClient implements AutoCloseable {
   }
 
   private JSONObject postCreate(String url, JSONObject body, String errorMessage) throws StashClientException {
-    return performRequest(httpClient.preparePost(url), body, HTTP_CREATED, errorMessage);
+    return performRequest(httpClient.preparePost(url), body, HttpURLConnection.HTTP_CREATED, errorMessage);
   }
 
   private JSONObject delete(String url, int expectedStatusCode, String errorMessage) throws StashClientException {
