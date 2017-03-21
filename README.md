@@ -96,10 +96,8 @@ This feature is based on "line coverage" metric, which compares the "uncovered l
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-coverage.PNG)
 
-To activate this feature,
-```
-sonar-runner -Dsonar.branch=<BRANCH_TO_BE_COMPARED> -Dsonar.stash.notification -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> -Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD> -Dsonar.scanAllFiles...
-```
+To activate this feature, enable the "Coverage on files should not decrease"
+rules in your relevant Quality Profile.
 
 **Be careful, with SonarQube 4.5.6, this feature does not work with incremental mode.**
 
