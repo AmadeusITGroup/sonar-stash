@@ -37,6 +37,7 @@ import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
+import org.sonar.plugins.stash.coverage.CoverageProjectStore;
 import org.sonar.plugins.stash.coverage.CoverageSensor;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
@@ -118,12 +119,13 @@ public class StashRequestFacadeTest extends StashTest {
     DefaultFileSystem fileSystem = new DefaultFileSystem(null);
     ResourcePerspectives resourcePerspectives = new DummyResourcePerspective();
     ActiveRules activeRules = new ActiveRulesBuilder().build();
-    CoverageSensor sensor = new CoverageSensor(fileSystem, resourcePerspectives, config, activeRules);
+    CoverageProjectStore coverageProjectStore = new CoverageProjectStore(config, activeRules);
+    CoverageSensor sensor = new CoverageSensor(fileSystem, resourcePerspectives, config, activeRules, coverageProjectStore);
     InputFileCache inputFileCache = new InputFileCache();
     StashProjectBuilder projectBuilder = new StashProjectBuilder();
 
 
-    StashRequestFacade facade = new StashRequestFacade(config, sensor, inputFileCache, projectBuilder);
+    StashRequestFacade facade = new StashRequestFacade(config, inputFileCache, projectBuilder, coverageProjectStore);
     myFacade = spy(facade);
     
     stashClient = mock(StashClient.class);

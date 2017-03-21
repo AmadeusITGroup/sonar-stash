@@ -25,6 +25,7 @@ import java.text.MessageFormat;
 
 import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
 import static org.sonar.plugins.stash.StashPluginUtils.roundedPercentageGreaterThan;
+import static org.sonar.plugins.stash.coverage.CoverageUtils.calculateCoverage;
 
 // We have to execute after all coverage sensors, otherwise we are not able to read their measurements
 @Phase(name = Phase.Name.POST)
@@ -34,22 +35,22 @@ public class CoverageSensor implements Sensor, BatchComponent {
     private final FileSystem fileSystem;
     private final ResourcePerspectives perspectives;
     private final StashPluginConfiguration config;
-    private Double projectCoverage = null;
-    private Double previousProjectCoverage = null;
     private ActiveRules activeRules;
+    private CoverageProjectStore coverageProjectStore;
 
 
-    public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, StashPluginConfiguration config, ActiveRules activeRules) {
+    public CoverageSensor(FileSystem fileSystem, ResourcePerspectives perspectives, StashPluginConfiguration config, ActiveRules activeRules, CoverageProjectStore coverageProjectStore) {
         this.fileSystem = fileSystem;
         this.perspectives = perspectives;
         this.config = config;
         this.activeRules = activeRules;
+        this.coverageProjectStore = coverageProjectStore;
     }
 
     @Override
     public void analyse(Project module, SensorContext context) {
         String sonarQubeURL = config.getSonarQubeURL();
-        Sonar sonar = Sonar.create(sonarQubeURL);
+        Sonar sonar = Sonar.create(sonarQubeURL, config.getSonarQubeLogin(), config.getSonarQubePassword());
 
         int totalLinesToCover = 0;
         int totalUncoveredLines = 0;
@@ -83,11 +84,9 @@ public class CoverageSensor implements Sensor, BatchComponent {
                     LOGGER.error("Could not fetch previous coverage for file {}", f, e);
                 }
 
-
                 double coverage = calculateCoverage(linesToCover, uncoveredLines);
 
-                totalLinesToCover += linesToCover;
-                totalUncoveredLines += uncoveredLines;
+                coverageProjectStore.updateMeasurements(linesToCover, uncoveredLines);
 
                 if (previousCoverage == -1) {
                     continue;
@@ -100,13 +99,6 @@ public class CoverageSensor implements Sensor, BatchComponent {
                     addIssue(f, coverage, previousCoverage);
                 }
             }
-        }
-
-        this.projectCoverage = calculateCoverage(totalLinesToCover, totalUncoveredLines);
-
-        org.sonar.wsclient.services.Resource wsResource = sonar.find(ResourceQuery.createForMetrics(module.getEffectiveKey(), CoreMetrics.LINE_COVERAGE_KEY));
-        if (wsResource != null) {
-            previousProjectCoverage = wsResource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
         }
     }
 
@@ -141,20 +133,5 @@ public class CoverageSensor implements Sensor, BatchComponent {
         // This indicates we are running in preview mode,
         // I don't know how we should behave during a normal scan
         return config.hasToNotifyStash() && CoverageRule.shouldExecute(activeRules);
-    }
-
-    private static double calculateCoverage(int linesToCover, int uncoveredLines) {
-        if (linesToCover == 0) {
-            return 100;
-        }
-
-        return (1 - (((double) uncoveredLines) / linesToCover)) * 100;
-    }
-
-    public Double getProjectCoverage() {
-        return this.projectCoverage;
-    }
-    public Double getPreviousProjectCoverage() {
-        return this.previousProjectCoverage;
     }
 }

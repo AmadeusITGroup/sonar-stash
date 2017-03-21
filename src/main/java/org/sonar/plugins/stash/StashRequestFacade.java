@@ -18,7 +18,7 @@ import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
-import org.sonar.plugins.stash.coverage.CoverageSensor;
+import org.sonar.plugins.stash.coverage.CoverageProjectStore;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
@@ -40,14 +40,14 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
   private StashPluginConfiguration config;
   private File projectBaseDir;
-  private CoverageSensor coverageSensor;
   private final InputFileCache inputFileCache;
+  private CoverageProjectStore coverageProjectStore;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, CoverageSensor coverageSensor, InputFileCache inputFileCache, StashProjectBuilder projectBuilder) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, InputFileCache inputFileCache, StashProjectBuilder projectBuilder, CoverageProjectStore coverageProjectStore) {
     this.config = stashPluginConfiguration;
-    this.coverageSensor = coverageSensor;
     this.inputFileCache = inputFileCache;
     this.projectBaseDir = projectBuilder.getProjectBaseDir();
+    this.coverageProjectStore = coverageProjectStore;
   }
 
   public List<Issue> extractIssueReport(ProjectIssues projectIssues) {
@@ -63,7 +63,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     try {
       String report = MarkdownPrinter.printReportMarkdown(
               pr, stashClient.getBaseUrl(), config.getSonarQubeURL(), issueReport, issueThreshold,
-              coverageSensor.getProjectCoverage(), coverageSensor.getPreviousProjectCoverage(),
+              coverageProjectStore.getProjectCoverage(), coverageProjectStore.getPreviousProjectCoverage(),
               this
       );
       stashClient.postCommentOnPullRequest(pr, report);

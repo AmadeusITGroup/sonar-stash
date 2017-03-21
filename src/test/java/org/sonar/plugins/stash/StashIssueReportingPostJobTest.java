@@ -19,6 +19,7 @@ import org.sonar.api.resources.Project;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
+import org.sonar.plugins.stash.coverage.CoverageProjectStore;
 import org.sonar.plugins.stash.coverage.CoverageSensor;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
@@ -58,8 +59,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
   SensorContext context;
 
   @Mock
-  CoverageSensor coverageSensor;
-  
+  CoverageProjectStore coverageProjectStore;
+
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
   private static final int STASH_PULLREQUEST_ID = 1;
@@ -106,9 +107,9 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(report.size()).thenReturn(10);
     when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
 
-    coverageSensor = mock(CoverageSensor.class);
-    when(coverageSensor.getProjectCoverage()).thenReturn(20.0);
-    when(coverageSensor.getPreviousProjectCoverage()).thenReturn(10.0);
+    coverageProjectStore = mock(CoverageProjectStore.class);
+    when(coverageProjectStore.getProjectCoverage()).thenReturn(20.0);
+    when(coverageProjectStore.getPreviousProjectCoverage()).thenReturn(10.0);
     // when(coverageReport.countLoweredIssues()).thenReturn(5);
 
     when(stashRequestFacade.getIssueThreshold()).thenReturn(STASH_ISSUE_THRESHOLD);
