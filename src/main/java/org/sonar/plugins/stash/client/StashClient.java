@@ -219,7 +219,7 @@ public class StashClient implements AutoCloseable {
   }
   
   public void resetPullRequestApproval(PullRequestRef pr) throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, pr);
+    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
     delete(request, HttpURLConnection.HTTP_OK, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
   
