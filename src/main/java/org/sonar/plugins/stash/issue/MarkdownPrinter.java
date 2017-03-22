@@ -1,10 +1,10 @@
 package org.sonar.plugins.stash.issue;
 
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.PullRequestRef;
-
-import java.util.Map;
 
 public final class MarkdownPrinter {
 
@@ -63,7 +63,7 @@ public final class MarkdownPrinter {
     String stashRepo     = pr.repository();
     int pullRequestId = pr.pullRequestId();
 
-    if ((report.getIssues() == null) || (report.getIssues().isEmpty() && coverageReport.getLoweredIssues().isEmpty())) {
+    if (report.getIssues().isEmpty() && coverageReport.getLoweredIssues().isEmpty()) {
     
       sb.append("### No new issues detected!");
       sb.append(NEW_LINE).append(NEW_LINE);

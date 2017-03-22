@@ -7,12 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Report {
 
-  protected final List<Issue> issues;
+  protected final List<Issue> issues = new ArrayList<>();
 
-  public Report() {
-    this.issues = new ArrayList<>();
-  }
-  
   public void add(Issue issue) {
     issues.add(issue);
   }

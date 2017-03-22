@@ -12,7 +12,7 @@ public class CoverageIssue extends Issue {
   private double previousCoverage;
   
   public CoverageIssue(String severity, String path) {
-    super(CODE_COVERAGE_ISSUE_KEY, severity, path, (long) 0);
+    super(CODE_COVERAGE_ISSUE_KEY, severity, path, 0);
   }
 
   public double getUncoveredLines() {

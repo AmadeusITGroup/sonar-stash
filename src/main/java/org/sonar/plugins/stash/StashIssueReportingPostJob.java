@@ -157,12 +157,10 @@ public class StashIssueReportingPostJob implements PostJob {
 
     // if no new issues and coverage is improved,
     // plugin approves the pull-request
-    if (canApprovePullrequest && (issueNumber == 0) && (coverageReport.getEvolution() >= 0)){
-
+    if (canApprovePullrequest && issueNumber == 0 && coverageReport.getEvolution() >= 0) {
       stashRequestFacade.approvePullRequest(pr, stashClient);
 
-    } else if (canApprovePullrequest && ( (issueNumber != 0) || coverageReport.getEvolution() < 0) ) {
-
+    } else if (canApprovePullrequest && (issueNumber != 0 || coverageReport.getEvolution() < 0)) {
       stashRequestFacade.resetPullRequestApproval(pr, stashClient);
     }
   }

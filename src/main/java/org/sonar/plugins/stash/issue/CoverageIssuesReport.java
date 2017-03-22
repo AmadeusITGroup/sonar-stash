@@ -13,7 +13,6 @@ public class CoverageIssuesReport extends Report {
   private double previousProjectCoverage;
   
   public CoverageIssuesReport() {
-    super();
     this.previousProjectCoverage = 0;
   }
   
