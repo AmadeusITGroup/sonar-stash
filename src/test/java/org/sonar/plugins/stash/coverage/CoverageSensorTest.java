@@ -13,8 +13,8 @@ public class CoverageSensorTest {
     @Test
     public void testRoundedFormatting() {
         assertEquals(
-                CoverageSensorTest.formatIssueMessage("path/code/coverage", 7.65, 50.29),
-                "Line coverage of file path/code/coverage lowered from 50.3% to 7.7%."
+                "Line coverage of file path/code/coverage lowered from 50.3% to 7.7%.",
+                CoverageSensorTest.formatIssueMessage("path/code/coverage", 7.65, 50.29)
         );
 
     }
