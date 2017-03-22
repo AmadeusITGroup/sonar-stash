@@ -28,14 +28,12 @@ public final class SonarQubeCollector {
 
     for (Issue issue : projectIssues.issues()) {
       if (!issue.isNew()){
-        System.out.println("old");
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
         continue;
       }
 
       String path = issuePathResolver.getIssuePath(issue);
       if (path == null) {
-        System.out.println("no path");
         LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
         continue;
       }
