@@ -51,9 +51,6 @@ public class CoverageSensor implements Sensor, BatchComponent {
     public void analyse(Project module, SensorContext context) {
         Sonar sonar = createSonarClient(config);
 
-        int totalLinesToCover = 0;
-        int totalUncoveredLines = 0;
-
         for (InputFile f : fileSystem.inputFiles(fileSystem.predicates().all())) {
             LOGGER.warn(f.absolutePath());
             Integer linesToCover = null;

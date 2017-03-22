@@ -11,7 +11,6 @@ import org.sonar.api.resources.Project;
 
 /*
  * FIXME this should not be necessary, the new plugin API gives us direct access to the InputFile of an issue
- * This should also live in the postjob, but for some reason we dont receive the filesystem when doing CPP projects
  */
 public class InputFileCacheSensor implements Sensor, BatchComponent {
     private static final Logger LOGGER = LoggerFactory.getLogger(InputFileCacheSensor.class);
