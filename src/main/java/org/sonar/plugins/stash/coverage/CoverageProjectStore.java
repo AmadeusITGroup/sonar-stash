@@ -7,14 +7,13 @@ import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.rule.ActiveRules;
-import org.sonar.api.component.ResourcePerspectives;
-import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.StashPluginConfiguration;
 import org.sonar.wsclient.Sonar;
-import org.sonar.wsclient.services.ResourceQuery;
 
 import static org.sonar.plugins.stash.coverage.CoverageUtils.calculateCoverage;
+import static org.sonar.plugins.stash.coverage.CoverageUtils.createSonarClient;
+import static org.sonar.plugins.stash.coverage.CoverageUtils.getLineCoverage;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class CoverageProjectStore implements BatchComponent, Sensor {
@@ -42,15 +41,11 @@ public class CoverageProjectStore implements BatchComponent, Sensor {
 
     @Override
     public void analyse(Project module, SensorContext context) {
-        String sonarQubeURL = config.getSonarQubeURL();
-        Sonar sonar = Sonar.create(sonarQubeURL, config.getSonarQubeLogin(), config.getSonarQubePassword());
-
-        org.sonar.wsclient.services.Resource wsResource = sonar.find(ResourceQuery.createForMetrics(module.getEffectiveKey(), CoreMetrics.LINE_COVERAGE_KEY));
-        if (wsResource != null) {
-            previousProjectCoverage = wsResource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
-        }
+        Sonar sonar = createSonarClient(config);
+        previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
     }
 
+    @Override
     public boolean shouldExecuteOnProject(Project project) {
         return config.hasToNotifyStash() && CoverageRule.shouldExecute(activeRules);
     }

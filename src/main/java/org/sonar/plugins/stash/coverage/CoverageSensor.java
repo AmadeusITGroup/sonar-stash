@@ -18,14 +18,14 @@ import org.sonar.api.resources.Project;
 import org.sonar.api.resources.Resource;
 import org.sonar.plugins.stash.StashPluginConfiguration;
 import org.sonar.wsclient.Sonar;
-import org.sonar.wsclient.base.HttpException;
-import org.sonar.wsclient.services.ResourceQuery;
 
 import java.text.MessageFormat;
 
 import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
 import static org.sonar.plugins.stash.StashPluginUtils.roundedPercentageGreaterThan;
 import static org.sonar.plugins.stash.coverage.CoverageUtils.calculateCoverage;
+import static org.sonar.plugins.stash.coverage.CoverageUtils.createSonarClient;
+import static org.sonar.plugins.stash.coverage.CoverageUtils.getLineCoverage;
 
 // We have to execute after all coverage sensors, otherwise we are not able to read their measurements
 @Phase(name = Phase.Name.POST)
@@ -49,8 +49,7 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
     @Override
     public void analyse(Project module, SensorContext context) {
-        String sonarQubeURL = config.getSonarQubeURL();
-        Sonar sonar = Sonar.create(sonarQubeURL, config.getSonarQubeLogin(), config.getSonarQubePassword());
+        Sonar sonar = createSonarClient(config);
 
         int totalLinesToCover = 0;
         int totalUncoveredLines = 0;
@@ -73,22 +72,13 @@ public class CoverageSensor implements Sensor, BatchComponent {
 
             // get lines_to_cover, uncovered_lines
             if ((linesToCover != null) && (uncoveredLines != null)) {
-                double previousCoverage = -1;
-
-                try {
-                    org.sonar.wsclient.services.Resource wsResource = sonar.find(ResourceQuery.createForMetrics(fileResource.getEffectiveKey(), CoreMetrics.LINE_COVERAGE_KEY));
-                    if (wsResource != null) {
-                        previousCoverage = wsResource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
-                    }
-                } catch (HttpException e) {
-                    LOGGER.error("Could not fetch previous coverage for file {}", f, e);
-                }
+                Double previousCoverage = getLineCoverage(sonar, fileResource.getEffectiveKey());
 
                 double coverage = calculateCoverage(linesToCover, uncoveredLines);
 
                 coverageProjectStore.updateMeasurements(linesToCover, uncoveredLines);
 
-                if (previousCoverage == -1) {
+                if (previousCoverage == null) {
                     continue;
                 }
 
