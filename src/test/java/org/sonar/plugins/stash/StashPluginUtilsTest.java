@@ -16,6 +16,7 @@ public class StashPluginUtilsTest {
     assertEquals("11.0", formatPercentage(10.96));
     assertEquals("11.0", formatPercentage(11.0));
     assertEquals("31.3", formatPercentage(31.25));
+    assertEquals("50.3", formatPercentage(50.29));
   }
 
   @Test
