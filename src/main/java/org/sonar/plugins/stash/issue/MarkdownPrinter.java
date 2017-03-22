@@ -100,7 +100,7 @@ public final class MarkdownPrinter {
     }
     
     // Code coverage
-    if (! coverageReport.isEmpty()) {
+    if (!coverageReport.isEmpty() || coverageReport.getEvolution() < 0) {
       sb.append(printCoverageReportMarkdown(stashProject, stashRepo, pullRequestId, coverageReport, stashURL));
     }
 
