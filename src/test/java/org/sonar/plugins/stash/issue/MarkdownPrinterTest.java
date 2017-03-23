@@ -2,6 +2,9 @@ package org.sonar.plugins.stash.issue;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.sonar.api.issue.Issue;
@@ -12,9 +15,6 @@ import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.coverage.CoverageRule;
 import org.sonar.plugins.stash.coverage.CoverageSensorTest;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MarkdownPrinterTest {
   
@@ -138,8 +138,6 @@ public class MarkdownPrinterTest {
 
   @Test
   public void testPrintReportMarkdown() {
-    int issueThreshold = 100;
-
     String issueReportMarkdown = printReportMarkdown(report, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 4 |\n"

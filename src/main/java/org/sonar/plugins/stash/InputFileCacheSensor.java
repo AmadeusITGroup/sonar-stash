@@ -1,7 +1,5 @@
 package org.sonar.plugins.stash;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
