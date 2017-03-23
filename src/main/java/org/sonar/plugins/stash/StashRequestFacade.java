@@ -180,16 +180,20 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
         // if comment not already pushed to Stash
         if (comments != null && comments.contains( commentContent, path, issueLine)) {
-          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
-                  path, issueLine);
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
+                    path, issueLine);
+          }
           continue;  // Next element in "issue_loop"
         }
 
         // check if issue belongs to the Stash diff view
         String type = diffReport.getType(path, issueLine);
         if (type == null) {
-          LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                  issue.key(), path, issueLine);
+          if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
+                    issue.key(), path, issueLine);
+          }
           continue;  // Next element in "issue_loop"
         }
 
@@ -198,14 +202,18 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
         StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
                 commentContent, path, line, type);
 
-        LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
-                path, line);
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
+                  path, line);
+        }
 
         // Create task linked to the comment if configured
         if (taskSeverities.contains(issue.severity())) {
           stashClient.postTaskOnComment(issue.message(), comment.getId());
 
-          LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+          }
         }
 
 
