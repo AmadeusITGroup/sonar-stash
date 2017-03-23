@@ -29,9 +29,6 @@ import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 
 public class SonarQubeCollectorTest {
-  
-  File projectBaseDir;
-
   @Mock
   ProjectIssues projectIssues = mock(ProjectIssues.class);
   
@@ -76,8 +73,6 @@ public class SonarQubeCollectorTest {
     ///////// File system objects /////////
     
     context = mock(SensorContext.class);
-    
-    projectBaseDir = new File("baseDir");
 
     ArrayList<InputFile> inputFiles = new ArrayList<InputFile>();
     inputFiles.add(inputFile1);
@@ -154,7 +149,7 @@ public class SonarQubeCollectorTest {
     ArrayList<Issue> issues = new ArrayList<Issue>();
     when(projectIssues.issues()).thenReturn(issues);
     
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, projectBaseDir);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
     assertEquals(0, report.size());
   }
   
@@ -165,7 +160,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
     
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, projectBaseDir);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
     assertEquals(2, report.size());
     assertEquals(1, countIssuesBySeverity(report, "severity1"));
     assertEquals(1, countIssuesBySeverity(report, "severity2"));
@@ -190,7 +185,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     when(projectIssues.issues()).thenReturn(issues);
     
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, projectBaseDir);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
     assertEquals(1, report.size());
     assertEquals(1, countIssuesBySeverity(report, "severity1"));
     assertEquals(0, countIssuesBySeverity(report, "severity2"));
@@ -211,7 +206,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
     
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, projectBaseDir);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, "severity1"));
     assertEquals(1, countIssuesBySeverity(report, "severity2"));
@@ -227,7 +222,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
     
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, projectBaseDir);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, "severity1"));
     assertEquals(1, countIssuesBySeverity(report, "severity2"));

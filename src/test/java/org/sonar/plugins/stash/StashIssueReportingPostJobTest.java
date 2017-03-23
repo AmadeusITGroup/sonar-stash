@@ -44,9 +44,6 @@ public class StashIssueReportingPostJobTest extends StashTest {
   ProjectIssues projectIssues;
 
   @Mock
-  InputFileCache inputFileCache;
-  
-  @Mock
   Project project;
   
   @Mock
@@ -81,9 +78,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   @Before
   public void setUp() throws Exception {
     projectIssues = mock(ProjectIssues.class);
-    inputFileCache = mock(InputFileCache.class);
-    inputFileCache= mock(InputFileCache.class);
-    
+
     project = new Project("1");
     context = mock(SensorContext.class);
     
@@ -127,7 +122,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   
   @Test
   public void testExecuteOn() throws Exception {
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, inputFileCache, new DefaultFileSystem(null));
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
     myJob.executeOn(project, context);
     
     verify(stashRequestFacade, times(0)).resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -145,7 +140,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(report.size()).thenReturn(55);
     when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
     
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, inputFileCache, new DefaultFileSystem(null));
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
     myJob.executeOn(project, context);
     
     verify(stashRequestFacade, times(0)).resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -157,7 +152,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithNoPluginActivation() throws Exception {
     when(config.hasToNotifyStash()).thenReturn(false);
     
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, inputFileCache, new DefaultFileSystem(null));
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
     myJob.executeOn(project, context);
     
     verify(stashRequestFacade, times(0)).resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -171,7 +166,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithNoStashUserDefined() throws Exception {
     when(stashRequestFacade.getSonarQubeReviewer(Mockito.anyString(), (StashClient) Mockito.anyObject())).thenReturn(null);
     
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, inputFileCache, new DefaultFileSystem(null));
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
     myJob.executeOn(project, context);
     
     verify(stashRequestFacade, times(0)).resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -185,7 +180,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithResetCommentActivated() throws Exception {
     when(config.resetComments()).thenReturn(true);
 
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, inputFileCache, new DefaultFileSystem(null));
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
     myJob.executeOn(project, context);
     
     verify(stashRequestFacade, times(1)).resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -198,7 +193,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     diffReport = null;
     when(stashRequestFacade.getPullRequestDiffReport(eq(pr), (StashClient) Mockito.anyObject())).thenReturn(diffReport);
     
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, inputFileCache, new DefaultFileSystem(null));
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
     myJob.executeOn(project, context);
     
     verify(stashRequestFacade, times(0)).resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());

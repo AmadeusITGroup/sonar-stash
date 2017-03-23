@@ -23,7 +23,7 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static List<Issue> extractIssueReport(ProjectIssues projectIssues, IssuePathResolver issuePathResolver, File projectBaseDir) {
+  public static List<Issue> extractIssueReport(ProjectIssues projectIssues, IssuePathResolver issuePathResolver) {
     List<Issue> result = new ArrayList<>();
 
     for (Issue issue : projectIssues.issues()) {

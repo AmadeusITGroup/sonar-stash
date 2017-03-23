@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
-import org.sonar.api.batch.fs.FileSystem;
-import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
@@ -26,16 +24,12 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   private final ProjectIssues projectIssues;
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
-  private final InputFileCache inputFileCache;
-  private final FileSystem fileSystem;
 
   public StashIssueReportingPostJob(StashPluginConfiguration stashPluginConfiguration, ProjectIssues projectIssues,
-                                    StashRequestFacade stashRequestFacade, InputFileCache inputFileCache, FileSystem fileSystem) {
+                                    StashRequestFacade stashRequestFacade) {
     this.projectIssues = projectIssues;
     this.config = stashPluginConfiguration;
     this.stashRequestFacade = stashRequestFacade;
-    this.inputFileCache = inputFileCache;
-    this.fileSystem = fileSystem;
   }
 
   @Override
@@ -53,7 +47,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
         try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
 
           // Down the rabbit hole...
-          updateStashWithSonarInfo(stashClient, stashCredentials, project, context);
+          updateStashWithSonarInfo(stashClient, stashCredentials, context);
         }
       }
     } catch (StashConfigurationException e) {
@@ -67,7 +61,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   * Second part of the code necessary for the executeOn() -- squid:S134
   */
   private void updateStashWithSonarInfo(StashClient stashClient, StashCredentials stashCredentials,
-                                                Project project, SensorContext context) {
+                                        SensorContext context) {
 
     try {
       int issueThreshold  = stashRequestFacade.getIssueThreshold();
