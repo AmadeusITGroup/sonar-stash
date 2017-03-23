@@ -1,7 +1,5 @@
 package org.sonar.plugins.stash.coverage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.Sensor;
@@ -17,8 +15,6 @@ import static org.sonar.plugins.stash.coverage.CoverageUtils.getLineCoverage;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class CoverageProjectStore implements BatchComponent, Sensor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CoverageProjectStore.class);
-
     private Double previousProjectCoverage = null;
     private int linesToCover = 0;
     private int uncoveredLines = 0;

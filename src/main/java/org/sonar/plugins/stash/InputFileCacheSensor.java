@@ -24,9 +24,7 @@ public class InputFileCacheSensor implements Sensor, BatchComponent {
 
     @Override
     public void analyse(Project module, SensorContext context) {
-        LOGGER.debug("sensor files: {}");
         for (InputFile inputFile : fileSystem.inputFiles(fileSystem.predicates().all())) {
-            LOGGER.debug("Adding file {}: {} / {} to cache", context.getResource(inputFile).getEffectiveKey(), inputFile.relativePath(), inputFile.absolutePath());
             inputFileCache.putInputFile(context.getResource(inputFile).getEffectiveKey(), inputFile);
         }
     }
