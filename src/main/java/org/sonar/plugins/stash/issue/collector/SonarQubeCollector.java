@@ -1,8 +1,9 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,34 +14,31 @@ import org.sonar.plugins.stash.IssuePathResolver;
 public final class SonarQubeCollector {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SonarQubeCollector.class);
-  
-  private SonarQubeCollector() {
-    // NOTHING TO DO
-    // Pure static class
-  }
+
+  private SonarQubeCollector() {}
 
   /**
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
   public static List<Issue> extractIssueReport(ProjectIssues projectIssues, IssuePathResolver issuePathResolver) {
-    List<Issue> result = new ArrayList<>();
+    return StreamSupport.stream(
+                         projectIssues.issues().spliterator(), false)
+                        .filter(issue -> shouldIncludeIssue(issue, issuePathResolver))
+                        .collect(Collectors.toList());
+  }
 
-    for (Issue issue : projectIssues.issues()) {
-      if (!issue.isNew()){
-        LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
-        continue;
-      }
-
-      String path = issuePathResolver.getIssuePath(issue);
-      if (path == null) {
-        LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
-        continue;
-      }
-
-      result.add(issue);
+  private static boolean shouldIncludeIssue(Issue issue, IssuePathResolver issuePathResolver) {
+    if (!issue.isNew()){
+      LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
+      return false;
     }
 
-    return result;
+    String path = issuePathResolver.getIssuePath(issue);
+    if (path == null) {
+      LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
+      return false;
+    }
+    return true;
   }
 }
