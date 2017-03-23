@@ -13,7 +13,6 @@ import org.sonar.api.resources.Project;
  * FIXME this should not be necessary, the new plugin API gives us direct access to the InputFile of an issue
  */
 public class InputFileCacheSensor implements Sensor, BatchComponent {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InputFileCacheSensor.class);
     private final InputFileCache inputFileCache;
     private final FileSystem fileSystem;
 
