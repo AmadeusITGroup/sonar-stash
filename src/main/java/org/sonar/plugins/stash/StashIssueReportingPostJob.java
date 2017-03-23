@@ -148,9 +148,6 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   */
   private static class StashMissingElementException extends Exception {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 5917014003691827699L;
 
     public StashMissingElementException(String exc) {
