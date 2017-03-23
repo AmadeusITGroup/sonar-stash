@@ -47,7 +47,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
         try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
 
           // Down the rabbit hole...
-          updateStashWithSonarInfo(stashClient, stashCredentials, context);
+          updateStashWithSonarInfo(stashClient, stashCredentials);
         }
       }
     } catch (StashConfigurationException e) {
@@ -60,8 +60,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   /*
   * Second part of the code necessary for the executeOn() -- squid:S134
   */
-  private void updateStashWithSonarInfo(StashClient stashClient, StashCredentials stashCredentials,
-                                        SensorContext context) {
+  private void updateStashWithSonarInfo(StashClient stashClient, StashCredentials stashCredentials) {
 
     try {
       int issueThreshold  = stashRequestFacade.getIssueThreshold();

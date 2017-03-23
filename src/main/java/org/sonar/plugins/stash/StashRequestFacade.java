@@ -145,8 +145,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Post one comment by found issue on Stash.
    */
-  void postCommentPerIssue(PullRequestRef pr,
-                           Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
+  void postCommentPerIssue(PullRequestRef pr, Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
@@ -163,65 +162,64 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       }
     }
 
-    try {
-      // Severity available to create a task
-      List<String> taskSeverities = getReportedSeverities();
+    // Severity available to create a task
+    List<String> taskSeverities = getReportedSeverities();
 
-      // Let's call this "issue_loop"
-      for (Issue issue : issues) {
-        String path = getIssuePath(issue);
-        StashCommentReport comments = commentsByFile.get(path);
-        String commentContent = MarkdownPrinter.printIssueMarkdown(issue, config.getSonarQubeURL());
-        Integer issueLine = issue.line();
-        // FIXME move this somewhere else
-        if (issueLine == null) {
-          issueLine = 0;
-        }
-
-        // if comment not already pushed to Stash
-        if (comments != null && comments.contains( commentContent, path, issueLine)) {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
-                    path, issueLine);
-          }
-          continue;  // Next element in "issue_loop"
-        }
-
-        // check if issue belongs to the Stash diff view
-        String type = diffReport.getType(path, issueLine);
-        if (type == null) {
-          if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                    issue.key(), path, issueLine);
-          }
-          continue;  // Next element in "issue_loop"
-        }
-
-        long line = diffReport.getLine(path, issueLine);
-
-        StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
-                commentContent, path, line, type);
-
-        if (LOGGER.isDebugEnabled()) {
-          LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
-                  path, line);
-        }
-
-        // Create task linked to the comment if configured
-        if (taskSeverities.contains(issue.severity())) {
-          stashClient.postTaskOnComment(issue.message(), comment.getId());
-
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
-          }
-        }
-
-
-      }
-
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to link SonarQube issues to Stash", e);
+    for (Issue issue : issues) {
+        postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, taskSeverities);
     }
+  }
+
+  private void postIssueComment(PullRequestRef pr, Issue issue, Map<String, StashCommentReport> commentsByFile,
+                                StashDiffReport diffReport, StashClient stashClient, List<String> taskSeverities)
+                                throws StashClientException {
+    String path = getIssuePath(issue);
+    StashCommentReport comments = commentsByFile.get(path);
+    String commentContent = MarkdownPrinter.printIssueMarkdown(issue, config.getSonarQubeURL());
+    Integer issueLine = issue.line();
+    // FIXME move this somewhere else
+    if (issueLine == null) {
+      issueLine = 0;
+    }
+
+    // if comment not already pushed to Stash
+    if (comments != null && comments.contains( commentContent, path, issueLine)) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
+                path, issueLine);
+      }
+      return;
+    }
+
+    // check if issue belongs to the Stash diff view
+    String type = diffReport.getType(path, issueLine);
+    if (type == null) {
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
+                issue.key(), path, issueLine);
+      }
+      return;
+    }
+
+    long line = diffReport.getLine(path, issueLine);
+
+    StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
+            commentContent, path, line, type);
+
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
+              path, line);
+    }
+
+    // Create task linked to the comment if configured
+    if (taskSeverities.contains(issue.severity())) {
+      stashClient.postTaskOnComment(issue.message(), comment.getId());
+
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+      }
+    }
+
   }
 
   public StashCredentials getCredentials() throws StashConfigurationException {
