@@ -3,7 +3,6 @@ package org.sonar.plugins.stash;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.collections4.ListUtils;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.api.PropertyType;
@@ -14,6 +13,8 @@ import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.coverage.CoverageProjectStore;
 import org.sonar.plugins.stash.coverage.CoverageRule;
 import org.sonar.plugins.stash.coverage.CoverageSensor;
+
+import com.google.common.collect.Lists;
 
 @Properties({
     @Property(key = StashPlugin.STASH_NOTIFICATION, name = "Stash Notification", defaultValue = "false", description = "Analysis result will be issued in Stash pull request", global = false),
@@ -109,7 +110,7 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
-            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
+            .options(Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[] {}))).build(),
         PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
             .name("Include Analysis Overview Comment")
             .description("Create a comment to  the Pull Request providing a overview of the results")
