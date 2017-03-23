@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.issue.Issue;
 
-public class StashPluginUtils {
+public final class StashPluginUtils {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashPluginUtils.class);
 

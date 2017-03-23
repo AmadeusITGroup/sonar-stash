@@ -179,8 +179,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
         }
 
         // if comment not already pushed to Stash
-        if ((comments != null) &&
-                (comments.contains( commentContent, path, issueLine))) {
+        if (comments != null && comments.contains( commentContent, path, issueLine)) {
           LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
                   path, issueLine);
           continue;  // Next element in "issue_loop"

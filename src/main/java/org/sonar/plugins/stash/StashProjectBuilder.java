@@ -5,7 +5,7 @@ import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import java.io.File;
 
 public class StashProjectBuilder extends ProjectBuilder {
-  private File projectBaseDir = null;
+  private File projectBaseDir;
 
   @Override
   public void build(Context context) {

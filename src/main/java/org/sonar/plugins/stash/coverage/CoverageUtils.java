@@ -9,7 +9,7 @@ import org.sonar.wsclient.base.HttpException;
 import org.sonar.wsclient.services.Resource;
 import org.sonar.wsclient.services.ResourceQuery;
 
-public class CoverageUtils {
+public final class CoverageUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoverageUtils.class);
 
     private CoverageUtils() {}

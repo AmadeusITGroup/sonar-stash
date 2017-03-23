@@ -40,12 +40,6 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
   @Override
   public void executeOn(Project project, SensorContext context) {
-    if (projectIssues != null && projectIssues.issues() != null) {
-      for (org.sonar.api.issue.Issue i : projectIssues.issues()) {
-        System.out.println(i.ruleKey() + ": " + i.message());
-      }
-    }
-
     try {
       boolean notifyStash = config.hasToNotifyStash();
       if (notifyStash) {
@@ -148,13 +142,12 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
     // if no new issues and coverage is improved,
     // plugin approves the pull-request
-    if (canApprovePullrequest && (issueTotal == 0)){
-
-      stashRequestFacade.approvePullRequest(pr, stashClient);
-
-    } else if (canApprovePullrequest && ( (issueTotal != 0)) ) {
-
-      stashRequestFacade.resetPullRequestApproval(pr, stashClient);
+    if (canApprovePullrequest) {
+      if (issueTotal == 0) {
+        stashRequestFacade.approvePullRequest(pr, stashClient);
+      } else {
+        stashRequestFacade.resetPullRequestApproval(pr, stashClient);
+      }
     }
   }
 
