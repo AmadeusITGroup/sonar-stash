@@ -1,8 +1,15 @@
 package org.sonar.plugins.stash;
 
 public class PullRequestRef {
-    private String project, repository;
+    private String project;
+    private String repository;
     private int pullRequestId;
+
+    private PullRequestRef(String project, String repository, int pullRequestId) {
+        this.project = project;
+        this.repository = repository;
+        this.pullRequestId = pullRequestId;
+    }
 
     public String project() {
         return project;
@@ -18,12 +25,6 @@ public class PullRequestRef {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    private PullRequestRef(String project, String repository, int pullRequestId) {
-        this.project = project;
-        this.repository = repository;
-        this.pullRequestId = pullRequestId;
     }
 
     public static class Builder {
