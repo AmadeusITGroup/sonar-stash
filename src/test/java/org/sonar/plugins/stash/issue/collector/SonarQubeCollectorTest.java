@@ -6,13 +6,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FilePredicate;
 import org.sonar.api.batch.fs.FilePredicates;
@@ -28,9 +29,10 @@ import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 
+@RunWith(MockitoJUnitRunner.class)
 public class SonarQubeCollectorTest {
   @Mock
-  ProjectIssues projectIssues = mock(ProjectIssues.class);
+  ProjectIssues projectIssues;
   
   @Mock
   Issue issue1;
@@ -72,8 +74,6 @@ public class SonarQubeCollectorTest {
     
     ///////// File system objects /////////
     
-    context = mock(SensorContext.class);
-
     ArrayList<InputFile> inputFiles = new ArrayList<InputFile>();
     inputFiles.add(inputFile1);
     inputFiles.add(inputFile2);
@@ -87,31 +87,24 @@ public class SonarQubeCollectorTest {
 
     ///////// Metric object ////////
     
-    measure1 = mock(Measure.class); 
     when(measure1.getValue()).thenReturn(33.33);
     
-    measure2 = mock(Measure.class); 
     when(measure2.getValue()).thenReturn(100.0);
     
-    measure3 = mock(Measure.class); 
     when(measure3.getValue()).thenReturn(66.66);
     
-    measure4 = mock(Measure.class); 
     when(measure4.getValue()).thenReturn(100.0);
     
-    resource1 = mock(Resource.class);
     when(context.getResource(inputFile1)).thenReturn(resource1);
     when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure1);
     when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(measure2);
     
-    resource2 = mock(Resource.class);
     when(context.getResource(inputFile2)).thenReturn(resource2);
     when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure3);
     when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(measure4);
     
     ///////// SonarQube issues /////////
     
-    issue1 = mock(Issue.class);
     when(issue1.line()).thenReturn(1);
     when(issue1.message()).thenReturn("message1");
     when(issue1.key()).thenReturn("key1");
@@ -123,7 +116,6 @@ public class SonarQubeCollectorTest {
     when(rule1.toString()).thenReturn("rule1");
     when(issue1.ruleKey()).thenReturn(rule1);
     
-    issue2 = mock(Issue.class);
     when(issue2.line()).thenReturn(2);
     when(issue2.message()).thenReturn("message2");
     when(issue2.key()).thenReturn("key2");

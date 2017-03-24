@@ -1,32 +1,32 @@
 package org.sonar.plugins.stash;
 
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.sonar.api.batch.SensorContext;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
-import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageProjectStore;
-import org.sonar.plugins.stash.coverage.CoverageSensor;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
-import java.util.List;
 
-
+@RunWith(MockitoJUnitRunner.class)
 public class StashIssueReportingPostJobTest extends StashTest {
   
   StashIssueReportingPostJob myJob;
@@ -43,8 +43,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   @Mock
   ProjectIssues projectIssues;
 
-  @Mock
-  Project project;
+  Project project = new Project("1");
   
   @Mock
   StashDiffReport diffReport;
@@ -77,16 +76,6 @@ public class StashIssueReportingPostJobTest extends StashTest {
 
   @Before
   public void setUp() throws Exception {
-    projectIssues = mock(ProjectIssues.class);
-
-    project = new Project("1");
-    context = mock(SensorContext.class);
-    
-    stashUser = mock(StashUser.class);
-    
-    diffReport = mock(StashDiffReport.class);
-    
-    config = mock(StashPluginConfiguration.class);
     when(config.hasToNotifyStash()).thenReturn(true);
     when(config.canApprovePullRequest()).thenReturn(false);
     when(config.getStashURL()).thenReturn(STASH_URL);
@@ -96,13 +85,9 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(config.hasToNotifyStash()).thenReturn(true);
     when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
 
-    stashRequestFacade = mock(StashRequestFacade.class);
-    
-    report = mock(List.class);
     when(report.size()).thenReturn(10);
     when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
 
-    coverageProjectStore = mock(CoverageProjectStore.class);
     when(coverageProjectStore.getProjectCoverage()).thenReturn(20.0);
     when(coverageProjectStore.getPreviousProjectCoverage()).thenReturn(10.0);
     // when(coverageReport.countLoweredIssues()).thenReturn(5);
@@ -136,7 +121,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithReachedThreshold() throws Exception {
     when(stashRequestFacade.getIssueThreshold()).thenReturn(10);
     
-    List<Issue> report = mock(List.class);
+    List<Issue> report = spy(new ArrayList<Issue>());
     when(report.size()).thenReturn(55);
     when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
     

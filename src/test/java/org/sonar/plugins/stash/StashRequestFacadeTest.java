@@ -3,8 +3,8 @@ package org.sonar.plugins.stash;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.Before;
@@ -27,10 +26,8 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.sonar.api.batch.fs.internal.DefaultFileSystem;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
-import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.internal.DefaultIssue;
 import org.sonar.api.rule.RuleKey;
@@ -38,7 +35,6 @@ import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageProjectStore;
-import org.sonar.plugins.stash.coverage.CoverageSensor;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
@@ -116,11 +112,8 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
     when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
 
-    DefaultFileSystem fileSystem = new DefaultFileSystem(null);
-    ResourcePerspectives resourcePerspectives = new DummyResourcePerspective();
     ActiveRules activeRules = new ActiveRulesBuilder().build();
     CoverageProjectStore coverageProjectStore = new CoverageProjectStore(config, activeRules);
-    CoverageSensor sensor = new CoverageSensor(fileSystem, resourcePerspectives, config, activeRules, coverageProjectStore);
     InputFileCache inputFileCache = new InputFileCache();
     StashProjectBuilder projectBuilder = new StashProjectBuilder();
 
@@ -264,7 +257,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getStashLogin()).thenReturn("login");
     when(config.getStashPasswordEnvironmentVariable()).thenReturn("SONAR_STASH_PASSWORD");
 
-    StashCredentials credentials = myFacade.getCredentials();
+    myFacade.getCredentials();
   }
 
   @Test
@@ -359,13 +352,13 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testPostSonarQubeReport() throws StashClientException {
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
-    verify(myFacade, times(1)).postCommentPerIssue(eq(pr), (Collection) anyObject(), eq(diffReport), eq(stashClient));
+    verify(myFacade, times(1)).postCommentPerIssue(eq(pr), anyCollectionOf(Issue.class), eq(diffReport), eq(stashClient));
   }
   
   @Test
   public void testPostSonarQubeReportWithException() throws StashClientException {
     doThrow(new StashClientException("StashClientException for Test")).when(myFacade)
-      .postCommentPerIssue(eq(pr), (Collection) anyObject(), eq(diffReport), eq(stashClient));
+        .postCommentPerIssue(eq(pr), anyCollectionOf(Issue.class), eq(diffReport), eq(stashClient));
   
     try {
       myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
@@ -600,7 +593,7 @@ public class StashRequestFacadeTest extends StashTest {
     
     myFacade.addPullRequestReviewer(pr, STASH_USER, stashClient);
     
-    verify(stashClient, times(1)).addPullRequestReviewer(pr, (long) 1, reviewers);
+    verify(stashClient, times(1)).addPullRequestReviewer(pr, 1, reviewers);
   }
   
   @Test
@@ -618,7 +611,7 @@ public class StashRequestFacadeTest extends StashTest {
     
     myFacade.addPullRequestReviewer(pr, STASH_USER, stashClient);
     
-    verify(stashClient, times(0)).addPullRequestReviewer(pr, (long) 1, reviewers);
+    verify(stashClient, times(0)).addPullRequestReviewer(pr, 1, reviewers);
   }
   
   @Test

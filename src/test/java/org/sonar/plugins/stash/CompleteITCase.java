@@ -1,26 +1,25 @@
 package org.sonar.plugins.stash;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonar.plugins.stash.client.StashClient;
-import org.sonar.plugins.stash.client.StashCredentials;
-import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
-import org.sonar.plugins.stash.fixtures.SonarQubeRule;
-import org.sonar.plugins.stash.fixtures.SonarScanner;
-import org.sonar.plugins.stash.issue.collector.DiffReportSample;
+import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
+import org.sonar.plugins.stash.fixtures.SonarQubeRule;
+import org.sonar.plugins.stash.fixtures.SonarScanner;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
+
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 public class CompleteITCase {
     protected static SonarScanner sonarScanner;

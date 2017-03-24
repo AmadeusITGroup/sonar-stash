@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
@@ -13,8 +15,6 @@ import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
-
-import java.util.List;
 
 public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
@@ -146,7 +146,9 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   /*
   *  Custom exception to keep nested if statements under control
   */
-  private class StashMissingElementException extends Exception {
+  private static class StashMissingElementException extends Exception {
+
+    private static final long serialVersionUID = 5917014003691827699L;
 
     public StashMissingElementException(String exc) {
         super(exc);
