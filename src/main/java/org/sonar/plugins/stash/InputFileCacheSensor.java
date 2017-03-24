@@ -11,10 +11,12 @@ import org.sonar.api.resources.Project;
  * FIXME this should not be necessary, the new plugin API gives us direct access to the InputFile of an issue
  */
 public class InputFileCacheSensor implements Sensor, BatchComponent {
+    private final StashPluginConfiguration stashPluginConfiguration;
     private final InputFileCache inputFileCache;
     private final FileSystem fileSystem;
 
-    public InputFileCacheSensor(InputFileCache inputFileCache, FileSystem fileSystem) {
+    public InputFileCacheSensor(StashPluginConfiguration stashPluginConfiguration, InputFileCache inputFileCache, FileSystem fileSystem) {
+        this.stashPluginConfiguration = stashPluginConfiguration;
         this.inputFileCache = inputFileCache;
         this.fileSystem = fileSystem;
     }
@@ -28,6 +30,11 @@ public class InputFileCacheSensor implements Sensor, BatchComponent {
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return true;
+        return stashPluginConfiguration.hasToNotifyStash();
+    }
+
+    @Override
+    public String toString() {
+        return "Stash Plugin Inputfile Cache";
     }
 }
