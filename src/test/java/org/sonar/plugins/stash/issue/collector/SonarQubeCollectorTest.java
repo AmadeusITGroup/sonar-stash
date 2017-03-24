@@ -40,7 +40,7 @@ import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 
 public class SonarQubeCollectorTest {
   
-  File projectBaseDir;
+  File workingDir;
   
   @Mock
   InputFileCache inputFileCache = mock(InputFileCache.class);
@@ -95,7 +95,7 @@ public class SonarQubeCollectorTest {
     
     context = mock(SensorContext.class);
     
-    projectBaseDir = new File("baseDir");
+    workingDir = new File("baseDir");
     
     inputFile1 = mock(InputFile.class); 
     when(inputFile1.file()).thenReturn(new File("baseDir/project/path1"));
@@ -187,7 +187,7 @@ public class SonarQubeCollectorTest {
     ArrayList<Issue> issues = new ArrayList<Issue>();
     when(projectIssues.issues()).thenReturn(issues);
     
-    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, workingDir);
     assertTrue(report.countIssues() == 0);
   }
   
@@ -198,7 +198,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
     
-    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, workingDir);
     assertTrue(report.countIssues() == 2);
     assertTrue(report.countIssues("severity1") == 1);
     assertTrue(report.countIssues("severity2") == 1);
@@ -223,7 +223,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     when(projectIssues.issues()).thenReturn(issues);
     
-    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, workingDir);
     assertTrue(report.countIssues() == 1);
     assertTrue(report.countIssues("severity1") == 1);
     assertTrue(report.countIssues("severity2") == 0);
@@ -245,7 +245,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
     
-    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, workingDir);
     assertTrue(report.countIssues() == 1);
     assertTrue(report.countIssues("severity1") == 0);
     assertTrue(report.countIssues("severity2") == 1);
@@ -260,7 +260,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
     
-    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    SonarQubeIssuesReport report = SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, workingDir);
     assertTrue(report.countIssues() == 1);
     assertTrue(report.countIssues("severity1") == 0);
     assertTrue(report.countIssues("severity2") == 1);

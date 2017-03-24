@@ -40,7 +40,7 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File projectBaseDir) {
+  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File workingDir) {
     SonarQubeIssuesReport result = new SonarQubeIssuesReport();
 
     for (Issue issue : projectIssues.issues()) {
@@ -65,7 +65,7 @@ public final class SonarQubeCollector {
         continue;
       }
 
-      String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
+      String path = new PathResolver().relativePath(workingDir, inputFile.file());
       if (path == null) {
         LOGGER.debug("Cannot find path for issue {}, not added to the report", issue.key());
         continue;
