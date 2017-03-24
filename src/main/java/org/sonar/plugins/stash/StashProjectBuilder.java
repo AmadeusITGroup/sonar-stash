@@ -5,15 +5,15 @@ import org.sonar.api.batch.bootstrap.ProjectBuilder;
 import java.io.File;
 
 public class StashProjectBuilder extends ProjectBuilder {
-  private File projectBaseDir;
+  private File workingDir;
 
   @Override
   public void build(Context context) {
-    projectBaseDir = context.projectReactor().getRoot().getBaseDir();
+    workingDir = new File(System.getProperty("user.dir"));
   }
 
-  public File getProjectBaseDir() {
-    return projectBaseDir;
+  public File getWorkingDir() {
+    return workingDir;
   }
 
 }

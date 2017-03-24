@@ -1,6 +1,12 @@
 package org.sonar.plugins.stash.issue;
 
-import com.google.common.collect.Lists;
+import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
+import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
+import static org.sonar.plugins.stash.StashPluginUtils.getUniqueRulesBySeverity;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.issue.Issue;
@@ -9,13 +15,7 @@ import org.sonar.plugins.stash.IssuePathResolver;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.coverage.CoverageRule;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
-import static org.sonar.plugins.stash.StashPluginUtils.getUniqueRulesBySeverity;
+import com.google.common.collect.Lists;
 
 public final class MarkdownPrinter {
 
