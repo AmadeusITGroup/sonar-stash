@@ -1,12 +1,12 @@
 package org.sonar.plugins.stash.fixtures;
 
-import com.google.common.base.Joiner;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
+
+import com.google.common.base.Joiner;
 
 public class SonarScanner {
     protected Path installDir;
@@ -32,7 +32,6 @@ public class SonarScanner {
                 .directory(installDir.toFile())
                 .inheritIO();
         List<String> command = pb.command();
-        addCliProperty(command, "sonar.projectBaseDir", baseDir);
         addCliProperty(command, "sonar.host.url", sonarqube.getUrl());
         addCliProperty(command, "sonar.sources", Joiner.on(',').join(sources));
         addCliProperty(command, "sonar.projectKey", projectKey);
