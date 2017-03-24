@@ -98,6 +98,8 @@ This feature is based on "line coverage" metric, which compares the "uncovered l
 
 To activate this feature, enable the "Coverage on files should not decrease"
 rules in your relevant Quality Profile.
+The rule is part of this plugin. To add the rule, install the plugin and
+restart the SonarQube server.
 
 **Be careful, with SonarQube 4.5.6, this feature does not work with incremental mode.**
 
