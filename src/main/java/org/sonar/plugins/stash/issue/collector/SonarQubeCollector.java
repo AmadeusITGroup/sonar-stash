@@ -40,7 +40,7 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File projectBaseDir) {
+  public static SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache, File workingDir) {
     SonarQubeIssuesReport result = new SonarQubeIssuesReport();
 
     for (Issue issue : projectIssues.issues()) {
@@ -61,7 +61,7 @@ public final class SonarQubeCollector {
         if (inputFile == null){
           LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
         } else {
-          String path = new PathResolver().relativePath(projectBaseDir, inputFile.file());
+          String path = new PathResolver().relativePath(workingDir, inputFile.file());
              
           // Create the issue and Add to report
           SonarQubeIssue stashIssue = new SonarQubeIssue(key, severity, message, rule, path, line);

@@ -43,18 +43,18 @@ public class StashRequestFacade implements BatchComponent {
   private static final String STACK_TRACE = "Exception stack trace";
 
   private StashPluginConfiguration config;
-  private File projectBaseDir;
+  private File workingDir;
 
   public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration) {
     this.config = stashPluginConfiguration;
   }
 
-  public void initialize(File projectBaseDir) {
-    this.projectBaseDir = projectBaseDir;
+  public void initialize(File workingDir) {
+    this.workingDir = workingDir;
   }
 
   public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache) {
-    return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+    return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, workingDir);
   }
 
   /**
