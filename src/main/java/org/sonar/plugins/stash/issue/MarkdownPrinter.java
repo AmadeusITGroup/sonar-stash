@@ -1,27 +1,34 @@
 package org.sonar.plugins.stash.issue;
 
-import com.google.common.collect.Lists;
-
-import org.apache.commons.lang.StringUtils;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.rule.Severity;
-import org.sonar.plugins.stash.IssuePathResolver;
-import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.coverage.CoverageRule;
+import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
+import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
+import static org.sonar.plugins.stash.StashPluginUtils.getUniqueRulesBySeverity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.formatPercentage;
-import static org.sonar.plugins.stash.StashPluginUtils.getUniqueRulesBySeverity;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.sonar.api.issue.Issue;
+import org.sonar.api.rule.Severity;
+import org.sonar.plugins.stash.IssuePathResolver;
+import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.StashProjectBuilder;
+import org.sonar.plugins.stash.coverage.CoverageRule;
+
+import com.google.common.collect.Lists;
 
 public final class MarkdownPrinter {
 
-  static final String NEW_LINE = "\n";
-  static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
-  static final List<String> orderedSeverities = Lists.reverse(Severity.ALL);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StashProjectBuilder.class);
+	
+  private static final int SOFT_SUMMARY_COMMENT_MAX_LENGTH = 30000;
+  private static final int HARD_SUMMARY_COMMENT_MAX_LENGTH = Short.MAX_VALUE;
+  private static final String NEW_LINE = "\n";
+  private static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
+  private static final List<String> orderedSeverities = Lists.reverse(Severity.ALL);
   
   private MarkdownPrinter(){
     // DO NOTHING
@@ -51,7 +58,7 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public static String printIssueListBySeverityMarkdown(List<Issue> report, String sonarQubeURL, String severity) {
+  public static String printIssueListBySeverityMarkdown(int maxLength, List<Issue> report, String sonarQubeURL, String severity) {
     StringBuilder sb = new StringBuilder();
 
     Map<String, Issue> rules = getUniqueRulesBySeverity(report, severity);
@@ -60,6 +67,11 @@ public final class MarkdownPrinter {
     for (Map.Entry<String, Issue> rule : rules.entrySet()) {
       Issue issue = rule.getValue();
       sb.append("| ").append(printIssueMarkdown(issue, sonarQubeURL)).append(" |").append(NEW_LINE);
+      if (sb.length() > maxLength) {
+        sb.append("| ").append(MarkdownPrinter.printSeverityMarkdown(issue.severity()));
+        sb.append("The rest issues are skipped |").append(NEW_LINE);
+        break;
+      }
     }
 
     return sb.toString();
@@ -119,20 +131,30 @@ public final class MarkdownPrinter {
       sb.append("| Issues list |").append(NEW_LINE);
       sb.append("|------------|").append(NEW_LINE);
       for (String severity: orderedSeverities) {
-        sb.append(printIssueListBySeverityMarkdown(generalIssues, sonarQubeURL, severity));
+        int maxLength = SOFT_SUMMARY_COMMENT_MAX_LENGTH / 2 - sb.length();
+        sb.append(printIssueListBySeverityMarkdown(maxLength, generalIssues, sonarQubeURL, severity));
+        if (sb.length() > SOFT_SUMMARY_COMMENT_MAX_LENGTH / 2) {
+        	break;
+        }
       }
       sb.append(NEW_LINE).append(NEW_LINE);
     }
     
     // Code coverage
     if (!coverageIssues.isEmpty()) {
-      sb.append(printCoverageReportMarkdown(stashProject, stashRepo, pullRequestId, coverageIssues, stashURL, projectCoverage, previousProjectCoverage, issuePathResolver));
+      int maxLength = SOFT_SUMMARY_COMMENT_MAX_LENGTH - sb.length();
+      sb.append(printCoverageReportMarkdown(maxLength, stashProject, stashRepo, pullRequestId, coverageIssues, stashURL, projectCoverage, previousProjectCoverage, issuePathResolver));
     }
 
+    if (sb.length() > HARD_SUMMARY_COMMENT_MAX_LENGTH) {
+      LOGGER.debug("Overview comment is too big, trimming");
+      sb.setLength(HARD_SUMMARY_COMMENT_MAX_LENGTH);
+    }
+    
     return sb.toString();
   }
   
-  public static String printCoverageReportMarkdown(String stashProject, String stashRepo, int pullRequestId, List<Issue> coverageReport, String stashURL,
+  public static String printCoverageReportMarkdown(int maxLength, String stashProject, String stashRepo, int pullRequestId, List<Issue> coverageReport, String stashURL,
                                                    Double projectCoverage, Double previousProjectCoverage, IssuePathResolver issuePathResolver) {
     StringBuilder sb = new StringBuilder("| Line Coverage: ");
 
@@ -149,6 +171,10 @@ public final class MarkdownPrinter {
     
     for (Issue issue : coverageReport) {
       sb.append("| ").append(MarkdownPrinter.printCoverageIssueMarkdown(stashProject, stashRepo, String.valueOf(pullRequestId), stashURL, issue, issuePathResolver)).append(" |").append(NEW_LINE);
+      if (sb.length() > maxLength) {
+        sb.append("| The rest issues are skipped |");
+        break;
+      }
     }
     
     return sb.toString();

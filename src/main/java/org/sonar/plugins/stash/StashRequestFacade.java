@@ -39,14 +39,14 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   private static final String STACK_TRACE = "Exception stack trace";
 
   private StashPluginConfiguration config;
-  private File projectBaseDir;
+  private File workingDir;
   private final InputFileCache inputFileCache;
   private CoverageProjectStore coverageProjectStore;
 
   public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, InputFileCache inputFileCache, StashProjectBuilder projectBuilder, CoverageProjectStore coverageProjectStore) {
     this.config = stashPluginConfiguration;
     this.inputFileCache = inputFileCache;
-    this.projectBaseDir = projectBuilder.getProjectBaseDir();
+    this.workingDir = projectBuilder.getWorkingDir();
     this.coverageProjectStore = coverageProjectStore;
   }
 
@@ -422,6 +422,6 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       return null;
     }
 
-    return new PathResolver().relativePath(projectBaseDir, inputFile.file());
+    return new PathResolver().relativePath(workingDir, inputFile.file());
   }
 }

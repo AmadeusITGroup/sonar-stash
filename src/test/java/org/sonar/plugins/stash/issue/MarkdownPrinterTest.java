@@ -1,6 +1,9 @@
 package org.sonar.plugins.stash.issue;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,16 +21,15 @@ import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 public class MarkdownPrinterTest {
   
-  Issue issue;
-  Issue coverageIssue;
-  
-  List<Issue> report = new ArrayList<>();
-  DummyIssuePathResolver issuePathResolver = new DummyIssuePathResolver();
-
   private static final String SONAR_URL = "sonarqube/URL";
   private static final String STASH_URL = "stash/URL";
+
+  private Issue coverageIssue;
   
-  PullRequestRef pr = PullRequestRef.builder()
+  private List<Issue> report = new ArrayList<>();
+  private DummyIssuePathResolver issuePathResolver = new DummyIssuePathResolver();
+
+  private PullRequestRef pr = PullRequestRef.builder()
           .setProject("stashProject")
           .setRepository("stashRepo")
           .setPullRequestId(1)
@@ -44,13 +46,11 @@ public class MarkdownPrinterTest {
     report.add(issueCritical);
     report.add(issueMajor);
 
-    issue = issueBlocker;
     coverageIssue = new DefaultIssue().setKey("key4").setSeverity(Severity.MAJOR).setRuleKey(CoverageRule.decreasingLineCoverageRule("java"))
             .setMessage(CoverageSensorTest.formatIssueMessage("path/code/coverage", 40.0, 50.0));
 
     report.add(coverageIssue);
 
-    issuePathResolver = new DummyIssuePathResolver();
     issuePathResolver.add(coverageIssue, "path/code/coverage");
   }
   
@@ -123,13 +123,13 @@ public class MarkdownPrinterTest {
     report.remove(coverageIssue);
 
     assertEquals( "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n",
-            MarkdownPrinter.printIssueListBySeverityMarkdown(report, SONAR_URL, "BLOCKER"));
+            MarkdownPrinter.printIssueListBySeverityMarkdown(1000, report, SONAR_URL, "BLOCKER"));
 
     assertEquals( "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n",
-            MarkdownPrinter.printIssueListBySeverityMarkdown(report, SONAR_URL, "CRITICAL"));
+            MarkdownPrinter.printIssueListBySeverityMarkdown(1000, report, SONAR_URL, "CRITICAL"));
 
     assertEquals("| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n",
-            MarkdownPrinter.printIssueListBySeverityMarkdown(report, SONAR_URL, "MAJOR"));
+            MarkdownPrinter.printIssueListBySeverityMarkdown(1000, report, SONAR_URL, "MAJOR"));
   }
 
   private String printReportMarkdown(List<Issue> report, int issueThreshold) {
@@ -240,7 +240,7 @@ public class MarkdownPrinterTest {
   }
 
   private String printCoverageReportMarkdown(List<Issue> report, double projectCoverage, double previousProjectCoverage) {
-    return MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, report, STASH_URL, projectCoverage, previousProjectCoverage, issuePathResolver);
+    return MarkdownPrinter.printCoverageReportMarkdown(1000, "project", "repo", 1, report, STASH_URL, projectCoverage, previousProjectCoverage, issuePathResolver);
   }
 
   @Test
@@ -298,5 +298,29 @@ public class MarkdownPrinterTest {
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
+  }
+  
+  @Test
+  public void testPrintReportMarkdownMaxLength() {
+    for(int i=0; i < 5000; i++) {
+    	Issue issueBlocker = new DefaultIssue().setKey("key"+i).setSeverity(Severity.BLOCKER).setMessage("messageBlocker"+i).setRuleKey(RuleKey.of("RepoBlocker"+i, "RuleBlocker"+i)).setLine(1);
+        Issue issueCritical = new DefaultIssue().setKey("key"+i).setSeverity(Severity.CRITICAL).setMessage("messageCritical"+i).setRuleKey(RuleKey.of("RepoCritical"+i, "RuleCritical"+i)).setLine(1);
+        Issue issueMajor = new DefaultIssue().setKey("key"+i).setSeverity(Severity.MAJOR).setMessage("messageMajor"+i).setRuleKey(RuleKey.of("RepoMajor"+i, "RuleMajor"+i)).setLine(1);
+
+        report.add(issueBlocker);
+        report.add(issueCritical);
+        report.add(issueMajor);
+
+        coverageIssue = new DefaultIssue().setKey("key"+i).setSeverity(Severity.MAJOR).setRuleKey(CoverageRule.decreasingLineCoverageRule("java"))
+                .setMessage(CoverageSensorTest.formatIssueMessage("path/code/coverage"+i, 40.0, 50.0));
+
+        report.add(coverageIssue);
+    }
+	  
+    String issueReportMarkdown = printReportMarkdown(report, 100);
+
+    assertThat(issueReportMarkdown.length(), lessThanOrEqualTo((int) Short.MAX_VALUE));
+    assertThat(issueReportMarkdown, containsString("| *BLOCKER* - The rest issues are skipped |"));
+    assertThat(issueReportMarkdown, containsString("| The rest issues are skipped |"));
   }
 }
