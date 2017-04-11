@@ -80,6 +80,14 @@ sonar-runner -Dsonar.analysis.mode=preview \
 	-Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
 ```
 
+#### Repository source configuration
+
+To tell the plugin about the root directory of your repository use the `sonar.stash.repository.root` property.
+This is necessary to correlate the the file locations between SonarQube and Stash.
+```
+sonar-runner -Dsonar.stash.repository.root="$PWD" -Dsonar.stash.notification
+```
+
 ![Screenshot SonarQube plugin](resources/Stash-plugin-logs.PNG)
 
 #### Reset comments of previous SonarQube analysis

@@ -1,9 +1,13 @@
 package org.sonar.plugins.stash;
 
+import java.util.Optional;
+
 import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.config.Settings;
+
+import java.io.File;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration implements BatchComponent {
@@ -84,5 +88,9 @@ public class StashPluginConfiguration implements BatchComponent {
 
   public boolean includeAnalysisOverview() {
     return settings.getBoolean(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW);
+  }
+
+  public Optional<File> getRepositoryRoot() {
+    return Optional.ofNullable(settings.getString(StashPlugin.STASH_SOURCE_ROOT_DIR)).map(File::new);
   }
 }

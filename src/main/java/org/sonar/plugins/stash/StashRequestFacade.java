@@ -422,6 +422,10 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       return null;
     }
 
-    return new PathResolver().relativePath(projectBaseDir, inputFile.file());
+    File baseDir = config
+            .getRepositoryRoot()
+            .orElse(projectBaseDir);
+
+    return new PathResolver().relativePath(baseDir, inputFile.file());
   }
 }

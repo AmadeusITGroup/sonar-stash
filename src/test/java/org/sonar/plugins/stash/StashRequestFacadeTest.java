@@ -15,8 +15,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -26,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
 import org.sonar.api.issue.Issue;
@@ -49,6 +52,8 @@ public class StashRequestFacadeTest extends StashTest {
   
   @Spy
   StashRequestFacade myFacade;
+
+  InputFileCache inputFileCache;
   
   @Rule
   public ExpectedException thrown = ExpectedException.none();
@@ -114,8 +119,8 @@ public class StashRequestFacadeTest extends StashTest {
 
     ActiveRules activeRules = new ActiveRulesBuilder().build();
     CoverageProjectStore coverageProjectStore = new CoverageProjectStore(config, activeRules);
-    InputFileCache inputFileCache = new InputFileCache();
-    StashProjectBuilder projectBuilder = new StashProjectBuilder();
+    inputFileCache = new InputFileCache();
+    StashProjectBuilder projectBuilder = new DummyStashProjectBuilder(new File("/root/"));
 
 
     StashRequestFacade facade = new StashRequestFacade(config, inputFileCache, projectBuilder, coverageProjectStore);
@@ -647,5 +652,33 @@ public class StashRequestFacadeTest extends StashTest {
     List<String> severities = myFacade.getReportedSeverities();
     
     assertEquals(0, severities.size());
+  }
+
+  @Test
+  public void testGetIssuePathWithoutExplicitSourceRootDir() {
+      when(config.getRepositoryRoot()).thenReturn(Optional.empty());
+
+      inputFileCache.putInputFile(
+              "key",
+              new DefaultInputFile("some/relative/path").setAbsolutePath("/root/some/absolute/path")
+      );
+      assertEquals("some/absolute/path",
+                   myFacade.getIssuePath(new DefaultIssue().setComponentKey("key")));
+
+
+  }
+
+  @Test
+  public void testGetIssuePathWithExplicitSourceRootDir() {
+    when(config.getRepositoryRoot()).thenReturn(Optional.of(new File("/root/some/")));
+
+    inputFileCache.putInputFile(
+            "key",
+            new DefaultInputFile("some/relative/path").setAbsolutePath("/root/some/absolute/path")
+    );
+    assertEquals("absolute/path",
+            myFacade.getIssuePath(new DefaultIssue().setComponentKey("key")));
+
+
   }
 }
