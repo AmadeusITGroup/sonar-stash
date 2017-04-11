@@ -48,6 +48,7 @@ script:
   - ./.travis/runSonarQubeAnalysis.sh
 
 sudo: false
+dist: trusty
 
 notifications:
   email: false

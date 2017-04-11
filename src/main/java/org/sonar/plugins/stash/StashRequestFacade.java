@@ -12,19 +12,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
-import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.SensorContext;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
-import org.sonar.plugins.stash.client.SonarQubeClient;
+import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
-import org.sonar.plugins.stash.exceptions.SonarQubeClientException;
+import org.sonar.plugins.stash.coverage.CoverageProjectStore;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.CoverageIssuesReport;
-import org.sonar.plugins.stash.issue.Issue;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
-import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -34,8 +31,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 
-@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class StashRequestFacade implements BatchComponent {
+public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
@@ -44,27 +40,33 @@ public class StashRequestFacade implements BatchComponent {
 
   private StashPluginConfiguration config;
   private File projectBaseDir;
+  private final InputFileCache inputFileCache;
+  private CoverageProjectStore coverageProjectStore;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, InputFileCache inputFileCache, StashProjectBuilder projectBuilder, CoverageProjectStore coverageProjectStore) {
     this.config = stashPluginConfiguration;
+    this.inputFileCache = inputFileCache;
+    this.projectBaseDir = projectBuilder.getProjectBaseDir();
+    this.coverageProjectStore = coverageProjectStore;
   }
 
-  public void initialize(File projectBaseDir) {
-    this.projectBaseDir = projectBaseDir;
-  }
-
-  public SonarQubeIssuesReport extractIssueReport(ProjectIssues projectIssues, InputFileCache inputFileCache) {
-    return SonarQubeCollector.extractIssueReport(projectIssues, inputFileCache, projectBaseDir);
+  public List<Issue> extractIssueReport(ProjectIssues projectIssues) {
+    return SonarQubeCollector.extractIssueReport(projectIssues, this);
   }
 
   /**
    * Post SQ analysis overview on Stash
    */
-  public void postAnalysisOverview(PullRequestRef pr, String sonarQubeURL, int issueThreshold, SonarQubeIssuesReport issueReport,
-                                   CoverageIssuesReport coverageReport, StashClient stashClient) {
+  public void postAnalysisOverview(PullRequestRef pr, int issueThreshold, List<Issue> issueReport,
+                                   StashClient stashClient) {
 
     try {
-      stashClient.postCommentOnPullRequest(pr, MarkdownPrinter.printReportMarkdown(pr, stashClient.getBaseUrl(), sonarQubeURL, issueReport, coverageReport, issueThreshold));
+      String report = MarkdownPrinter.printReportMarkdown(
+              pr, stashClient.getBaseUrl(), config.getSonarQubeURL(), issueReport, issueThreshold,
+              coverageProjectStore.getProjectCoverage(), coverageProjectStore.getPreviousProjectCoverage(),
+              this
+      );
+      stashClient.postCommentOnPullRequest(pr, report);
 
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
 
@@ -128,9 +130,9 @@ public class StashRequestFacade implements BatchComponent {
   /**
    * Push SonarQube report into the pull-request as comments.
    */
-  public void postSonarQubeReport(PullRequestRef pr, String sonarQubeURL, SonarQubeIssuesReport issueReport, StashDiffReport diffReport, StashClient stashClient) {
+  public void postSonarQubeReport(PullRequestRef pr, List<Issue> issueReport, StashDiffReport diffReport, StashClient stashClient) {
     try {
-      postCommentPerIssue(pr, sonarQubeURL, issueReport.getIssues(), diffReport, stashClient);
+      postCommentPerIssue(pr, issueReport, diffReport, stashClient);
 
       LOGGER.info("New SonarQube issues have been reported to Stash.");
 
@@ -141,90 +143,83 @@ public class StashRequestFacade implements BatchComponent {
   }
 
   /**
-   * Push Code Coverage report into the pull-request as comments.
-   */
-  public void postCoverageReport(PullRequestRef pr, String sonarQubeURL, CoverageIssuesReport coverageReport, StashDiffReport diffReport, StashClient stashClient) {
-    try {
-      if (!coverageReport.isEmpty()) {
-
-        postCommentPerIssue(pr, sonarQubeURL, coverageReport.getLoweredIssues(), diffReport, stashClient);
-
-        LOGGER.info("Code coverage report has been reported to Stash.");
-      }
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to push code coverage report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
-    }
-  }
-
-  /**
    * Post one comment by found issue on Stash.
    */
-  void postCommentPerIssue(PullRequestRef pr, String sonarQubeURL,
-                           Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
+  void postCommentPerIssue(PullRequestRef pr, Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
     for (Issue issue : issues) {
-      if (commentsByFile.get(issue.getPath()) == null) {
-        StashCommentReport comments = stashClient.getPullRequestComments(pr, issue.getPath());
+      String path = getIssuePath(issue);
+      if (commentsByFile.get(path) == null) {
+        StashCommentReport comments = stashClient.getPullRequestComments(pr, path);
 
         // According to the type of the comment
         // if type == CONTEXT, comment.line is set to source line instead of destination line
         comments.applyDiffReport(diffReport);
 
-        commentsByFile.put(issue.getPath(), comments);
+        commentsByFile.put(path, comments);
       }
     }
 
-    try {
-      // Severity available to create a task
-      List<String> taskSeverities = getReportedSeverities();
+    // Severity available to create a task
+    List<String> taskSeverities = getReportedSeverities();
 
-      // Let's call this "issue_loop"
-      for (Issue issue : issues) {
-        StashCommentReport comments = commentsByFile.get(issue.getPath());
-
-        // if comment not already pushed to Stash
-        if ((comments != null) &&
-                (comments.contains(issue.printIssueMarkdown(sonarQubeURL), issue.getPath(), issue.getLine()))) {
-          LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.getKey(),
-                  issue.getPath(), issue.getLine());
-          continue;  // Next element in "issue_loop"
-        }
-
-        // check if issue belongs to the Stash diff view
-        String type = diffReport.getType(issue.getPath(), issue.getLine());
-        if (type == null) {
-          LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                  issue.getKey(), issue.getPath(), issue.getLine());
-          continue;  // Next element in "issue_loop"
-        }
-
-        long line = diffReport.getLine(issue.getPath(), issue.getLine());
-
-        StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
-                issue.printIssueMarkdown(sonarQubeURL),
-                issue.getPath(),
-                line,
-                type);
-
-        LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.getKey(), type,
-                issue.getPath(), line);
-
-        // Create task linked to the comment if configured
-        if (taskSeverities.contains(issue.getSeverity())) {
-          stashClient.postTaskOnComment(issue.getMessage(), comment.getId());
-
-          LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
-        }
-
-
-      }
-
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to link SonarQube issues to Stash", e);
+    for (Issue issue : issues) {
+        postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, taskSeverities);
     }
+  }
+
+  private void postIssueComment(PullRequestRef pr, Issue issue, Map<String, StashCommentReport> commentsByFile,
+                                StashDiffReport diffReport, StashClient stashClient, List<String> taskSeverities)
+                                throws StashClientException {
+    String path = getIssuePath(issue);
+    StashCommentReport comments = commentsByFile.get(path);
+    String commentContent = MarkdownPrinter.printIssueMarkdown(issue, config.getSonarQubeURL());
+    Integer issueLine = issue.line();
+    // FIXME move this somewhere else
+    if (issueLine == null) {
+      issueLine = 0;
+    }
+
+    // if comment not already pushed to Stash
+    if (comments != null && comments.contains( commentContent, path, issueLine)) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
+                path, issueLine);
+      }
+      return;
+    }
+
+    // check if issue belongs to the Stash diff view
+    String type = diffReport.getType(path, issueLine);
+    if (type == null) {
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
+                issue.key(), path, issueLine);
+      }
+      return;
+    }
+
+    long line = diffReport.getLine(path, issueLine);
+
+    StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
+            commentContent, path, line, type);
+
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
+              path, line);
+    }
+
+    // Create task linked to the comment if configured
+    if (taskSeverities.contains(issue.severity())) {
+      stashClient.postTaskOnComment(issue.message(), comment.getId());
+
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+      }
+    }
+
   }
 
   public StashCredentials getCredentials() throws StashConfigurationException {
@@ -418,30 +413,15 @@ public class StashRequestFacade implements BatchComponent {
       
       return result;
   }
-  
-  /**
-   * Get severity to associate to Code Coverage issues.
-   */
-  public String getCodeCoverageSeverity() {
-    return config.getCodeCoverageSeverity();
-  }
-  
-  /**
-   * Extract Code Coverage report to be published into the pull-request.
-   */
-  public CoverageIssuesReport getCoverageReport(String sonarQubeProjectKey, SensorContext context,
-      InputFileCacheSensor inputFileCacheSensor, String codeCoverageSeverity, SonarQubeClient sonarqubeClient) {
-    
-    CoverageIssuesReport result = new CoverageIssuesReport();
-    
-    try {
-      result = SonarQubeCollector.extractCoverageReport(sonarQubeProjectKey, context, inputFileCacheSensor, codeCoverageSeverity, sonarqubeClient);
-    
-    } catch (SonarQubeClientException e) {
-      LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
+
+  // this lives here, as we need access to both the InputFileCache and the StashRequestFacade
+  @Override
+  public String getIssuePath(Issue issue) {
+    InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
+    if (inputFile == null){
+      return null;
     }
-    
-    return result;
+
+    return new PathResolver().relativePath(projectBaseDir, inputFile.file());
   }
 }

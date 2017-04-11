@@ -1,38 +1,44 @@
 package org.sonar.plugins.stash;
 
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.text.MessageFormat;
-import java.text.ParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.sonar.api.issue.Issue;
 
-public class StashPluginUtils {
+public final class StashPluginUtils {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StashPluginUtils.class);
+  private StashPluginUtils() {}
 
-  // Hiding implicit public constructor with an explicit private one (squid:S1118)
-  private StashPluginUtils() {
+  public static String formatPercentage(double d) {
+    DecimalFormat df = new DecimalFormat("0.0");
+    df.setRoundingMode(RoundingMode.HALF_UP);
+    return df.format(d);
   }
 
-  /**
-   * Format double with pattern #.#
-   * For instance, 1.2345 => 1.2
-   */
-  public static double formatDouble(double d) {
-    double result = d;
-    
-    try {
-      DecimalFormat df = new DecimalFormat("0.0");
-      String format = df.format(d);
-      Number number = df.parse(format);
-    
-      result = number.doubleValue();
-      
-    } catch (ParseException e) {
-      LOGGER.error(MessageFormat.format("Unable to format double {0}: {1}", d , e.getMessage()));
+  public static boolean roundedPercentageGreaterThan(double left, double right) {
+    return (left > right) && !formatPercentage(left).equals(formatPercentage(right));
+  }
+
+  public static long countIssuesBySeverity(List<Issue> issues, final String severity) {
+      return issues.stream().filter(i -> severity.equals(i.severity())).count();
+  }
+
+  public static Map<String, Issue> getUniqueRulesBySeverity(List<Issue> issues, final String severity) {
+    Map<String, Issue> result = new HashMap<>();
+
+    for (Issue issue : getIssuesBySeverity(issues, severity)) {
+      result.put(issue.ruleKey().toString(), issue);
     }
-    
+
     return result;
   }
+
+  public static List<Issue> getIssuesBySeverity(List<Issue> issues, String severity) {
+    return issues.stream().filter(i -> severity.equals(i.severity())).collect(Collectors.toList());
+  }
+
 }

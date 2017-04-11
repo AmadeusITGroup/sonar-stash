@@ -1,21 +1,29 @@
 package org.sonar.plugins.stash.issue;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.sonar.api.issue.Issue;
+import org.sonar.api.issue.internal.DefaultIssue;
+import org.sonar.api.rule.RuleKey;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.coverage.CoverageRule;
+import org.sonar.plugins.stash.coverage.CoverageSensorTest;
+import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 public class MarkdownPrinterTest {
   
-  CoverageIssue coverageIssue;
+  Issue issue;
+  Issue coverageIssue;
   
-  SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
-  
-  CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-  
+  List<Issue> report = new ArrayList<>();
+  DummyIssuePathResolver issuePathResolver = new DummyIssuePathResolver();
+
   private static final String SONAR_URL = "sonarqube/URL";
   private static final String STASH_URL = "stash/URL";
   
@@ -28,117 +36,109 @@ public class MarkdownPrinterTest {
   
   @Before
   public void setUp(){
-    SonarQubeIssue issueBlocker = new SonarQubeIssue("key1", "BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
-    SonarQubeIssue issueCritical = new SonarQubeIssue("key2", "CRITICAL", "messageCritical", "RuleCritical", "pathCritical", 1);
-    SonarQubeIssue issueMajor = new SonarQubeIssue("key3", "MAJOR", "messageMajor", "RuleMajor", "pathMajor", 1);
-    
-    issueReport.add(issueBlocker);
-    issueReport.add(issueCritical);
-    issueReport.add(issueMajor);
-    
-    coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");
-    
-    coverageIssue.setLinesToCover(100);
-    coverageIssue.setUncoveredLines(60);
-    coverageIssue.setPreviousCoverage(50.00);
-    
-    coverageReport.add(coverageIssue);
-    coverageReport.setPreviousProjectCoverage(50.00);
+    Issue issueBlocker = new DefaultIssue().setKey("key1").setSeverity(Severity.BLOCKER).setMessage("messageBlocker").setRuleKey(RuleKey.of("RepoBlocker", "RuleBlocker")).setLine(1);
+    Issue issueCritical = new DefaultIssue().setKey("key2").setSeverity(Severity.CRITICAL).setMessage("messageCritical").setRuleKey(RuleKey.of("RepoCritical", "RuleCritical")).setLine(1);
+    Issue issueMajor = new DefaultIssue().setKey("key3").setSeverity(Severity.MAJOR).setMessage("messageMajor").setRuleKey(RuleKey.of("RepoMajor", "RuleMajor")).setLine(1);
+
+    report.add(issueBlocker);
+    report.add(issueCritical);
+    report.add(issueMajor);
+
+    issue = issueBlocker;
+    coverageIssue = new DefaultIssue().setKey("key4").setSeverity(Severity.MAJOR).setRuleKey(CoverageRule.decreasingLineCoverageRule("java"))
+            .setMessage(CoverageSensorTest.formatIssueMessage("path/code/coverage", 40.0, 50.0));
+
+    report.add(coverageIssue);
+
+    issuePathResolver = new DummyIssuePathResolver();
+    issuePathResolver.add(coverageIssue, "path/code/coverage");
   }
   
   @Test
   public void testPrintIssueMarkdown() {
-    SonarQubeIssue issueBlocker = new SonarQubeIssue("key1", "BLOCKER", "messageBlocker", "RuleBlocker", "pathBlocker", 1);
-    
-    String issueMarkdown = issueBlocker.printIssueMarkdown(SONAR_URL);
-    assertTrue(StringUtils.equals(issueMarkdown, "*BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)]"));
+    assertEquals(
+            "*BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)]",
+            MarkdownPrinter.printIssueMarkdown(report.get(0), SONAR_URL)
+    );
   }
-  
+
   @Test
   public void testPrintCoverageIssueMarkdown() {
-    String coverageMarkdown = MarkdownPrinter.printCoverageIssueMarkdown("project", "repo", "1", STASH_URL, coverageIssue);
-    assertEquals("*MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)]",
+    issuePathResolver.add(coverageIssue, "path/code/coverage");
+    String coverageMarkdown = MarkdownPrinter.printCoverageIssueMarkdown("project", "repo", "1", STASH_URL, coverageIssue, issuePathResolver);
+    assertEquals("*MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)]",
                   coverageMarkdown);
   }
 
   @Test
   public void testPrintIssueNumberBySeverityMarkdown() {
-    String issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "BLOCKER");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| BLOCKER | 1 |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "MAJOR");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| MAJOR | 2 |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "INFO");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| INFO | 0 |\n"));
+    assertEquals(
+            "| BLOCKER | 1 |\n",
+            MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, "BLOCKER")
+    );
+
+    assertEquals(
+            "| MAJOR | 2 |\n",
+            MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, "MAJOR")
+    );
+
+    assertEquals(
+            "| INFO | 0 |\n",
+            MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, "INFO")
+    );
   }
   
   @Test
   public void testPrintIssueNumberBySeverityMarkdownWithNoIssues() {
-    SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    
-    String issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "BLOCKER");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| BLOCKER | 0 |\n"));
-  
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "CRITICAL");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| CRITICAL | 0 |\n"));
-  
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "MAJOR");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| MAJOR | 0 |\n"));
-  
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "MINOR");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| MINOR | 0 |\n"));
- 
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "INFO");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| INFO | 0 |\n"));
+    List<Issue> report = new ArrayList<>();
+
+    assertEquals("| BLOCKER | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"BLOCKER"));
+    assertEquals("| CRITICAL | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"CRITICAL"));
+    assertEquals("| MAJOR | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"MAJOR"));
+    assertEquals("| MINOR | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"MINOR"));
+    assertEquals("| INFO | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"INFO"));
   }
 
   @Test
   public void testPrintIssueNumberBySeverityMarkdownWithNoSonarQubeIssues() {
-    SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
-    
-    String issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "BLOCKER");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| BLOCKER | 0 |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "MAJOR");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| MAJOR | 1 |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "INFO");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| INFO | 0 |\n"));
+    List<Issue> report = new ArrayList<>();
+    report.add(coverageIssue);
+
+    assertEquals("| BLOCKER | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"BLOCKER"));
+    assertEquals("| MAJOR | 1 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"MAJOR"));
+    assertEquals("| INFO | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"INFO"));
   }
-  
+
   @Test
   public void testPrintIssueNumberBySeverityMarkdownWithNoCoverageIssues() {
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    
-    String issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "BLOCKER");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| BLOCKER | 1 |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "MAJOR");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| MAJOR | 1 |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueNumberBySeverityMarkdown(issueReport, coverageReport, "INFO");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| INFO | 0 |\n"));
+    report.remove(coverageIssue);
+
+    assertEquals("| BLOCKER | 1 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"BLOCKER"));
+    assertEquals("| MAJOR | 1 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"MAJOR"));
+    assertEquals("| INFO | 0 |\n", MarkdownPrinter.printIssueNumberBySeverityMarkdown(report,"INFO"));
   }
   
   @Test
   public void testPrintIssueListBySeverityMarkdown() {
-    String issueReportMarkdown = MarkdownPrinter.printIssueListBySeverityMarkdown(issueReport, SONAR_URL, "BLOCKER");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| *BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)] |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueListBySeverityMarkdown(issueReport, SONAR_URL, "CRITICAL");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| *CRITICAL* - messageCritical [[RuleCritical](sonarqube/URL/coding_rules#rule_key=RuleCritical)] |\n"));
-    
-    issueReportMarkdown = MarkdownPrinter.printIssueListBySeverityMarkdown(issueReport, SONAR_URL, "MAJOR");
-    assertTrue(StringUtils.equals(issueReportMarkdown, "| *MAJOR* - messageMajor [[RuleMajor](sonarqube/URL/coding_rules#rule_key=RuleMajor)] |\n"));
+    report.remove(coverageIssue);
+
+    assertEquals( "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n",
+            MarkdownPrinter.printIssueListBySeverityMarkdown(report, SONAR_URL, "BLOCKER"));
+
+    assertEquals( "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n",
+            MarkdownPrinter.printIssueListBySeverityMarkdown(report, SONAR_URL, "CRITICAL"));
+
+    assertEquals("| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n",
+            MarkdownPrinter.printIssueListBySeverityMarkdown(report, SONAR_URL, "MAJOR"));
+  }
+
+  private String printReportMarkdown(List<Issue> report, int issueThreshold) {
+    return MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, report, issueThreshold, 40.0, 50.0, issuePathResolver);
   }
 
   @Test
   public void testPrintReportMarkdown() {
-    int issueThreshold = 100;
-    
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, issueThreshold);
+    String issueReportMarkdown = printReportMarkdown(report, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 4 |\n"
         + "|-----------------|------|\n"
@@ -149,21 +149,19 @@ public class MarkdownPrinterTest {
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|------------|\n"
-        + "| *BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)] |\n"
-        + "| *CRITICAL* - messageCritical [[RuleCritical](sonarqube/URL/coding_rules#rule_key=RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RuleMajor](sonarqube/URL/coding_rules#rule_key=RuleMajor)] |\n\n\n"
-        + "| Code Coverage: 40.0% (-10.0%) |\n"
+        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
+        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n"
+        + "| Line Coverage: 40.0% (-10.0%) |\n"
         + "|---------------|\n"
-        + "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
+        + "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
         
     assertEquals(reportString, issueReportMarkdown);
   }
   
   @Test
   public void testPrintReportMarkdownWithIssueLimitation() {
-    int issueThreshold = 3;
-    
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, issueThreshold);
+    String issueReportMarkdown = printReportMarkdown(report, 3);
     String reportString = "## SonarQube analysis Overview\n"
         + "### Too many issues detected (4/3): Issues cannot be displayed in Diff view.\n\n"
         + "| Total New Issues | 4 |\n"
@@ -175,24 +173,21 @@ public class MarkdownPrinterTest {
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|------------|\n"
-        + "| *BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)] |\n"
-        + "| *CRITICAL* - messageCritical [[RuleCritical](sonarqube/URL/coding_rules#rule_key=RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RuleMajor](sonarqube/URL/coding_rules#rule_key=RuleMajor)] |\n\n\n"
-        + "| Code Coverage: 40.0% (-10.0%) |\n"
+        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
+        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n"
+        + "| Line Coverage: 40.0% (-10.0%) |\n"
         + "|---------------|\n"
-        + "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
+        + "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
   
     assertEquals(reportString, issueReportMarkdown);
   }
   
   @Test
   public void testPrintEmptyReportMarkdown() {
-    int issueThreshold = 100;
-    
-    SonarQubeIssuesReport issueReport = new SonarQubeIssuesReport();
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, issueThreshold);
+    report = new ArrayList<>();
+
+    String issueReportMarkdown = printReportMarkdown(report, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "### No new issues detected!\n\n";
         
@@ -201,9 +196,10 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintReportMarkdownWithEmptySonarQubeReportAndWithLoweredIssues() {
-    issueReport = new SonarQubeIssuesReport();
-    
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, 100);
+    report = new ArrayList<>();
+    report.add(coverageIssue);
+
+    String issueReportMarkdown = printReportMarkdown(report, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 1 |\n"
         + "|-----------------|------|\n"
@@ -214,18 +210,18 @@ public class MarkdownPrinterTest {
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|------------|\n\n\n"
-        + "| Code Coverage: 40.0% (-10.0%) |\n"
+        + "| Line Coverage: 40.0% (-10.0%) |\n"
         + "|---------------|\n"
-        + "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
+        + "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/stashProject/repos/stashRepo/pull-requests/1/diff#path/code/coverage)] |\n";
         
     assertEquals(reportString, issueReportMarkdown);
   }
   
   @Test
   public void testPrintReportMarkdownWithEmptyCoverageReport() {
-    coverageReport = new CoverageIssuesReport();
-    
-    String issueReportMarkdown = MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, issueReport, coverageReport, 100);
+    report.remove(coverageIssue);
+
+    String issueReportMarkdown = printReportMarkdown(report, 100);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 3 |\n"
         + "|-----------------|------|\n"
@@ -236,47 +232,36 @@ public class MarkdownPrinterTest {
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|------------|\n"
-        + "| *BLOCKER* - messageBlocker [[RuleBlocker](sonarqube/URL/coding_rules#rule_key=RuleBlocker)] |\n"
-        + "| *CRITICAL* - messageCritical [[RuleCritical](sonarqube/URL/coding_rules#rule_key=RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RuleMajor](sonarqube/URL/coding_rules#rule_key=RuleMajor)] |\n\n\n";
+        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
+        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n";
         
     assertEquals(reportString, issueReportMarkdown);
   }
-  
+
+  private String printCoverageReportMarkdown(List<Issue> report, double projectCoverage, double previousProjectCoverage) {
+    return MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, report, STASH_URL, projectCoverage, previousProjectCoverage, issuePathResolver);
+  }
+
   @Test
   public void testPrintCoverageReportMarkdown() {
-    CoverageIssue coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");
-    
-    coverageIssue.setLinesToCover(100);
-    coverageIssue.setUncoveredLines(60);
-    coverageIssue.setPreviousCoverage(50.00);
-    
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    coverageReport.add(coverageIssue);
-    coverageReport.setPreviousProjectCoverage(50.00);
-    
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 40.0% (-10.0%) |\n" + 
+    report = new ArrayList<>();
+    report.add(coverageIssue);
+
+    String reportMarkdown = printCoverageReportMarkdown(report, 40.0, 50.0);
+    String expectedReportMarkdown = "| Line Coverage: 40.0% (-10.0%) |\n" +
                                     "|---------------|\n" +
-                                    "| *MAJOR* - Code coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
+                                    "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
   }
-  
+
   @Test
   public void testPrintCoverageReportMarkdownWithPositiveCoverage() {
-    CoverageIssue coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");
-    
-    coverageIssue.setLinesToCover(100);
-    coverageIssue.setUncoveredLines(50);
-    coverageIssue.setPreviousCoverage(40.00);
-    
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    coverageReport.setPreviousProjectCoverage(40.0);
-    coverageReport.add(coverageIssue);
-    
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 50.0% (+10.0%) |\n" + 
+    report = new ArrayList<>();
+
+    String reportMarkdown = printCoverageReportMarkdown(report, 50.0, 40.0);
+    String expectedReportMarkdown = "| Line Coverage: 50.0% (+10.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
@@ -284,18 +269,10 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintCoverageReportMarkdownWithNoEvolution() {
-    CoverageIssue coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");
-    
-    coverageIssue.setLinesToCover(100);
-    coverageIssue.setUncoveredLines(60);
-    coverageIssue.setPreviousCoverage(40.00);
-    
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    coverageReport.setPreviousProjectCoverage(40.0);
-    coverageReport.add(coverageIssue);
-    
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 40.0% (0.0%) |\n" + 
+    report = new ArrayList<>();
+
+    String reportMarkdown = printCoverageReportMarkdown(report, 40.0, 40.0);
+    String expectedReportMarkdown = "| Line Coverage: 40.0% (0.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
@@ -303,11 +280,10 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintCoverageReportMarkdownWithNoIssues() {
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    coverageReport.setPreviousProjectCoverage(40.0);
-        
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 0.0% (-40.0%) |\n" + 
+    report = new ArrayList<>();
+
+    String reportMarkdown = printCoverageReportMarkdown(report, 0.0, 40.0);
+    String expectedReportMarkdown = "| Line Coverage: 0.0% (-40.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
@@ -315,23 +291,12 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintCoverageReportMarkdownWithNoLoweredIssues() {
-    CoverageIssue coverageIssue = new CoverageIssue("MAJOR", "path/code/coverage");
-    
-    coverageIssue.setLinesToCover(100);
-    coverageIssue.setUncoveredLines(60);
-    coverageIssue.setPreviousCoverage(30.00);
-    
-    CoverageIssuesReport coverageReport = new CoverageIssuesReport();
-    coverageReport.setPreviousProjectCoverage(30.0);
-    coverageReport.add(coverageIssue);
-        
-    String reportMarkdown = MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, coverageReport, STASH_URL);
-    String expectedReportMarkdown = "| Code Coverage: 40.0% (+10.0%) |\n" + 
+    report = new ArrayList<>();
+
+    String reportMarkdown = printCoverageReportMarkdown(report, 40.0, 30.0);
+    String expectedReportMarkdown = "| Line Coverage: 40.0% (+10.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
   }
-  
-  
-
 }

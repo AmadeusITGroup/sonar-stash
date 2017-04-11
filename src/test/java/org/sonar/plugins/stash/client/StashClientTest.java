@@ -1,29 +1,5 @@
 package org.sonar.plugins.stash.client;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashTest;
-import org.sonar.plugins.stash.exceptions.StashClientException;
-import org.sonar.plugins.stash.issue.StashComment;
-import org.sonar.plugins.stash.issue.StashCommentReport;
-import org.sonar.plugins.stash.issue.StashDiffReport;
-import org.sonar.plugins.stash.issue.StashPullRequest;
-import org.sonar.plugins.stash.issue.StashTask;
-import org.sonar.plugins.stash.issue.StashUser;
-import org.sonar.plugins.stash.issue.collector.DiffReportSample;
-
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -44,6 +20,31 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.StashTest;
+import org.sonar.plugins.stash.exceptions.StashClientException;
+import org.sonar.plugins.stash.issue.StashComment;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
+import org.sonar.plugins.stash.issue.StashUser;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
+
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 public class StashClientTest extends StashTest {
   private static final int timeout = 200;
@@ -121,7 +122,7 @@ public class StashClientTest extends StashTest {
 
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(stashJsonComment)));
 
-    StashCommentReport report = client.getPullRequestComments(pr, "path");
+    client.getPullRequestComments(pr, "path");
   }
 
   @Test
@@ -200,7 +201,7 @@ public class StashClientTest extends StashTest {
   public void testGetPullRequestDiffsWithMalformedTasks() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_OK).withBody(DiffReportSample.baseReportWithMalformedTasks)));
 
-    StashDiffReport report = client.getPullRequestDiffs(pr);
+    client.getPullRequestDiffs(pr);
   }
 
   @Test(expected = StashClientException.class)
@@ -222,7 +223,7 @@ public class StashClientTest extends StashTest {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_CREATED).withBody(stashJsonComment)));
 
     StashComment comment = client.postCommentLineOnPullRequest(pr, "message", "path", 5, "type");
-    assertEquals((long) 1234, comment.getId());
+    assertEquals(1234, comment.getId());
   }
   
   @Test

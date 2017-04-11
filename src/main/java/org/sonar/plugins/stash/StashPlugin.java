@@ -1,6 +1,8 @@
 package org.sonar.plugins.stash;
 
-import org.apache.commons.collections.ListUtils;
+import java.util.Arrays;
+import java.util.List;
+
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.api.PropertyType;
@@ -8,9 +10,11 @@ import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.rule.Severity;
+import org.sonar.plugins.stash.coverage.CoverageProjectStore;
+import org.sonar.plugins.stash.coverage.CoverageRule;
+import org.sonar.plugins.stash.coverage.CoverageSensor;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 @Properties({
     @Property(key = StashPlugin.STASH_NOTIFICATION, name = "Stash Notification", defaultValue = "false", description = "Analysis result will be issued in Stash pull request", global = false),
@@ -23,7 +27,6 @@ public class StashPlugin extends SonarPlugin {
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
   private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
-  private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
   
@@ -50,7 +53,6 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
-  public static final String STASH_CODE_COVERAGE_SEVERITY = "sonar.stash.coverage.severity.threshold";
   public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.overview";
 
   @Override
@@ -59,9 +61,12 @@ public class StashPlugin extends SonarPlugin {
         StashIssueReportingPostJob.class,
         StashPluginConfiguration.class,
         InputFileCache.class,
-        InputFileCacheSensor.class,
         StashProjectBuilder.class,
         StashRequestFacade.class,
+        CoverageRule.class,
+        CoverageSensor.class,
+        CoverageProjectStore.class,
+        InputFileCacheSensor.class,
         PropertyDefinition.builder(STASH_URL)
             .name("Stash base URL")
             .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")
@@ -98,12 +103,6 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE).build(),
-        PropertyDefinition.builder(STASH_CODE_COVERAGE_SEVERITY)
-            .name("Stash code coverage severity")
-            .description("Severity to be associated with Code Coverage issues")
-            .type(PropertyType.SINGLE_SELECT_LIST)
-            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
-            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
         PropertyDefinition.builder(STASH_TASK_SEVERITY_THRESHOLD)
             .name("Stash tasks severity threshold")
             .description("Only create tasks for issues with the same or higher severity")
@@ -111,7 +110,7 @@ public class StashPlugin extends SonarPlugin {
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(SEVERITY_NONE)
-            .options(ListUtils.sum(Arrays.asList(SEVERITY_NONE), SEVERITY_LIST)).build(),
+            .options(Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[] {}))).build(),
         PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
             .name("Include Analysis Overview Comment")
             .description("Create a comment to  the Pull Request providing a overview of the results")

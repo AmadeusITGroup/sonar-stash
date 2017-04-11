@@ -3,8 +3,8 @@ package org.sonar.plugins.stash;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import org.junit.Before;
@@ -27,15 +26,18 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.sonar.api.batch.rule.ActiveRules;
+import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
+import org.sonar.api.issue.Issue;
+import org.sonar.api.issue.internal.DefaultIssue;
+import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
+import org.sonar.plugins.stash.coverage.CoverageProjectStore;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.CoverageIssue;
-import org.sonar.plugins.stash.issue.CoverageIssuesReport;
-import org.sonar.plugins.stash.issue.SonarQubeIssue;
-import org.sonar.plugins.stash.issue.SonarQubeIssuesReport;
+import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -85,8 +87,7 @@ public class StashRequestFacadeTest extends StashTest {
   String stashCommentMessage2;
   String stashCommentMessage3;
   
-  SonarQubeIssuesReport issueReport;
-  CoverageIssuesReport coverageReport;
+  List<Issue> report;
   
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
@@ -109,9 +110,15 @@ public class StashRequestFacadeTest extends StashTest {
   public void setUp() throws Exception {
     config = mock(StashPluginConfiguration.class);
     when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
-    
-    
-    StashRequestFacade facade = new StashRequestFacade(config);  
+    when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
+
+    ActiveRules activeRules = new ActiveRulesBuilder().build();
+    CoverageProjectStore coverageProjectStore = new CoverageProjectStore(config, activeRules);
+    InputFileCache inputFileCache = new InputFileCache();
+    StashProjectBuilder projectBuilder = new StashProjectBuilder();
+
+
+    StashRequestFacade facade = new StashRequestFacade(config, inputFileCache, projectBuilder, coverageProjectStore);
     myFacade = spy(facade);
     
     stashClient = mock(StashClient.class);
@@ -126,24 +133,30 @@ public class StashRequestFacadeTest extends StashTest {
     stashUser = mock(StashUser.class);
     when(stashUser.getId()).thenReturn((long) 1234);
     
-    issueReport = new SonarQubeIssuesReport();
+    report = new ArrayList<>();
     
-    SonarQubeIssue issue1 = new SonarQubeIssue("key1", Severity.CRITICAL, "message1", "rule1", FILE_PATH_1, 1);
-    stashCommentMessage1 = issue1.printIssueMarkdown(SONARQUBE_URL);
-    issueReport.add(issue1);
-    
-    SonarQubeIssue issue2 = new SonarQubeIssue("key2", Severity.MAJOR, "message2", "rule2", FILE_PATH_1, 2);
-    stashCommentMessage2 = issue2.printIssueMarkdown(SONARQUBE_URL);
-    issueReport.add(issue2);
-    
-    SonarQubeIssue issue3 = new SonarQubeIssue("key3", Severity.INFO, "message3", "rule3", FILE_PATH_2, 1);
-    stashCommentMessage3 = issue3.printIssueMarkdown(SONARQUBE_URL);
-    issueReport.add(issue3);
-    
+    Issue issue1 = new DefaultIssue().setKey("key1").setSeverity(Severity.CRITICAL).setMessage("message1").setRuleKey(RuleKey.of("foo", "rule1")).setLine(1);
+    when(myFacade.getIssuePath(issue1)).thenReturn(FILE_PATH_1);
+    stashCommentMessage1 = MarkdownPrinter.printIssueMarkdown(issue1, SONARQUBE_URL);
+    report.add(issue1);
+
+    Issue issue2 = new DefaultIssue().setKey("key2").setSeverity(Severity.MAJOR).setMessage("message2").setRuleKey(RuleKey.of("foo", "rule2")).setLine(2);
+    when(myFacade.getIssuePath(issue2)).thenReturn(FILE_PATH_1);
+    stashCommentMessage2 = MarkdownPrinter.printIssueMarkdown(issue2, SONARQUBE_URL);
+    report.add(issue2);
+
+
+    Issue issue3 = new DefaultIssue().setKey("key3").setSeverity(Severity.INFO).setMessage("message3").setRuleKey(RuleKey.of("foo", "rule3")).setLine(1);
+    when(myFacade.getIssuePath(issue3)).thenReturn(FILE_PATH_2);
+    stashCommentMessage3 = MarkdownPrinter.printIssueMarkdown(issue3, SONARQUBE_URL);
+    report.add(issue3);
+
+    /*
     CoverageIssue coverageIssue = new CoverageIssue(Severity.MAJOR, "sonar/coverage/file");
     
     coverageReport = new CoverageIssuesReport();
     coverageReport.add(coverageIssue);
+    */
     
     StashTask task1 = mock(StashTask.class);
     when(task1.getId()).thenReturn((long) 1111);
@@ -244,7 +257,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getStashLogin()).thenReturn("login");
     when(config.getStashPasswordEnvironmentVariable()).thenReturn("SONAR_STASH_PASSWORD");
 
-    StashCredentials credentials = myFacade.getCredentials();
+    myFacade.getCredentials();
   }
 
   @Test
@@ -315,8 +328,8 @@ public class StashRequestFacadeTest extends StashTest {
     when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(true);
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
-    
-    myFacade.postCommentPerIssue(pr, SONARQUBE_URL, issueReport.getIssues(), diffReport, stashClient);
+
+    myFacade.postCommentPerIssue(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -329,7 +342,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(true);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(true);
     
-    myFacade.postCommentPerIssue(pr, SONARQUBE_URL, issueReport.getIssues(), diffReport, stashClient);
+    myFacade.postCommentPerIssue(pr, report, diffReport, stashClient);
 
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -338,17 +351,17 @@ public class StashRequestFacadeTest extends StashTest {
   
   @Test
   public void testPostSonarQubeReport() throws StashClientException {
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
-    verify(myFacade, times(1)).postCommentPerIssue(eq(pr), eq(SONARQUBE_URL), (Collection) anyObject(), eq(diffReport), eq(stashClient));
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
+    verify(myFacade, times(1)).postCommentPerIssue(eq(pr), anyCollectionOf(Issue.class), eq(diffReport), eq(stashClient));
   }
   
   @Test
   public void testPostSonarQubeReportWithException() throws StashClientException {
     doThrow(new StashClientException("StashClientException for Test")).when(myFacade)
-      .postCommentPerIssue(eq(pr), eq(SONARQUBE_URL), (Collection) anyObject(), eq(diffReport), eq(stashClient));
+        .postCommentPerIssue(eq(pr), anyCollectionOf(Issue.class), eq(diffReport), eq(stashClient));
   
     try {
-      myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+      myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
       
     } catch (Exception e) {
       assertFalse("Unexpected Exception: postSonarQubeReport does not raised any StashClientException", true);
@@ -356,35 +369,10 @@ public class StashRequestFacadeTest extends StashTest {
   }
 
   @Test
-  public void testPostCoverageReport() throws StashClientException {
-    myFacade.postCoverageReport(pr, SONARQUBE_URL, coverageReport, diffReport, stashClient);
-    verify(myFacade, times(1)).postCommentPerIssue(eq(pr), eq(SONARQUBE_URL), (Collection) anyObject(), eq(diffReport), eq(stashClient));
-  }
-  
-  @Test
-  public void testPostCoverageReportWithEmptyReport() throws StashClientException {
-    myFacade.postCoverageReport(pr, SONARQUBE_URL, new CoverageIssuesReport(), diffReport, stashClient);
-    verify(myFacade, times(0)).postCommentPerIssue(eq(pr), eq(SONARQUBE_URL), (Collection) anyObject(), eq(diffReport), eq(stashClient));
-  }
-  
-  @Test
-  public void testPostCoverageReportWithException() throws StashClientException {
-    doThrow(new StashClientException("StashClientException for Test")).when(myFacade)
-      .postCommentPerIssue(eq(pr), eq(SONARQUBE_URL), (Collection) anyObject(), eq(diffReport), eq(stashClient));
-  
-    try {
-      myFacade.postCoverageReport(pr, SONARQUBE_URL, coverageReport, diffReport, stashClient);
-      
-    } catch (Exception e) {
-      assertFalse("Unexpected Exception: postCoverageReport does not raised any StashClientException", true);
-    }
-  }
-  
-  @Test
   public void testPostTaskOnComment() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
     
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -399,7 +387,7 @@ public class StashRequestFacadeTest extends StashTest {
   public void testPostTaskOnCommentWithRestrictedLevel() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
     
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -414,7 +402,7 @@ public class StashRequestFacadeTest extends StashTest {
   public void testPostTaskOnCommentWithNotPresentLevel() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.BLOCKER);
     
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -429,7 +417,7 @@ public class StashRequestFacadeTest extends StashTest {
   public void testPostTaskOnCommentWithSeverityNone() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
     
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -450,7 +438,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(diffReport.getType(FILE_PATH_1, 2)).thenReturn(STASH_DIFF_TYPE);
     when(diffReport.getType(FILE_PATH_2, 1)).thenReturn(null);
     
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -459,7 +447,7 @@ public class StashRequestFacadeTest extends StashTest {
   
   @Test
   public void testPostSonarQubeReportWithNoSonarQubeIssues() throws Exception{
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, new SonarQubeIssuesReport(), diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, new ArrayList<>(), diffReport, stashClient);
     
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -476,7 +464,7 @@ public class StashRequestFacadeTest extends StashTest {
       .postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
     
     try {
-    myFacade.postSonarQubeReport(pr, SONARQUBE_URL, issueReport, diffReport, stashClient);
+    myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage1, FILE_PATH_1, 1, STASH_DIFF_TYPE);
     verify(stashClient, times(1)).postCommentLineOnPullRequest(pr, stashCommentMessage2, FILE_PATH_1, 2, STASH_DIFF_TYPE);
@@ -605,7 +593,7 @@ public class StashRequestFacadeTest extends StashTest {
     
     myFacade.addPullRequestReviewer(pr, STASH_USER, stashClient);
     
-    verify(stashClient, times(1)).addPullRequestReviewer(pr, (long) 1, reviewers);
+    verify(stashClient, times(1)).addPullRequestReviewer(pr, 1, reviewers);
   }
   
   @Test
@@ -623,7 +611,7 @@ public class StashRequestFacadeTest extends StashTest {
     
     myFacade.addPullRequestReviewer(pr, STASH_USER, stashClient);
     
-    verify(stashClient, times(0)).addPullRequestReviewer(pr, (long) 1, reviewers);
+    verify(stashClient, times(0)).addPullRequestReviewer(pr, 1, reviewers);
   }
   
   @Test

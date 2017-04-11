@@ -50,6 +50,14 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getString(StashPlugin.SONARQUBE_URL);
   }
 
+  public String getSonarQubeLogin() {
+    return settings.getString(CoreProperties.LOGIN);
+  }
+
+  public String getSonarQubePassword() {
+    return settings.getString(CoreProperties.PASSWORD);
+  }
+
   public int getIssueThreshold() {
     return settings.getInt(StashPlugin.STASH_ISSUE_THRESHOLD);
   }
@@ -65,11 +73,7 @@ public class StashPluginConfiguration implements BatchComponent {
   public boolean resetComments() {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
   }
-  
-  public String getCodeCoverageSeverity() {
-    return settings.getString(StashPlugin.STASH_CODE_COVERAGE_SEVERITY);
-  }
-  
+
   public String getTaskIssueSeverityThreshold() {
     return settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
   }
