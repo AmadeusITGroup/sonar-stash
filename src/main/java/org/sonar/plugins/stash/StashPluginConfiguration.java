@@ -91,6 +91,6 @@ public class StashPluginConfiguration implements BatchComponent {
   }
 
   public Optional<File> getRepositoryRoot() {
-    return Optional.ofNullable(settings.getString(StashPlugin.STASH_SOURCE_ROOT_DIR)).map(File::new);
+    return Optional.ofNullable(settings.getString(StashPlugin.STASH_REPOSITORY_ROOT)).map(File::new);
   }
 }
