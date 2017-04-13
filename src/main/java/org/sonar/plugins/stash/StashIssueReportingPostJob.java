@@ -34,21 +34,22 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
   @Override
   public void executeOn(Project project, SensorContext context) {
+    if (!config.hasToNotifyStash()) {
+      LOGGER.info("{} not enabled, skipping", this);
+      return;
+    }
+
     try {
-      boolean notifyStash = config.hasToNotifyStash();
-      if (notifyStash) {
+      // Stash MANDATORY options
+      String stashURL  = stashRequestFacade.getStashURL();
+      int stashTimeout = config.getStashTimeout();
 
-        // Stash MANDATORY options
-        String stashURL  = stashRequestFacade.getStashURL();
-        int stashTimeout = config.getStashTimeout();
-          
-        StashCredentials stashCredentials = stashRequestFacade.getCredentials();
+      StashCredentials stashCredentials = stashRequestFacade.getCredentials();
 
-        try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
+      try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
 
-          // Down the rabbit hole...
-          updateStashWithSonarInfo(stashClient, stashCredentials);
-        }
+        // Down the rabbit hole...
+        updateStashWithSonarInfo(stashClient, stashCredentials);
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
