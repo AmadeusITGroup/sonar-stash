@@ -4,10 +4,12 @@ public class StashCredentials {
 
   private final String login;
   private final String password;
+  private final String userSlug;
 
-  public StashCredentials(String login, String password) {
+  public StashCredentials(String login, String password, String userSlug) {
     this.login = login;
     this.password = password;
+    this.userSlug = userSlug;
   }
 
   public String getLogin() {
@@ -16,6 +18,10 @@ public class StashCredentials {
 
   public String getPassword() {
     return password;
+  }
+
+  public String getUserSlug() {
+    return userSlug;
   }
 
 }
