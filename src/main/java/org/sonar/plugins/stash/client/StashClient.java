@@ -364,7 +364,10 @@ public class StashClient implements AutoCloseable {
   
   AsyncHttpClient createHttpClient(String sonarQubeVersion){
     return new DefaultAsyncHttpClient(
-            new DefaultAsyncHttpClientConfig.Builder().setUserAgent(getUserAgent(sonarQubeVersion)).build()
+            new DefaultAsyncHttpClientConfig.Builder()
+                    .setUserAgent(getUserAgent(sonarQubeVersion))
+                    .setCompressionEnforced(true)
+                    .build()
     );
   }
 }
