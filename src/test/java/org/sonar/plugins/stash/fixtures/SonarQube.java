@@ -49,7 +49,11 @@ public class SonarQube {
             binary =  "sonar.sh";
         }
 
-        File exec = installDir.resolve("bin").resolve(os + "-" + arch).resolve(binary).toFile();
+        String os_arch = os + "-" + arch;
+        if (os.contains("mac")) {
+            os_arch = "macosx-universal-64";
+        }
+        File exec = installDir.resolve("bin").resolve(os_arch).resolve(binary).toFile();
         if (!exec.exists()) {
             throw new IllegalArgumentException();
         }
