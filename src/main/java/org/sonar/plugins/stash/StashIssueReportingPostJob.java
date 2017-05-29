@@ -65,7 +65,8 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
     try {
       int issueThreshold  = stashRequestFacade.getIssueThreshold();
-      PullRequestRef pr = stashRequestFacade.getPullRequest();
+      PullRequestRef pr = stashRequestFacade.getPullRequest(stashClient);
+      LOGGER.info("Reviewing pull request " + stashClient.getPullRequstUrl(pr));
 
       // SonarQube objects
       List<Issue> issueReport = stashRequestFacade.extractIssueReport(projectIssues);

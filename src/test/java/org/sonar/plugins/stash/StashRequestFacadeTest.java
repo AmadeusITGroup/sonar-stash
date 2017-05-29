@@ -319,13 +319,15 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testGetStashPullRequestId() throws StashConfigurationException {
     when(config.getPullRequestId()).thenReturn(12345);
-    assertEquals(myFacade.getStashPullRequestId(), 12345);
+    assertEquals(myFacade.getStashPullRequestId(stashClient), 12345);
   }
   
   @Test (expected = StashConfigurationException.class)
   public void testGetStashPullRequestIdThrowsException() throws StashConfigurationException {
     when(config.getPullRequestId()).thenReturn(null);
-    myFacade.getStashPullRequestId();
+    when(config.getSonarBranch()).thenReturn(null);
+    when(config.getSonarStashBranch()).thenReturn(null);
+    myFacade.getStashPullRequestId(stashClient);
   }
   
   @Test

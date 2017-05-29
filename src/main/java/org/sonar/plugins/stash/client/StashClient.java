@@ -47,8 +47,9 @@ public class StashClient implements AutoCloseable {
   private static final String REPO_API = "{0}" + REST_API + "projects/{1}/repos/{2}/";
   private static final String TASKS_API = REST_API + "tasks";
 
-  private static final String API_ALL_PR = REPO_API + "pull-requests/";
-  private static final String API_ONE_PR = API_ALL_PR + "{3,number,#}";
+  private static final String API_PULLREQUESTS = REPO_API + "pull-requests";
+  private static final String API_PULLREQUEST_BY_BRANCH = API_PULLREQUESTS + "?direction=outgoing&at=refs/heads/{3}";
+  private static final String API_ONE_PR = API_PULLREQUESTS + "/{3,number,#}";
 
   private static final String API_ONE_PR_ALL_COMMENTS = API_ONE_PR + "/comments";
   private static final String API_ONE_PR_DIFF = API_ONE_PR + "/diff?withComments=true";
@@ -237,6 +238,22 @@ public class StashClient implements AutoCloseable {
   public void deleteTaskOnComment(StashTask task) throws StashClientException {
     String request = baseUrl + TASKS_API + "/" + task.getId();
     delete(request, MessageFormat.format(TASK_DELETION_ERROR_MESSAGE, task.getId()));
+  }
+
+  public Integer getPullRequestId(String stashProject, String stashRepository, String branchName) throws StashClientException {
+    String request = MessageFormat.format(API_PULLREQUEST_BY_BRANCH, baseUrl, stashProject, stashRepository, branchName);
+    JSONObject jsonPR = get(request, "Error getting pull request info");
+    long size = (long)jsonPR.get("size");
+    if (size != 1) {
+      throw new StashClientException("Unable to find suitable pull request. Response size = " + size);
+    }
+    JSONArray prs = (JSONArray)jsonPR.get("values");
+    JSONObject pr = (JSONObject) prs.get(0);
+    return Integer.valueOf(String.valueOf(pr.get("id")));
+  }
+
+  public String getPullRequstUrl(PullRequestRef pr) {
+    return MessageFormat.format("{0}/projects/{1}/repos/{2}/pull-requests/{3}", baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
   }
 
   @Override

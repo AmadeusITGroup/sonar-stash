@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
+import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
@@ -270,11 +271,11 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     return result;
   }
 
-  public PullRequestRef getPullRequest() throws StashConfigurationException {
+  public PullRequestRef getPullRequest(StashClient stashClient) throws StashConfigurationException {
     return PullRequestRef.builder()
             .setProject(getStashProject())
             .setRepository(getStashRepository())
-            .setPullRequestId(getStashPullRequestId())
+            .setPullRequestId(getStashPullRequestId(stashClient))
             .build();
   }
 
@@ -303,17 +304,39 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     
     return result;
   }
-  
+
   /**
-   * Mandatory Stash pull-request ID option.
-   * @throws StashConfigurationException if unable to get parameter
+   * Gets or resolves pull request id
+   * If sonar.stash.pullrequest.id specified returns it's value
+   * Otherwise takes branch name from sonar.stash.branch or sonar.branch property in this precedence
+   * and resolves pull request id using Stash REST API
+   * @param stashClient - client
+   * @return pull request id
+   * @throws StashConfigurationException
    */
-  public int getStashPullRequestId() throws StashConfigurationException {
+  public int getStashPullRequestId(StashClient stashClient) throws StashConfigurationException {
     Integer result = config.getPullRequestId();
-    if (result == null){
-      throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF, StashPlugin.STASH_PULL_REQUEST_ID));
+    if (result != null && result != 0){
+      return result;
     }
-    
+    // try to get PR id from branch name
+    String branchName = config.getSonarStashBranch();
+    if (branchName == null) {
+      branchName = config.getSonarBranch();
+    }
+    if (branchName == null) {
+      throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF,
+              StashPlugin.STASH_BRANCH_NAME + " or " + CoreProperties.PROJECT_BRANCH_PROPERTY));
+    }
+
+    try {
+      result = stashClient.getPullRequestId(getStashProject(), getStashRepository(), branchName);
+    } catch (StashClientException e) {
+      LOGGER.error("Error when trying to resolve PR id", e);
+    }
+    if (result == null || result == 0) {
+      throw new StashConfigurationException("Unable to find pull request for branch " + branchName);
+    }
     return result;
   }
 
