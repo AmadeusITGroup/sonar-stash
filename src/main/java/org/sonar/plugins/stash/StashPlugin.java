@@ -20,8 +20,9 @@ import com.google.common.collect.Lists;
     @Property(key = StashPlugin.STASH_NOTIFICATION, name = "Stash Notification", defaultValue = "false", description = "Analysis result will be issued in Stash pull request", global = false),
     @Property(key = StashPlugin.STASH_PROJECT, name = "Stash Project", description = "Stash project of current pull-request", global = false),
     @Property(key = StashPlugin.STASH_REPOSITORY, name = "Stash Repository", description = "Stash project of current pull-request", global = false),
-    @Property(key = StashPlugin.STASH_PULL_REQUEST_ID, name = "Stash Pull-request Id", description = "Stash pull-request Id", global = false) })
-
+    @Property(key = StashPlugin.STASH_PULL_REQUEST_ID, name = "Stash Pull-request Id", description = "Stash pull-request Id", global = false),
+    @Property(key = StashPlugin.STASH_BRANCH_NAME, name = "Stash branch name", description = "Name of the branch to look for pull request", global = false)
+})
 public class StashPlugin extends SonarPlugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
@@ -43,6 +44,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_PROJECT = "sonar.stash.project";
   public static final String STASH_REPOSITORY = "sonar.stash.repository";
   public static final String STASH_PULL_REQUEST_ID = "sonar.stash.pullrequest.id";
+  public static final String STASH_BRANCH_NAME = "sonar.stash.branch";
   public static final String STASH_RESET_COMMENTS = "sonar.stash.comments.reset";
   public static final String STASH_URL = "sonar.stash.url";
   public static final String STASH_LOGIN = "sonar.stash.login";

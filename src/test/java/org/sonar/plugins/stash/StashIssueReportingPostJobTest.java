@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -95,14 +96,13 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(stashRequestFacade.getIssueThreshold()).thenReturn(STASH_ISSUE_THRESHOLD);
     when(stashRequestFacade.getStashProject()).thenReturn(STASH_PROJECT);
     when(stashRequestFacade.getStashRepository()).thenReturn(STASH_REPOSITORY);
-    when(stashRequestFacade.getStashPullRequestId()).thenReturn(STASH_PULLREQUEST_ID);
     when(stashRequestFacade.getCredentials()).thenReturn(new StashCredentials(STASH_LOGIN, STASH_PASSWORD));
     when(stashRequestFacade.getSonarQubeReviewer(Mockito.anyString(), (StashClient) Mockito.anyObject())).thenReturn(stashUser);
     when(stashRequestFacade.getPullRequestDiffReport(eq(pr), (StashClient) Mockito.anyObject())).thenReturn(diffReport);
     when(stashRequestFacade.getIssueThreshold()).thenReturn(STASH_ISSUE_THRESHOLD);
     when(stashRequestFacade.getStashURL()).thenReturn(STASH_URL);
 
-    when(stashRequestFacade.getPullRequest()).thenReturn(pr);
+    when(stashRequestFacade.getPullRequest(any())).thenReturn(pr);
   }
   
   @Test

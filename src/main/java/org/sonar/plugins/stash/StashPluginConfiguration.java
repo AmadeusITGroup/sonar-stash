@@ -93,4 +93,19 @@ public class StashPluginConfiguration implements BatchComponent {
   public Optional<File> getRepositoryRoot() {
     return Optional.ofNullable(settings.getString(StashPlugin.STASH_REPOSITORY_ROOT)).map(File::new);
   }
+
+  /**
+   * Sonar property -Dsonar.branch
+   */
+  public String getSonarBranch() {
+    return settings.getString(CoreProperties.PROJECT_BRANCH_PROPERTY);
+  }
+
+
+  /**
+   * This plugin specific property -Dsonar.stash.branch
+   */
+  public String getSonarStashBranch() {
+    return settings.getString(StashPlugin.STASH_BRANCH_NAME);
+  }
 }
