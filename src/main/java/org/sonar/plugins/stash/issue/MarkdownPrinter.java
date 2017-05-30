@@ -136,15 +136,25 @@ public final class MarkdownPrinter {
                                                    Double projectCoverage, Double previousProjectCoverage, IssuePathResolver issuePathResolver) {
     StringBuilder sb = new StringBuilder("| Line Coverage: ");
 
-    double diffProjectCoverage = projectCoverage - previousProjectCoverage;
-    
-    sb.append(formatPercentage(projectCoverage))
-            .append("% (")
-            .append((diffProjectCoverage > 0)? "+" : "")
-            .append(formatPercentage(diffProjectCoverage))
-            .append("%)")
-            .append(" |")
-            .append(NEW_LINE);
+    if (projectCoverage != null) {
+      sb.append(formatPercentage(projectCoverage));
+      sb.append("% ");
+
+      if (previousProjectCoverage != null) {
+        double diffProjectCoverage = projectCoverage - previousProjectCoverage;
+
+        sb.append("(")
+          .append((diffProjectCoverage > 0)? "+" : "")
+          .append(formatPercentage(diffProjectCoverage))
+          .append("%) ")
+        ;
+
+      }
+
+    }
+
+    sb.append("|");
+    sb.append(NEW_LINE);
     sb.append("|---------------|").append(NEW_LINE);
     
     for (Issue issue : coverageReport) {

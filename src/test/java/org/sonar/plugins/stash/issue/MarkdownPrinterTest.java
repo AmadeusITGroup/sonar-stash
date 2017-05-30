@@ -239,16 +239,20 @@ public class MarkdownPrinterTest {
     assertEquals(reportString, issueReportMarkdown);
   }
 
-  private String printCoverageReportMarkdown(List<Issue> report, double projectCoverage, double previousProjectCoverage) {
+  private String printCoverageReportMarkdown(List<Issue> report, Double projectCoverage, Double previousProjectCoverage) {
     return MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, report, STASH_URL, projectCoverage, previousProjectCoverage, issuePathResolver);
+  }
+
+  private String printCoverageReportMarkdown(Double projectCoverage, Double previousProjectCoverage) {
+      return printCoverageReportMarkdown(new ArrayList<>(), projectCoverage, previousProjectCoverage);
   }
 
   @Test
   public void testPrintCoverageReportMarkdown() {
-    report = new ArrayList<>();
+    List<Issue> report = new ArrayList<>();
     report.add(coverageIssue);
 
-    String reportMarkdown = printCoverageReportMarkdown(report, 40.0, 50.0);
+    String reportMarkdown = printCoverageReportMarkdown(report,40.0, 50.0);
     String expectedReportMarkdown = "| Line Coverage: 40.0% (-10.0%) |\n" +
                                     "|---------------|\n" +
                                     "| *MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)] |\n";
@@ -258,9 +262,7 @@ public class MarkdownPrinterTest {
 
   @Test
   public void testPrintCoverageReportMarkdownWithPositiveCoverage() {
-    report = new ArrayList<>();
-
-    String reportMarkdown = printCoverageReportMarkdown(report, 50.0, 40.0);
+    String reportMarkdown = printCoverageReportMarkdown(50.0, 40.0);
     String expectedReportMarkdown = "| Line Coverage: 50.0% (+10.0%) |\n" +
                                     "|---------------|\n";
     
@@ -269,9 +271,7 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintCoverageReportMarkdownWithNoEvolution() {
-    report = new ArrayList<>();
-
-    String reportMarkdown = printCoverageReportMarkdown(report, 40.0, 40.0);
+    String reportMarkdown = printCoverageReportMarkdown(40.0, 40.0);
     String expectedReportMarkdown = "| Line Coverage: 40.0% (0.0%) |\n" +
                                     "|---------------|\n";
     
@@ -280,9 +280,7 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintCoverageReportMarkdownWithNoIssues() {
-    report = new ArrayList<>();
-
-    String reportMarkdown = printCoverageReportMarkdown(report, 0.0, 40.0);
+    String reportMarkdown = printCoverageReportMarkdown(0.0, 40.0);
     String expectedReportMarkdown = "| Line Coverage: 0.0% (-40.0%) |\n" +
                                     "|---------------|\n";
     
@@ -291,12 +289,34 @@ public class MarkdownPrinterTest {
   
   @Test
   public void testPrintCoverageReportMarkdownWithNoLoweredIssues() {
-    report = new ArrayList<>();
-
-    String reportMarkdown = printCoverageReportMarkdown(report, 40.0, 30.0);
+    String reportMarkdown = printCoverageReportMarkdown(40.0, 30.0);
     String expectedReportMarkdown = "| Line Coverage: 40.0% (+10.0%) |\n" +
                                     "|---------------|\n";
     
     assertEquals(expectedReportMarkdown, reportMarkdown);
+  }
+
+  @Test
+  public void testPrintCoverageReportMarkdownWithNoCurrentAndPreviousCoverage() {
+    assertEquals(
+            "| Line Coverage: |\n|---------------|\n",
+            printCoverageReportMarkdown(null, null)
+    );
+  }
+
+  @Test
+  public void testPrintCoverageReportMarkdownWithNoCurrentCoverage() {
+    assertEquals(
+            "| Line Coverage: |\n|---------------|\n",
+            printCoverageReportMarkdown(null, 30.0)
+    );
+  }
+
+  @Test
+  public void testPrintCoverageReportMarkdownWithNoPreviousCoverage() {
+    assertEquals(
+            "| Line Coverage: 40.0% |\n|---------------|\n",
+            printCoverageReportMarkdown(40.0, null)
+    );
   }
 }
