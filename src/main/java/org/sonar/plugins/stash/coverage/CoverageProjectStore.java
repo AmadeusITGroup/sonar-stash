@@ -42,16 +42,12 @@ public class CoverageProjectStore implements BatchComponent, Sensor {
     @Override
     public void analyse(Project module, SensorContext context) {
         Sonar sonar = createSonarClient(config);
-        if (config.scanAllFiles()) {
-            previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
-        } else {
-            LOGGER.info("Not scanning all files, project-wide coverage disabled");
-        }
+        previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
     }
 
     @Override
     public boolean shouldExecuteOnProject(Project project) {
-        return config.hasToNotifyStash() && CoverageRule.shouldExecute(activeRules);
+        return CoverageUtils.shouldExecuteCoverage(config, activeRules);
     }
 
     public void updateMeasurements(int linesToCover, int uncoveredLines) {
