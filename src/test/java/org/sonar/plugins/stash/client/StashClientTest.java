@@ -47,7 +47,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 
 public class StashClientTest extends StashTest {
-  private static final int timeout = 200;
+  private static final int timeout = 400;
   private static final int errorTimeout = timeout + 10;
 
   PullRequestRef pr = PullRequestRef.builder()
