@@ -12,6 +12,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.PullRequestRef;
@@ -27,6 +28,8 @@ import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -300,22 +303,22 @@ public class StashClient implements AutoCloseable {
   }
 
   private static JSONObject extractResponse(Response response) throws StashClientException {
-    String body = null;
-    body = response.getResponseBody();
+    PeekableInputStream bodyStream = new PeekableInputStream(response.getResponseBodyAsStream());
 
-    if (StringUtils.isEmpty(body)) {
-      return null;
-    }
-
-    String contentType = response.getHeader("Content-Type");
-    if (!JSON.match(StringUtils.strip(contentType))) {
-      throw new StashClientException("Received response with type " + contentType + " instead of JSON");
-    }
     try {
+      if (!bodyStream.peek().isPresent()) {
+        return null;
+      }
+      Reader body = new InputStreamReader(bodyStream);
+
+      String contentType = response.getHeader("Content-Type");
+      if (!JSON.match(StringUtils.strip(contentType))) {
+        throw new StashClientException("Received response with type " + contentType + " instead of JSON");
+      }
       Object obj = new JSONParser().parse(body);
       return (JSONObject)obj;
-    } catch (ParseException | ClassCastException e) {
-      throw new StashClientException("Could not parse JSON response " + e + "('" + body + "')", e);
+    } catch (ParseException | ClassCastException | IOException e) {
+      throw new StashClientException("Could not parse JSON response: " + e, e);
     }
   }
 
