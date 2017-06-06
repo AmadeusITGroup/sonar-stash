@@ -13,6 +13,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.sonar.plugins.stash.PeekableInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.PullRequestRef;
@@ -39,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class StashClient implements AutoCloseable {
+  private static final Logger LOGGER = LoggerFactory.getLogger(StashClient.class);
 
   private final String baseUrl;
   private final StashCredentials credentials;
@@ -246,7 +249,9 @@ public class StashClient implements AutoCloseable {
   public void close() {
     try {
       httpClient.close();
-    } catch (IOException ignored) { }
+    } catch (IOException e) {
+      LOGGER.debug("Ignoring exception while closing StashClient: {}", e, e);
+    }
   }
 
   private JSONObject get(String url, String errorMessage) throws StashClientException {
