@@ -99,6 +99,8 @@ sonar-runner -Dsonar.analysis.mode=incremental -Dsonar.stash.notification -Dsona
 
 ## How to activate the coverage inside the pull-request
 
+*Note: The coverage functionality is experimental and is subject to change without notice and will be moved to its own plugin eventually*
+
 The plugin can push into the pull-request the coverage computed with the help of the Unit Tests.
 This feature is based on "line coverage" metric, which compares the "uncovered lines" with the "lines to cover" on a file. 
 
