@@ -2,6 +2,7 @@ package org.sonar.plugins.stash.coverage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.plugins.stash.StashPluginConfiguration;
 import org.sonar.wsclient.Sonar;
@@ -45,5 +46,25 @@ public final class CoverageUtils {
         } else {
             return resource.getMeasureValue(CoreMetrics.LINE_COVERAGE_KEY);
         }
+    }
+
+    public static boolean shouldExecuteCoverage(StashPluginConfiguration config, ActiveRules activeRules) {
+        // We only execute when run in stash reporting mode
+        // This indicates we are running in preview mode,
+        // I don't know how we should behave during a normal scan
+        if (!config.hasToNotifyStash()) {
+            return false;
+        }
+
+        if (!CoverageRule.shouldExecute(activeRules)) {
+            return false;
+        }
+
+        if (!config.scanAllFiles()) {
+            LOGGER.warn("Not scanning all files, coverage features will be unreliable and will be disabled");
+            return false;
+        }
+
+        return true;
     }
 }

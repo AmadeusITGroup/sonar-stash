@@ -93,4 +93,8 @@ public class StashPluginConfiguration implements BatchComponent {
   public Optional<File> getRepositoryRoot() {
     return Optional.ofNullable(settings.getString(StashPlugin.STASH_REPOSITORY_ROOT)).map(File::new);
   }
+
+  public boolean scanAllFiles() {
+    return settings.getBoolean("sonar.scanAllFiles");
+  }
 }
