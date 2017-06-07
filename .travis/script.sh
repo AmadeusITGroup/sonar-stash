@@ -6,7 +6,7 @@ if [ -z "${TEST_SUITE}" ]; then
 	exit 1
 
 elif [ "unit" = "${TEST_SUITE}" ]; then
-	mvn test -Pcoverage-per-test
+	mvn -e test -Pcoverage-per-test
 
 elif [ "integration" = "${TEST_SUITE}" ]; then
 	if [ -z "${SONARQUBE_VERSION}" ]; then
@@ -18,5 +18,5 @@ elif [ "integration" = "${TEST_SUITE}" ]; then
 	# otherwise the rails bundled with sonarqube tries to load test.yml which does
 	# not exist
 	export RAILS_ENV=production
-	mvn verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
+	mvn -e verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
 fi
