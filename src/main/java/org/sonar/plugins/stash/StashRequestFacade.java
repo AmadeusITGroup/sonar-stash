@@ -108,19 +108,19 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Add a reviewer to the current pull-request.
    */
-  public void addPullRequestReviewer(PullRequestRef pr, String user, StashClient stashClient) {
+  public void addPullRequestReviewer(PullRequestRef pr, String userSlug, StashClient stashClient) {
     try {
       StashPullRequest pullRequest = stashClient.getPullRequest(pr);
 
       // user not yet in reviewer list
-      StashUser reviewer = pullRequest.getReviewer(user);
+      StashUser reviewer = pullRequest.getReviewer(userSlug);
       if (reviewer == null) {
         ArrayList<StashUser> reviewers = new ArrayList<>(pullRequest.getReviewers());
-        reviewers.add(stashClient.getUser(user));
+        reviewers.add(stashClient.getUser(userSlug));
 
         stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);
 
-        LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", user, pr.pullRequestId(), pr.project(), pr.repository());
+        LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", userSlug, pr.pullRequestId(), pr.project(), pr.repository());
       }
     } catch (StashClientException e) {
       LOGGER.error("Unable to add a new reviewer to the pull-request", e);
@@ -225,6 +225,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   public StashCredentials getCredentials() throws StashConfigurationException {
     String passwordEnvVariable = config.getStashPasswordEnvironmentVariable();
     String password = config.getStashPassword();
+    String userSlug = config.getStashUserSlug();
+
     if (passwordEnvVariable != null) {
       password = System.getenv(passwordEnvVariable);
       if (password == null) {
@@ -233,7 +235,12 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
                         StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
       }
     }
-    return new StashCredentials(config.getStashLogin(), password);
+
+    if(userSlug == null) {
+      userSlug = config.getStashLogin();
+    }
+
+    return new StashCredentials(config.getStashLogin(), password, userSlug);
   }
 
   /**
@@ -320,13 +327,13 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Get user who published the SQ analysis in Stash.
    */
-  public StashUser getSonarQubeReviewer(String user, StashClient stashClient){
+  public StashUser getSonarQubeReviewer(String userSlug, StashClient stashClient){
     StashUser result = null;
     
     try {
-      result = stashClient.getUser(user);
+      result = stashClient.getUser(userSlug);
       
-      LOGGER.debug("SonarQube reviewer {} identified in Stash", user);
+      LOGGER.debug("SonarQube reviewer {} identified in Stash", userSlug);
       
     } catch(StashClientException e){
         LOGGER.error("Unable to get SonarQube reviewer from Stash", e);

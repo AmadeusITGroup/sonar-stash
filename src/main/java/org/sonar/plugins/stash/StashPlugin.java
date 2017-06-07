@@ -46,6 +46,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_RESET_COMMENTS = "sonar.stash.comments.reset";
   public static final String STASH_URL = "sonar.stash.url";
   public static final String STASH_LOGIN = "sonar.stash.login";
+  public static final String STASH_USER_SLUG = "sonar.stash.user.slug";
   public static final String STASH_PASSWORD = "sonar.stash.password";
   public static final String STASH_PASSWORD_ENVIRONMENT_VARIABLE = "sonar.stash.password.variable";
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";

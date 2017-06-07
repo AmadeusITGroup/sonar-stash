@@ -70,8 +70,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
       // SonarQube objects
       List<Issue> issueReport = stashRequestFacade.extractIssueReport(projectIssues);
 
-
-      StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getLogin(), stashClient);
+      StashUser stashUser = stashRequestFacade.getSonarQubeReviewer(stashCredentials.getUserSlug(), stashClient);
 
       if (stashUser == null) {
         throw new StashMissingElementException("No SonarQube reviewer identified to publish to Stash the SQ analysis");
@@ -90,7 +89,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
       boolean canApprovePullrequest = config.canApprovePullRequest();
       if (canApprovePullrequest) {
-        stashRequestFacade.addPullRequestReviewer(pr, stashCredentials.getLogin(), stashClient);
+        stashRequestFacade.addPullRequestReviewer(pr, stashCredentials.getUserSlug(), stashClient);
       }
 
       postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient);

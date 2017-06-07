@@ -60,7 +60,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
   private static final int STASH_PULLREQUEST_ID = 1;
-  private static final String STASH_LOGIN = "login";
+  private static final String STASH_LOGIN = "login@email.com";
+  private static final String STASH_USER_SLUG = "login";
   private static final String STASH_PASSWORD = "password";
   private static final String STASH_URL = "http://url/to/stash";
   private static final int STASH_TIMEOUT = 10000;
@@ -96,7 +97,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(stashRequestFacade.getStashProject()).thenReturn(STASH_PROJECT);
     when(stashRequestFacade.getStashRepository()).thenReturn(STASH_REPOSITORY);
     when(stashRequestFacade.getStashPullRequestId()).thenReturn(STASH_PULLREQUEST_ID);
-    when(stashRequestFacade.getCredentials()).thenReturn(new StashCredentials(STASH_LOGIN, STASH_PASSWORD));
+    when(stashRequestFacade.getCredentials()).thenReturn(new StashCredentials(STASH_LOGIN, STASH_PASSWORD, STASH_USER_SLUG));
     when(stashRequestFacade.getSonarQubeReviewer(Mockito.anyString(), (StashClient) Mockito.anyObject())).thenReturn(stashUser);
     when(stashRequestFacade.getPullRequestDiffReport(eq(pr), (StashClient) Mockito.anyObject())).thenReturn(diffReport);
     when(stashRequestFacade.getIssueThreshold()).thenReturn(STASH_ISSUE_THRESHOLD);

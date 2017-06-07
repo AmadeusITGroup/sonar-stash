@@ -42,6 +42,10 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getString(StashPlugin.STASH_LOGIN);
   }
 
+  public String getStashUserSlug() {
+    return settings.getString(StashPlugin.STASH_USER_SLUG);
+  }
+
   public String getStashPassword() {
     return settings.getString(StashPlugin.STASH_PASSWORD);
   }
