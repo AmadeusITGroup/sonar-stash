@@ -16,6 +16,7 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.plugins.stash.SonarSettings;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageProjectStore;
@@ -61,11 +62,12 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
                                    StashClient stashClient) {
 
     try {
-      String report = MarkdownPrinter.printReportMarkdown(
-              pr, stashClient.getBaseUrl(), config.getSonarQubeURL(), issueReport, issueThreshold,
-              coverageProjectStore.getProjectCoverage(), coverageProjectStore.getPreviousProjectCoverage(),
-              this
-      );
+      SonarSettings sonarConf = new SonarSettings(config.getSonarQubeURL(), issueThreshold, 
+                                                  coverageProjectStore.getProjectCoverage(),
+                                                  coverageProjectStore.getPreviousProjectCoverage());
+
+      String report = MarkdownPrinter.printReportMarkdown(pr, stashClient.getBaseUrl(),
+                                                          sonarConf, issueReport, this);
       stashClient.postCommentOnPullRequest(pr, report);
 
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
