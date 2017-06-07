@@ -17,6 +17,8 @@ public class StashPluginUtilsTest {
     assertEquals("11.0", formatPercentage(11.0));
     assertEquals("31.3", formatPercentage(31.25));
     assertEquals("50.3", formatPercentage(50.29));
+    // This test can fail with 50.2 instead of 50.3 if run with an older version of the JDK 8
+    //    (failed with v25 & worked with v131)
   }
 
   @Test

@@ -328,10 +328,20 @@ public class StashClient implements AutoCloseable {
   }
 
   private static String formatStashApiError(Response response) throws StashClientException {
-    JSONArray errors;
+
+    // squid:S2259: making sure that we do nit have a null value that would make a NullPointerException when used
+    if(response == null) {
+      throw new StashClientException("The response provided is empty !");
+    }
+
     JSONObject responseJson = extractResponse(response);
 
-    errors = (JSONArray)responseJson.get("errors");
+    // squid:S2259: making sure that we do nit have a null value that would make a NullPointerException when used
+    if(responseJson == null) {
+      throw new StashClientException("The responseJson could not be extracted from the response !");
+    }
+
+    JSONArray errors = (JSONArray)responseJson.get("errors");
 
     if (errors == null) {
       throw new StashClientException("Error response did not contain an errors object '" + responseJson + "'");
