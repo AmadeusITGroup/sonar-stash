@@ -11,12 +11,12 @@ matrix:
         # It is necessary only to run the analysis once ;)
 
     # The integration tests environments
-    - jdk: oraclejdk8
+    - jdk: openjdk8
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=6.0
 
-    - jdk: oraclejdk8
+    - jdk: openjdk8
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=5.6
