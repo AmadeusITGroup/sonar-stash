@@ -29,13 +29,21 @@ public final class SonarQubeCollector {
 
   private static boolean shouldIncludeIssue(Issue issue, IssuePathResolver issuePathResolver) {
     if (!issue.isNew()){
-      LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
+
+      // squid:S2629 : no evaluation required if the logging level is not activated
+      if(LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
+      }
       return false;
     }
 
     String path = issuePathResolver.getIssuePath(issue);
     if (path == null) {
-      LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
+      
+      // squid:S2629 : no evaluation required if the logging level is not activated
+      if(LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
+      }
       return false;
     }
     return true;

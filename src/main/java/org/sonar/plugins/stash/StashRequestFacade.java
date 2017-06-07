@@ -82,8 +82,11 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     try {
       stashClient.approvePullRequest(pr);
 
-      LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
-        pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+      // squid:S2629 : no evaluation required if the logging level is not activated
+      if(LOGGER.isInfoEnabled()) {
+        LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
+                        pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+      }
 
     } catch (StashClientException e) {
       LOGGER.error("Unable to approve pull-request", e);
@@ -97,8 +100,11 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     try {
       stashClient.resetPullRequestApproval(pr);
 
-      LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
-              pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+      // squid:S2629 : no evaluation required if the logging level is not activated
+      if(LOGGER.isInfoEnabled()) {
+        LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
+                        pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+    }
 
     } catch (StashClientException e) {
       LOGGER.error("Unable to reset pull-request approval", e);
@@ -120,7 +126,11 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
         stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);
 
-        LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}", userSlug, pr.pullRequestId(), pr.project(), pr.repository());
+        // squid:S2629 : no evaluation required if the logging level is not activated
+        if(LOGGER.isInfoEnabled()) {
+          LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}",
+                          userSlug, pr.pullRequestId(), pr.project(), pr.repository());
+        }
       }
     } catch (StashClientException e) {
       LOGGER.error("Unable to add a new reviewer to the pull-request", e);
@@ -130,7 +140,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Push SonarQube report into the pull-request as comments.
    */
-  public void postSonarQubeReport(PullRequestRef pr, List<Issue> issueReport, StashDiffReport diffReport, StashClient stashClient) {
+  public void postSonarQubeReport(PullRequestRef pr, List<Issue> issueReport,
+                                  StashDiffReport diffReport, StashClient stashClient) {
     try {
       postCommentPerIssue(pr, issueReport, diffReport, stashClient);
 
@@ -145,7 +156,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Post one comment by found issue on Stash.
    */
-  void postCommentPerIssue(PullRequestRef pr, Collection<Issue> issues, StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
+  void postCommentPerIssue(PullRequestRef pr, Collection<Issue> issues,
+                           StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
@@ -253,7 +265,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     try {
       result = config.getIssueThreshold();
     } catch (NumberFormatException e) {
-      throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_ISSUE_THRESHOLD + " from plugin configuration", e);
+      throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_ISSUE_THRESHOLD +
+                                            " from plugin configuration", e);
     }
     return result;
   }
@@ -318,7 +331,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   public int getStashPullRequestId() throws StashConfigurationException {
     Integer result = config.getPullRequestId();
     if (result == null){
-      throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF, StashPlugin.STASH_PULL_REQUEST_ID));
+      throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF,
+                                                                 StashPlugin.STASH_PULL_REQUEST_ID));
     }
     
     return result;
@@ -347,23 +361,28 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
    */
   public StashDiffReport getPullRequestDiffReport(PullRequestRef pr, StashClient stashClient){
     StashDiffReport result = null;
-    
+
     try {
       result = stashClient.getPullRequestDiffs(pr);
-      
-      LOGGER.debug("Stash differential report retrieved from pull request {} #{}", pr.repository(), pr.pullRequestId());
-      
+
+      // squid:S2629 : no evaluation required if the logging level is not activated
+      if(LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Stash differential report retrieved from pull request {} #{}",
+                         pr.repository(), pr.pullRequestId());
+      }
+
     } catch(StashClientException e){
         LOGGER.error("Unable to get Stash differential report from Stash", e);
     }
-    
+
     return result;
   }
   
   /**
    * Reset all comments linked to a pull-request.
    */
-  public void resetComments(PullRequestRef pr, StashDiffReport diffReport, StashUser sonarUser, StashClient stashClient) {
+  public void resetComments(PullRequestRef pr, StashDiffReport diffReport,
+                            StashUser sonarUser, StashClient stashClient) {
     try {
       // Let's call this "diffRep_loop"
       for (StashComment comment : diffReport.getComments()) {
