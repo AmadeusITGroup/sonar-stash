@@ -26,6 +26,7 @@ if [ "$TRAVIS_BRANCH" = "master" ] && [ "${TRAVIS_PULL_REQUEST}" = "false" ]; th
 	echo "Starting analysis by SonarQube..."
 	mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -B -e -V \
 		-Dsonar.host.url=$SONAR_HOST_URL \
+		-Dsonar.organization=$SONAR_ORGA \
 		-Dsonar.login=$SONAR_TOKEN
 
 elif [ "${TRAVIS_PULL_REQUEST}" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
@@ -39,6 +40,7 @@ elif [ "${TRAVIS_PULL_REQUEST}" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
 	mvn clean package sonar:sonar -B -e -V \
 		-Dsonar.host.url=$SONAR_HOST_URL \
 		-Dsonar.login=$SONAR_TOKEN \
+		-Dsonar.organization=$SONAR_ORGA \
 		-Dsonar.analysis.mode=preview \
 		-Dsonar.github.oauth=$GITHUB_TOKEN \
 		-Dsonar.github.repository=$TRAVIS_REPO_SLUG \
