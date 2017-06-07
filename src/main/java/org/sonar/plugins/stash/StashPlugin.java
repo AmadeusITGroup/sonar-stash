@@ -79,6 +79,11 @@ public class StashPlugin extends SonarPlugin {
             .description("User to push data on Stash instance")
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT).build(),
+        PropertyDefinition.builder(STASH_USER_SLUG)
+            .name("Stash base user slug")
+            .description("If the username has special characters this setting has also to be specified")
+            .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+            .onlyOnQualifiers(Qualifiers.PROJECT).build(),
         PropertyDefinition.builder(STASH_PASSWORD)
                 .name("Stash base Password")
                 .description("Password for Stash base User " +

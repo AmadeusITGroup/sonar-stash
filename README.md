@@ -45,6 +45,8 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash base user** (sonar.stash.login): To define user to push violations on Stash pull-request. User must have **REPO_READ permission** for the repository. **Please notice Stash password needs to be provided to sonar-runner through sonar.stash.password on the commandline**.
 
+**Stash user slug** (sonar.stash.user.slug): If the user username contains special characters the API requires the use of a different slug.
+
 **Stash coverage severity** (sonar.stash.coverage.severity.threshold): If the contribution reduced the coverage on a file, the plugin generates an issue with the following severity.
 
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
