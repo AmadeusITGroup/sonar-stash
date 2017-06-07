@@ -303,14 +303,14 @@ public final class StashCollector {
     }
   }
     
-  public static boolean isLastPage(JSONObject jsonObject) throws StashReportExtractionException {
+  public static boolean isLastPage(JSONObject jsonObject) {
     if (jsonObject.get("isLastPage") != null) {
       return (Boolean)jsonObject.get("isLastPage");
     }
     return true;
   }
 
-  public static long getNextPageStart(JSONObject jsonObject) throws StashReportExtractionException {
+  public static long getNextPageStart(JSONObject jsonObject) {
 
     if (jsonObject.get("nextPageStart") != null) {
       return (Long)jsonObject.get("nextPageStart");
