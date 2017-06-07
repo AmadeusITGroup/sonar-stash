@@ -28,7 +28,8 @@ public class PullRequestRef {
     }
 
     public static class Builder {
-        private String project, repository;
+        private String project;
+        private String repository;
         private int pullRequestId;
 
         public Builder setProject(String value) {
