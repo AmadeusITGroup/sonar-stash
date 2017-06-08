@@ -243,42 +243,63 @@ public final class StashCollector {
       for (Object objLineComment : jsonLineComments.toArray()) {
 
         JSONObject jsonLineComment = (JSONObject)objLineComment;
+        
         long lineCommentId = (long)jsonLineComment.get("id");
 
         if (lineCommentId != commentId) {
-          continue;  // Let's process the next item in "objlico_loop"
+          continue;  // Let's process the next item in "objcomm_loop"
         }
 
-        String lineCommentMessage = (String)jsonLineComment.get("text");
-        long lineCommentVersion = (long)jsonLineComment.get(VERSION);
+        // Sending the JSON for processing into a nice comment
+        StashComment comment = buildCommentFromJSON(jsonLineComment, diff);
 
-        JSONObject objAuthor = (JSONObject)jsonLineComment.get(AUTHOR);
- 
-        if (objAuthor == null) {
-          continue;  // Let's process the next item in "objlico_loop"
+        // If there is no valid comment in the JSON, we just consider the next element in "objlico_loop"
+        if (comment == null) {
+            continue;
         }
 
-        StashUser author = extractUser(objAuthor);
-
-        StashComment comment = new StashComment(lineCommentId, lineCommentMessage, diff.getPath(),
-                                                diff.getDestination(), author, lineCommentVersion);
+        // At this point, we can save the comment and add any relevant task to it
         diff.addComment(comment);
 
         // get the tasks linked to the current comment
-        JSONArray jsonTasks = (JSONArray)jsonLineComment.get("tasks");
-
-        if (jsonTasks == null) {
-          continue;  // Let's process the next item in "objlico_loop"
-        }
-
-        for (Object objTask : jsonTasks.toArray()) {
-          JSONObject jsonTask = (JSONObject)objTask;
-
-          comment.addTask(extractTask(jsonTask.toString()));
-        }
+        updateCommentTasks(comment, (JSONArray)jsonLineComment.get("tasks"));
       }
     }
     return diff;
+  }
+  
+  private static StashComment buildCommentFromJSON(JSONObject jsonLineComment, StashDiff diff) {
+      
+    long lineCommentId = (long)jsonLineComment.get("id");
+
+    String lineCommentMessage = (String)jsonLineComment.get("text");
+    long lineCommentVersion = (long)jsonLineComment.get(VERSION);
+
+    JSONObject objAuthor = (JSONObject)jsonLineComment.get(AUTHOR);
+ 
+    if (objAuthor == null) {
+      return null;
+    }
+
+    StashUser author = extractUser(objAuthor);
+
+    return new StashComment(lineCommentId, lineCommentMessage, diff.getPath(),
+                            diff.getDestination(), author, lineCommentVersion);
+  }
+  
+  private static void updateCommentTasks(StashComment comment, JSONArray jsonTasks)
+      throws StashReportExtractionException {
+
+    // No need to fail on NullPointerException but we want to keep caller's complexity down
+    if (jsonTasks == null) {
+      return;
+    }
+
+    for (Object objTask : jsonTasks.toArray()) {
+      JSONObject jsonTask = (JSONObject)objTask;
+
+      comment.addTask(extractTask(jsonTask.toString()));
+    }
   }
   
   public static StashTask extractTask(String jsonBody) throws StashReportExtractionException {
