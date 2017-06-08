@@ -123,7 +123,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       // user not yet in reviewer list
       StashUser reviewer = pullRequest.getReviewer(userSlug);
       if (reviewer == null) {
-        ArrayList<StashUser> reviewers = new ArrayList<>(pullRequest.getReviewers());
+        List<StashUser> reviewers = pullRequest.getReviewers();
         reviewers.add(stashClient.getUser(userSlug));
 
         stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);

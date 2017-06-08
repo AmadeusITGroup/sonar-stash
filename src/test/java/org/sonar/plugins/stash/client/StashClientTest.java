@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
@@ -306,7 +307,7 @@ public class StashClientTest extends StashTest {
   public void testAddPullRequestReviewer() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse()));
 
-    ArrayList<StashUser> reviewers = new ArrayList<>();
+    List<StashUser> reviewers = new ArrayList<>();
     reviewers.add(testUser);
     
     client.addPullRequestReviewer(pr, 1L, reviewers);

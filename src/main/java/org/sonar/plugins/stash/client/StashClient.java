@@ -192,7 +192,7 @@ public class StashClient implements AutoCloseable {
     return StashCollector.extractPullRequest(pr, response);
   }
   
-  public void addPullRequestReviewer(PullRequestRef pr, long pullRequestVersion, ArrayList<StashUser> reviewers)
+  public void addPullRequestReviewer(PullRequestRef pr, long pullRequestVersion, List<StashUser> reviewers)
       throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
 
