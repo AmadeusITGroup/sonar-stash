@@ -12,6 +12,7 @@ import org.sonar.api.issue.internal.DefaultIssue;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.SonarSettings;
 import org.sonar.plugins.stash.coverage.CoverageRule;
 import org.sonar.plugins.stash.coverage.CoverageSensorTest;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
@@ -32,7 +33,6 @@ public class MarkdownPrinterTest {
           .setRepository("stashRepo")
           .setPullRequestId(1)
           .build();
-
   
   @Before
   public void setUp(){
@@ -65,7 +65,8 @@ public class MarkdownPrinterTest {
   @Test
   public void testPrintCoverageIssueMarkdown() {
     issuePathResolver.add(coverageIssue, "path/code/coverage");
-    String coverageMarkdown = MarkdownPrinter.printCoverageIssueMarkdown("project", "repo", "1", STASH_URL, coverageIssue, issuePathResolver);
+    PullRequestRef prr = PullRequestRef.builder().setProject("project").setRepository("repo").setPullRequestId(1).build();
+    String coverageMarkdown = MarkdownPrinter.printCoverageIssueMarkdown(prr, STASH_URL, coverageIssue, issuePathResolver);
     assertEquals("*MAJOR* - Line coverage of file path/code/coverage lowered from 50.0% to 40.0%. [[file](stash/URL/projects/project/repos/repo/pull-requests/1/diff#path/code/coverage)]",
                   coverageMarkdown);
   }
@@ -133,7 +134,8 @@ public class MarkdownPrinterTest {
   }
 
   private String printReportMarkdown(List<Issue> report, int issueThreshold) {
-    return MarkdownPrinter.printReportMarkdown(pr, STASH_URL, SONAR_URL, report, issueThreshold, 40.0, 50.0, issuePathResolver);
+    SonarSettings sonarSet = new SonarSettings(SONAR_URL, issueThreshold, 40.0, 50.0);
+    return MarkdownPrinter.printReportMarkdown(pr, STASH_URL, sonarSet, report, issuePathResolver);
   }
 
   @Test
@@ -240,7 +242,9 @@ public class MarkdownPrinterTest {
   }
 
   private String printCoverageReportMarkdown(List<Issue> report, Double projectCoverage, Double previousProjectCoverage) {
-    return MarkdownPrinter.printCoverageReportMarkdown("project", "repo", 1, report, STASH_URL, projectCoverage, previousProjectCoverage, issuePathResolver);
+    PullRequestRef prr = PullRequestRef.builder().setProject("project").setRepository("repo").setPullRequestId(1).build();
+    SonarSettings sonarSet = new SonarSettings(SONAR_URL, 100, projectCoverage, previousProjectCoverage);
+    return MarkdownPrinter.printCoverageReportMarkdown(prr, report, STASH_URL, sonarSet, issuePathResolver);
   }
 
   private String printCoverageReportMarkdown(Double projectCoverage, Double previousProjectCoverage) {
