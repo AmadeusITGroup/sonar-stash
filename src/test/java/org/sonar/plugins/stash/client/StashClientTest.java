@@ -80,6 +80,16 @@ public class StashClientTest extends StashTest {
   }
 
   @Test
+  public void testGetBaseUrl() {
+      Assert.assertEquals("http://127.0.0.1:" + wireMock.port(), client.getBaseUrl());
+  }
+
+  @Test
+  public void testGetLogin() {
+      Assert.assertEquals("login@email.com", client.getLogin());
+  }
+
+  @Test
   public void testPostCommentOnPullRequestWithWrongHTTPResult() throws Exception {
     addErrorResponse(any(anyUrl()), HTTP_NOT_IMPLEMENTED);
 

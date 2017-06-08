@@ -291,6 +291,7 @@ public class StashClient implements AutoCloseable {
     requestBuilder.addHeader("Accept", "application/json");
 
     try {
+      // No need to be paranoid as a null value will raise a NullPointerException here
       Response response = requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);
 
       validateResponse(response, expectedStatusCode, errorMessage);
@@ -301,6 +302,7 @@ public class StashClient implements AutoCloseable {
   }
 
   private static void validateResponse(Response response, int expectedStatusCode, String message) throws StashClientException {
+
     int responseCode = response.getStatusCode();
     if (responseCode != expectedStatusCode) {
       throw new StashClientException(message + " Received " + responseCode + ": " + formatStashApiError(response));
@@ -329,14 +331,9 @@ public class StashClient implements AutoCloseable {
 
   private static String formatStashApiError(Response response) throws StashClientException {
 
-    // squid:S2259: making sure that we do nit have a null value that would make a NullPointerException when used
-    if(response == null) {
-      throw new StashClientException("The response provided is empty !");
-    }
-
     JSONObject responseJson = extractResponse(response);
 
-    // squid:S2259: making sure that we do nit have a null value that would make a NullPointerException when used
+    // squid:S2259: making sure that we do not have a null value that would make a NullPointerException when used
     if(responseJson == null) {
       throw new StashClientException("The responseJson could not be extracted from the response !");
     }
