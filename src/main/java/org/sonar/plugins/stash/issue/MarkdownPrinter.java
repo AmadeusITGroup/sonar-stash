@@ -91,10 +91,6 @@ public final class MarkdownPrinter {
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
 
-    String stashProject  = pr.project();
-    String stashRepo     = pr.repository();
-    int pullRequestId    = pr.pullRequestId();
-
     List<Issue> coverageIssues = new ArrayList<>();
     List<Issue> generalIssues = new ArrayList<>();
     for (Issue issue : allIssues) {
