@@ -12,7 +12,9 @@ import org.sonar.api.issue.Issue;
 
 public final class StashPluginUtils {
 
-  private StashPluginUtils() {}
+  private StashPluginUtils() {
+      // Hiding implicit public constructor with an explicit private one (squid:S1118)
+  }
 
   public static String formatPercentage(double d) {
 

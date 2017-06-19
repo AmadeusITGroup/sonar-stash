@@ -1,5 +1,8 @@
 package org.sonar.plugins.stash.issue.collector;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Test;
@@ -572,5 +575,17 @@ public class StashCollectorTest {
 
   private static JSONObject parse(String s) throws Exception {
       return (JSONObject) new JSONParser().parse(s);
+  }
+  
+  @Test
+  public void testConstructorIsPrivate() throws Exception {
+
+    // Let's use this for the greater good: we make sure that nobody can create an instance of this class
+    Constructor constructor = StashCollector.class.getDeclaredConstructor();
+    assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+
+    // This part is for code coverage only (but is re-using the elments above... -_^)
+    constructor.setAccessible(true);
+    constructor.newInstance();
   }
 }

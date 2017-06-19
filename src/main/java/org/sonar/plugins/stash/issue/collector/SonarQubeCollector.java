@@ -14,7 +14,9 @@ public final class SonarQubeCollector {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SonarQubeCollector.class);
 
-  private SonarQubeCollector() {}
+  private SonarQubeCollector() {
+      // Hiding implicit public constructor with an explicit private one (squid:S1118)
+  }
 
   /**
    * Create issue report according to issue list generated during SonarQube

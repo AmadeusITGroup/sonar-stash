@@ -1,10 +1,14 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -223,5 +227,17 @@ public class SonarQubeCollectorTest {
     assertEquals("message2", sqIssue2.message());
     assertEquals("project/path2", issuePathResolver.getIssuePath(sqIssue2));
     assertEquals((Integer) 2, sqIssue2.line());
+  }
+  
+  @Test
+  public void testConstructorIsPrivate() throws Exception {
+
+    // Let's use this for the greater good: we make sure that nobody can create an instance of this class
+    Constructor constructor = SonarQubeCollector.class.getDeclaredConstructor();
+    assertTrue(Modifier.isPrivate(constructor.getModifiers()));
+
+    // This part is for code coverage only (but is re-using the elments above... -_^)
+    constructor.setAccessible(true);
+    constructor.newInstance();
   }
 }

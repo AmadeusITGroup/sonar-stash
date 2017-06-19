@@ -25,7 +25,7 @@ public final class MarkdownPrinter {
   static final List<String> orderedSeverities = Lists.reverse(Severity.ALL);
   
   private MarkdownPrinter(){
-    // DO NOTHING
+    // Hiding implicit public constructor with an explicit private one (squid:S1118)
   }
     
   public static String printCoverageIssueMarkdown(PullRequestRef prr,

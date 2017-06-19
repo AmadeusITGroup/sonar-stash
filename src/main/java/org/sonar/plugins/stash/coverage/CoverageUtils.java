@@ -13,7 +13,9 @@ import org.sonar.wsclient.services.ResourceQuery;
 public final class CoverageUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoverageUtils.class);
 
-    private CoverageUtils() {}
+    private CoverageUtils() {
+        // Hiding implicit public constructor with an explicit private one (squid:S1118)
+    }
 
     public static double calculateCoverage(int linesToCover, int uncoveredLines) {
         if (linesToCover == 0) {

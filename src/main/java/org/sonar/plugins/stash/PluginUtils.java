@@ -16,8 +16,8 @@ public final class PluginUtils {
     private static final String ERROR_DETAILS = "Exception detected: {}";
     private static final String ERROR_STACK   = "Exception stack trace";
 
-    // Hiding implicit public constructor with an explicit private one (squid:S1118)
     private PluginUtils() {
+        // Hiding implicit public constructor with an explicit private one (squid:S1118)
     }
 
     public static PluginInfo infoForPluginClass(Class klass) {

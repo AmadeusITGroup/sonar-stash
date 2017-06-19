@@ -22,8 +22,7 @@ public final class StashCollector {
    private static final String VERSION = "version";
 
   private StashCollector() {
-    // NOTHING TO DO
-    // Pure static class
+    // Hiding implicit public constructor with an explicit private one (squid:S1118)
   }
 
   public static StashCommentReport extractComments(JSONObject jsonComments) throws StashReportExtractionException {
