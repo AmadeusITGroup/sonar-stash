@@ -39,7 +39,7 @@ public class CoverageProjectStore implements BatchComponent, Sensor {
     @Override
     public void analyse(Project module, SensorContext context) {
         Sonar sonar = createSonarClient(config);
-        previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
+        this.previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
     }
 
     @Override

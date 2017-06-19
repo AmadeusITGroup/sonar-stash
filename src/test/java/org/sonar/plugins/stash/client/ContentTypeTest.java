@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.sonar.plugins.stash.client.ContentType;
 
 public class ContentTypeTest {
+
     @Test
     public void testContentType() {
         ContentType json = new ContentType("application", "json", null);
@@ -22,5 +23,10 @@ public class ContentTypeTest {
         Assert.assertFalse(json.match("foo/json"));
         Assert.assertFalse(json.match("application/foo"));
         Assert.assertFalse(json.match("application/foo;charset=utf-8"));
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testConstructorFailure() {
+        ContentType json = new ContentType("application", "json", "what-is-the-point-if-I-must-be-null?");
     }
 }
