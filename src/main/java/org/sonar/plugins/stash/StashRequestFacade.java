@@ -87,8 +87,10 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       stashClient.approvePullRequest(pr);
 
       // squid:S2629 : no evaluation required if the logging level is not activated
-        LOGGER.info("Pull-request %s (%s/%s) APPROVED by user \"%s\"",
-                        pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+      if(LOGGER.isInfoEnabled()) {
+        LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
+                pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+      }
 
     } catch (StashClientException e) {
       LOGGER.error("Unable to approve pull-request", e);

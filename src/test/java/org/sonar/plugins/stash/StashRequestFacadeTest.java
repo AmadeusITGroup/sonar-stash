@@ -3,12 +3,14 @@ package org.sonar.plugins.stash;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -29,6 +31,8 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
@@ -48,6 +52,7 @@ import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
+
 
 public class StashRequestFacadeTest extends StashTest {
   
@@ -572,11 +577,14 @@ public class StashRequestFacadeTest extends StashTest {
     verify(stashClient, times(0)).deletePullRequestComment(eq(pr), (StashComment) Mockito.anyObject());
   }
 
+
   @Test
   public void testApprovePullRequest() throws Exception {
+    
     myFacade.approvePullRequest(pr, stashClient);
     verify(stashClient, times(1)).approvePullRequest(pr);
   }
+
 
   @Test
   public void testApprovePullRequestException() throws Exception {
@@ -586,13 +594,26 @@ public class StashRequestFacadeTest extends StashTest {
 
     myFacade.approvePullRequest(pr, StaCli);
   }
-    
+
+
   @Test
   public void addResetPullRequestApproval() throws Exception {
+      
     myFacade.resetPullRequestApproval(pr, stashClient);
     verify(stashClient, times(1)).resetPullRequestApproval(pr);
   }
-  
+
+
+  @Test
+  public void addResetPullRequestApprovalException() throws Exception {
+
+    StashClient StaCli = mock(StashClient.class);
+    doThrow(StashClientException.class).when(StaCli).resetPullRequestApproval(any());
+
+    myFacade.resetPullRequestApproval(pr, StaCli);
+  }
+
+
   @Test
   public void testAddPullRequestReviewer() throws Exception {
     ArrayList<StashUser> reviewers = new ArrayList<>();
@@ -610,7 +631,18 @@ public class StashRequestFacadeTest extends StashTest {
     
     verify(stashClient, times(1)).addPullRequestReviewer(pr, 1, reviewers);
   }
-  
+
+
+  @Test
+  public void testAddPullRequestReviewerException() throws Exception {
+    
+    StashClient StaCli = mock(StashClient.class);
+    doThrow(StashClientException.class).when(StaCli).getPullRequest(any());
+    
+    myFacade.addPullRequestReviewer(pr, STASH_USER, StaCli);
+  }
+
+
   @Test
   public void testAddPullRequestReviewerWithReviewerAlreadyAdded() throws Exception {
     ArrayList<StashUser> reviewers = new ArrayList<>();
@@ -628,7 +660,19 @@ public class StashRequestFacadeTest extends StashTest {
     
     verify(stashClient, times(0)).addPullRequestReviewer(pr, 1, reviewers);
   }
-  
+
+
+  @Test
+  public void testGetPullRequest() throws Exception {
+
+    doReturn("SonarQube").when(myFacade).getStashProject();
+    doReturn("sonar-stash-plugin").when(myFacade).getStashRepository();
+    doReturn(1337).when(myFacade).getStashPullRequestId();
+    
+    assertTrue(myFacade.getPullRequest() instanceof PullRequestRef);
+  }
+
+
   @Test
   public void testGetReportedSeverities() {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
