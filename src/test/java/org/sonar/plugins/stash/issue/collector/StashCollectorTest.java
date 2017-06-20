@@ -556,6 +556,13 @@ public class StashCollectorTest {
     assertEquals(state, task.getState());
     assertEquals(deletable, task.isDeletable());
   }
+
+  @Test(expected=StashReportExtractionException.class)
+  public void testExtractTaskException() throws Exception {
+
+    String jsonFail = "{ /*-++*/-*-/**-*/!@*&$^*&%#$^*!&#@^%(!^*&)(*#&@%)(*";
+    StashCollector.extractTask(jsonFail);
+  }
   
   @Test
   public void testExtractTaskWithoutPermittedOperation() throws Exception {

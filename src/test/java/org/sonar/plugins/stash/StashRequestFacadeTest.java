@@ -579,6 +579,17 @@ public class StashRequestFacadeTest extends StashTest {
 
 
   @Test
+  public void testResetCommentException() throws Exception {
+    when(comment1.getTasks()).thenReturn(new ArrayList<StashTask>());
+
+    StashClient StaCli = mock(StashClient.class);
+    doThrow(StashClientException.class).when(StaCli).deletePullRequestComment(any(), any());
+
+    myFacade.resetComments(pr, diffReport, stashUser, StaCli);
+  }
+
+
+  @Test
   public void testApprovePullRequest() throws Exception {
     
     myFacade.approvePullRequest(pr, stashClient);
