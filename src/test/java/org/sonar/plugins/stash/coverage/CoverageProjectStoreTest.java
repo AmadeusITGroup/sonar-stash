@@ -21,7 +21,7 @@ public class CoverageProjectStoreTest {
     private StashPluginConfiguration SPC = mock(StashPluginConfiguration.class);
     private ActiveRules AR               = mock(ActiveRules.class);
 
-    CoverageProjectStore CoProSto = new CoverageProjectStore(SPC, AR);
+    private CoverageProjectStore CoProSto = new CoverageProjectStore(SPC, AR);
 
 
     @Test
@@ -38,7 +38,7 @@ public class CoverageProjectStoreTest {
     
     @Test
     public void testAnalyse() {
-        // To be implemented with a valid config or a good sonar object mock...
+        // Impossible to do a UT as the client cannot be mocked...
     }
     
     @Test

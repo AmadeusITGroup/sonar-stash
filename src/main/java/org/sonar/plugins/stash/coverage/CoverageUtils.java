@@ -43,6 +43,8 @@ public final class CoverageUtils {
         } catch (HttpException e) {
             LOGGER.error("Could not fetch previous coverage for component {}", component, e);
         }
+        // It would be worth checking if the call to get the resource is able to return null.
+        //    Otherwise, we can transfer this "return null" statement in the catch and save an if.
         if (resource == null) {
             return null;
         } else {
@@ -51,6 +53,7 @@ public final class CoverageUtils {
     }
 
     public static boolean shouldExecuteCoverage(StashPluginConfiguration config, ActiveRules activeRules) {
+    //public static boolean shouldExecuteCoverage(StashPluginConfiguration config, ActiveRules activeRules) {
         // We only execute when run in stash reporting mode
         // This indicates we are running in preview mode,
         // I don't know how we should behave during a normal scan
