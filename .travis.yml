@@ -7,8 +7,6 @@ matrix:
     - jdk: oraclejdk8
       env:
         - TEST_SUITE=unit
-        - SQ_RUN=yes
-        # It is necessary only to run the analysis once ;)
 
     # The integration tests environments
     - jdk: openjdk8
@@ -20,6 +18,8 @@ matrix:
       env:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=5.6
+        - SQ_RUN=yes
+        # It is necessary only to run the analysis once ;)
 
 env:
   global:

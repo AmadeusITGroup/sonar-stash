@@ -53,7 +53,6 @@ public final class CoverageUtils {
     }
 
     public static boolean shouldExecuteCoverage(StashPluginConfiguration config, ActiveRules activeRules) {
-    //public static boolean shouldExecuteCoverage(StashPluginConfiguration config, ActiveRules activeRules) {
         // We only execute when run in stash reporting mode
         // This indicates we are running in preview mode,
         // I don't know how we should behave during a normal scan

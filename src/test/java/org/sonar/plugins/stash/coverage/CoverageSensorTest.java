@@ -3,7 +3,6 @@ package org.sonar.plugins.stash.coverage;
 import org.junit.Test;
 
 import org.sonar.api.batch.fs.FileSystem;
-import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.component.ResourcePerspectives;
 import org.sonar.api.resources.Project;
@@ -13,8 +12,6 @@ import org.sonar.plugins.stash.StashPluginConfiguration;
 import static org.junit.Assert.assertEquals;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doReturn;
 
 
 
