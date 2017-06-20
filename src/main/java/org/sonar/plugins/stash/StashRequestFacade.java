@@ -16,7 +16,6 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.scan.filesystem.PathResolver;
-import org.sonar.plugins.stash.SonarSettings;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageProjectStore;
@@ -44,7 +43,10 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   private final InputFileCache inputFileCache;
   private CoverageProjectStore coverageProjectStore;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration, InputFileCache inputFileCache, StashProjectBuilder projectBuilder, CoverageProjectStore coverageProjectStore) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration,
+                            InputFileCache inputFileCache,
+                            StashProjectBuilder projectBuilder,
+                            CoverageProjectStore coverageProjectStore) {
     this.config = stashPluginConfiguration;
     this.inputFileCache = inputFileCache;
     this.projectBaseDir = projectBuilder.getProjectBaseDir();
@@ -85,10 +87,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       stashClient.approvePullRequest(pr);
 
       // squid:S2629 : no evaluation required if the logging level is not activated
-      if(LOGGER.isInfoEnabled()) {
-        LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
+        LOGGER.info("Pull-request %s (%s/%s) APPROVED by user \"%s\"",
                         pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
-      }
 
     } catch (StashClientException e) {
       LOGGER.error("Unable to approve pull-request", e);

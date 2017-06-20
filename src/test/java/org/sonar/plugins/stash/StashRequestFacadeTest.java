@@ -3,6 +3,7 @@ package org.sonar.plugins.stash;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -575,6 +576,15 @@ public class StashRequestFacadeTest extends StashTest {
   public void testApprovePullRequest() throws Exception {
     myFacade.approvePullRequest(pr, stashClient);
     verify(stashClient, times(1)).approvePullRequest(pr);
+  }
+
+  @Test
+  public void testApprovePullRequestException() throws Exception {
+
+    StashClient StaCli = mock(StashClient.class);
+    doThrow(StashClientException.class).when(StaCli).approvePullRequest(any());
+
+    myFacade.approvePullRequest(pr, StaCli);
   }
     
   @Test
