@@ -30,6 +30,7 @@ import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Measure;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.plugins.stash.StashRequestFacade;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 
@@ -75,7 +76,12 @@ public class SonarQubeCollectorTest {
 
   @Before
   public void setUp() throws Exception {
-    
+
+    // Activating debug level for class we are testing to ensure we go through all lines (because of squid:S2629)
+    //    huge thanks to C. Loiseau for nailing the proper syntax to subdue the Logger !
+    java.util.logging.Logger.getLogger(SonarQubeCollector.class.getCanonicalName()).setLevel(java.util.logging.Level.ALL);
+
+
     ///////// File system objects /////////
     
     ArrayList<InputFile> inputFiles = new ArrayList<InputFile>();
