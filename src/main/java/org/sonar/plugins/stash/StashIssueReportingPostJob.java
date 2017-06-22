@@ -1,7 +1,5 @@
 package org.sonar.plugins.stash;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
@@ -16,11 +14,13 @@ import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
+import java.util.List;
+
 public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashIssueReportingPostJob.class);
   private static final String STACK_TRACE = "Exception stack trace";
-  
+
   private final ProjectIssues projectIssues;
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
@@ -41,12 +41,15 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
     try {
       // Stash MANDATORY options
-      String stashURL  = stashRequestFacade.getStashURL();
+      String stashURL = stashRequestFacade.getStashURL();
       int stashTimeout = config.getStashTimeout();
 
       StashCredentials stashCredentials = stashRequestFacade.getCredentials();
 
-      try (StashClient stashClient = new StashClient(stashURL, stashCredentials, stashTimeout, config.getSonarQubeVersion())) {
+      try (StashClient stashClient = new StashClient(stashURL,
+                                                     stashCredentials,
+                                                     stashTimeout,
+                                                     config.getSonarQubeVersion())) {
 
         // Down the rabbit hole...
         updateStashWithSonarInfo(stashClient, stashCredentials);
@@ -64,7 +67,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   private void updateStashWithSonarInfo(StashClient stashClient, StashCredentials stashCredentials) {
 
     try {
-      int issueThreshold  = stashRequestFacade.getIssueThreshold();
+      int issueThreshold = stashRequestFacade.getIssueThreshold();
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
       // SonarQube objects
@@ -110,18 +113,18 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   *   and third part of the executeOn() method (call of a call) -- squid:MethodCyclomaticComplexity
   */
   private void postInfoAndPRsActions(PullRequestRef pr, List<Issue> issueReport, int issueThreshold,
-                                       StashDiffReport diffReport,
-                                       StashClient stashClient) {
+                                     StashDiffReport diffReport,
+                                     StashClient stashClient) {
 
     // Some local definitions
     boolean canApprovePullrequest = config.canApprovePullRequest();
 
-    int issueTotal     = issueReport.size();
+    int issueTotal = issueReport.size();
 
     // if threshold exceeded, do not push issue list to Stash
     if (issueTotal >= issueThreshold) {
       LOGGER.warn("Too many issues detected ({}/{}): Issues cannot be displayed in Diff view",
-                                                     issueTotal, issueThreshold);
+                  issueTotal, issueThreshold);
     } else {
       // publish SonarQube issue and code coverage
       stashRequestFacade.postSonarQubeReport(pr, issueReport, diffReport, stashClient);
@@ -151,7 +154,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
     private static final long serialVersionUID = 5917014003691827699L;
 
     public StashMissingElementException(String exc) {
-        super(exc);
+      super(exc);
     }
   }
 }

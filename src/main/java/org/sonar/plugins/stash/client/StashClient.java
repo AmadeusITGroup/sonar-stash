@@ -12,9 +12,9 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.sonar.plugins.stash.PeekableInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.PullRequestRef;
@@ -91,9 +91,13 @@ public class StashClient implements AutoCloseable {
   }
 
   public void postCommentOnPullRequest(PullRequestRef pr, String report)
-      throws StashClientException {
+  throws StashClientException {
 
-    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
+    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS,
+                                          baseUrl,
+                                          pr.project(),
+                                          pr.repository(),
+                                          pr.pullRequestId());
     JSONObject json = new JSONObject();
     json.put("text", report);
 
@@ -101,16 +105,25 @@ public class StashClient implements AutoCloseable {
   }
 
   public StashCommentReport getPullRequestComments(PullRequestRef pr, String path)
-      throws StashClientException {
+  throws StashClientException {
     StashCommentReport result = new StashCommentReport();
 
     long start = 0;
-    boolean isLastPage = false; 
-    
-    while (! isLastPage){
+    boolean isLastPage = false;
+
+    while (!isLastPage) {
       try {
-        String request = MessageFormat.format(API_ONE_PR_COMMENT_PATH, baseUrl, pr.project(), pr.repository(), pr.pullRequestId(), path, start);
-        JSONObject jsonComments = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+        String request = MessageFormat.format(API_ONE_PR_COMMENT_PATH,
+                                              baseUrl,
+                                              pr.project(),
+                                              pr.repository(),
+                                              pr.pullRequestId(),
+                                              path,
+                                              start);
+        JSONObject jsonComments = get(request,
+                                      MessageFormat.format(COMMENT_GET_ERROR_MESSAGE,
+                                                           pr.repository(),
+                                                           pr.pullRequestId()));
         result.add(StashCollector.extractComments(jsonComments));
 
         // Stash pagination: check if you get all comments linked to the pull-request
@@ -120,26 +133,37 @@ public class StashClient implements AutoCloseable {
         throw new StashClientException(e);
       }
     }
-  
+
     return result;
-  } 
-  
+  }
+
   public void deletePullRequestComment(PullRequestRef pr, StashComment comment)
-      throws StashClientException {
+  throws StashClientException {
 
-    String request = MessageFormat.format(API_ONE_PR_ONE_COMMENT, baseUrl, pr.project(), pr.repository(), pr.pullRequestId(),
-                                          Long.toString(comment.getId()), Long.toString(comment.getVersion()));
+    String request = MessageFormat.format(API_ONE_PR_ONE_COMMENT,
+                                          baseUrl,
+                                          pr.project(),
+                                          pr.repository(),
+                                          pr.pullRequestId(),
+                                          Long.toString(comment.getId()),
+                                          Long.toString(comment.getVersion()));
 
-    delete(request, MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), pr.repository(), pr.pullRequestId()));
+    delete(request,
+           MessageFormat.format(COMMENT_DELETION_ERROR_MESSAGE, comment.getId(), pr.repository(), pr.pullRequestId()));
   }
 
   public StashDiffReport getPullRequestDiffs(PullRequestRef pr)
-      throws StashClientException {
+  throws StashClientException {
     StashDiffReport result = null;
 
     try {
-      String request = MessageFormat.format(API_ONE_PR_DIFF, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
-      JSONObject jsonDiffs = get(request, MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+      String request = MessageFormat.format(API_ONE_PR_DIFF,
+                                            baseUrl,
+                                            pr.project(),
+                                            pr.repository(),
+                                            pr.pullRequestId());
+      JSONObject jsonDiffs = get(request,
+                                 MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
       result = StashCollector.extractDiffs(jsonDiffs);
     } catch (StashReportExtractionException e) {
       throw new StashClientException(e);
@@ -148,31 +172,41 @@ public class StashClient implements AutoCloseable {
     return result;
   }
 
-  public StashComment postCommentLineOnPullRequest(PullRequestRef pr, String message, String path, long line, String type)
-      throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
+  public StashComment postCommentLineOnPullRequest(PullRequestRef pr,
+                                                   String message,
+                                                   String path,
+                                                   long line,
+                                                   String type)
+  throws StashClientException {
+    String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS,
+                                          baseUrl,
+                                          pr.project(),
+                                          pr.repository(),
+                                          pr.pullRequestId());
 
     JSONObject anchor = new JSONObject();
     if (line != 0L) {
       anchor.put("line", line);
       anchor.put("lineType", type);
     }
-    
+
     String fileType = "TO";
-    if (StringUtils.equals(type, StashPlugin.CONTEXT_ISSUE_TYPE)){
+    if (StringUtils.equals(type, StashPlugin.CONTEXT_ISSUE_TYPE)) {
       fileType = "FROM";
     }
     anchor.put("fileType", fileType);
-    
+
     anchor.put("path", path);
-    
+
     JSONObject json = new JSONObject();
     json.put("text", message);
     json.put("anchor", anchor);
 
     JSONObject response = postCreate(request, json,
-    		                         MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
-    
+                                     MessageFormat.format(COMMENT_POST_ERROR_MESSAGE,
+                                                          pr.repository(),
+                                                          pr.pullRequestId()));
+
     return StashCollector.extractComment(response, path, line);
   }
 
@@ -183,23 +217,26 @@ public class StashClient implements AutoCloseable {
 
     return StashCollector.extractUser(response);
   }
-  
+
   public StashPullRequest getPullRequest(PullRequestRef pr)
-      throws StashClientException {
+  throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
-    JSONObject response = get(request, MessageFormat.format(PULL_REQUEST_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+    JSONObject response = get(request,
+                              MessageFormat.format(PULL_REQUEST_GET_ERROR_MESSAGE,
+                                                   pr.repository(),
+                                                   pr.pullRequestId()));
 
     return StashCollector.extractPullRequest(pr, response);
   }
-  
+
   public void addPullRequestReviewer(PullRequestRef pr, long pullRequestVersion, List<StashUser> reviewers)
-      throws StashClientException {
+  throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
 
     JSONObject json = new JSONObject();
 
     JSONArray jsonReviewers = new JSONArray();
-    for (StashUser reviewer: reviewers) {
+    for (StashUser reviewer : reviewers) {
       JSONObject reviewerName = new JSONObject();
       reviewerName.put("name", reviewer.getName());
 
@@ -208,7 +245,7 @@ public class StashClient implements AutoCloseable {
 
       jsonReviewers.add(user);
     }
-    
+
     json.put("reviewers", jsonReviewers);
     json.put("id", pr.pullRequestId());
     json.put("version", pullRequestVersion);
@@ -217,18 +254,30 @@ public class StashClient implements AutoCloseable {
   }
 
   public void approvePullRequest(PullRequestRef pr) throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
-    post(request, null, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+    String request = MessageFormat.format(API_ONE_PR_APPROVAL,
+                                          baseUrl,
+                                          pr.project(),
+                                          pr.repository(),
+                                          pr.pullRequestId());
+    post(request,
+         null,
+         MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
-  
+
   public void resetPullRequestApproval(PullRequestRef pr) throws StashClientException {
-    String request = MessageFormat.format(API_ONE_PR_APPROVAL, baseUrl, pr.project(), pr.repository(), pr.pullRequestId());
-    delete(request, HttpURLConnection.HTTP_OK, MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+    String request = MessageFormat.format(API_ONE_PR_APPROVAL,
+                                          baseUrl,
+                                          pr.project(),
+                                          pr.repository(),
+                                          pr.pullRequestId());
+    delete(request,
+           HttpURLConnection.HTTP_OK,
+           MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
-  
+
   public void postTaskOnComment(String message, Long commentId) throws StashClientException {
     String request = baseUrl + TASKS_API;
-  
+
     JSONObject anchor = new JSONObject();
     anchor.put("id", commentId);
     anchor.put("type", "COMMENT");
@@ -255,7 +304,7 @@ public class StashClient implements AutoCloseable {
   }
 
   private JSONObject get(String url, String errorMessage) throws StashClientException {
-      return performRequest(httpClient.prepareGet(url), null, HttpURLConnection.HTTP_OK, errorMessage);
+    return performRequest(httpClient.prepareGet(url), null, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
   private JSONObject post(String url, JSONObject body, String errorMessage) throws StashClientException {
@@ -271,20 +320,23 @@ public class StashClient implements AutoCloseable {
   }
 
   private JSONObject delete(String url, String errorMessage) throws StashClientException {
-      return delete(url, HttpURLConnection.HTTP_NO_CONTENT, errorMessage);
+    return delete(url, HttpURLConnection.HTTP_NO_CONTENT, errorMessage);
   }
 
   private JSONObject put(String url, JSONObject body, String errorMessage) throws StashClientException {
     return performRequest(httpClient.preparePut(url), body, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
-  private JSONObject performRequest(BoundRequestBuilder requestBuilder, JSONObject body, int expectedStatusCode, String errorMessage)
-          throws StashClientException {
+  private JSONObject performRequest(BoundRequestBuilder requestBuilder,
+                                    JSONObject body,
+                                    int expectedStatusCode,
+                                    String errorMessage)
+  throws StashClientException {
     if (body != null) {
       requestBuilder.setBody(body.toString());
     }
     Realm realm = new Realm.Builder(credentials.getLogin(), credentials.getPassword())
-            .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
+        .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
     requestBuilder.setRealm(realm);
     requestBuilder.setFollowRedirect(true);
     requestBuilder.addHeader("Content-Type", "application/json");
@@ -301,7 +353,8 @@ public class StashClient implements AutoCloseable {
     }
   }
 
-  private static void validateResponse(Response response, int expectedStatusCode, String message) throws StashClientException {
+  private static void validateResponse(Response response, int expectedStatusCode, String message)
+  throws StashClientException {
 
     int responseCode = response.getStatusCode();
     if (responseCode != expectedStatusCode) {
@@ -334,7 +387,7 @@ public class StashClient implements AutoCloseable {
     JSONObject responseJson = extractResponse(response);
 
     // squid:S2259: making sure that we do not have a null value that would make a NullPointerException when used
-    if(responseJson == null) {
+    if (responseJson == null) {
       throw new StashClientException("The responseJson could not be extracted from the response !");
     }
 
@@ -371,18 +424,18 @@ public class StashClient implements AutoCloseable {
       version = info.getVersion();
     }
     return MessageFormat.format("SonarQube/{0} {1}/{2} {3}",
-    sonarQubeVersion == null ? "unknown" : sonarQubeVersion,
-    name,
-    version,
-    AsyncHttpClientConfigDefaults.defaultUserAgent());
+                                sonarQubeVersion == null ? "unknown" : sonarQubeVersion,
+                                name,
+                                version,
+                                AsyncHttpClientConfigDefaults.defaultUserAgent());
   }
-  
-  AsyncHttpClient createHttpClient(String sonarQubeVersion){
+
+  AsyncHttpClient createHttpClient(String sonarQubeVersion) {
     return new DefaultAsyncHttpClient(
-            new DefaultAsyncHttpClientConfig.Builder()
-                    .setUserAgent(getUserAgent(sonarQubeVersion))
-                    .setCompressionEnforced(true)
-                    .build()
+        new DefaultAsyncHttpClientConfig.Builder()
+            .setUserAgent(getUserAgent(sonarQubeVersion))
+            .setCompressionEnforced(true)
+            .build()
     );
   }
 }

@@ -1,13 +1,12 @@
 package org.sonar.plugins.stash;
 
-import java.util.Optional;
-
 import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.config.Settings;
 
 import java.io.File;
+import java.util.Optional;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration implements BatchComponent {
@@ -69,15 +68,15 @@ public class StashPluginConfiguration implements BatchComponent {
   public int getIssueThreshold() {
     return settings.getInt(StashPlugin.STASH_ISSUE_THRESHOLD);
   }
-  
+
   public int getStashTimeout() {
     return settings.getInt(StashPlugin.STASH_TIMEOUT);
   }
-  
+
   public boolean canApprovePullRequest() {
     return settings.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL);
   }
-  
+
   public boolean resetComments() {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
   }

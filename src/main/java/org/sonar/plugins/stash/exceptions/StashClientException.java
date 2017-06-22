@@ -11,9 +11,9 @@ public class StashClientException extends StashException {
   public StashClientException(Throwable cause) {
     super(cause);
   }
-  
+
   public StashClientException(String message, Throwable cause) {
     super(message, cause);
   }
-  
+
 }

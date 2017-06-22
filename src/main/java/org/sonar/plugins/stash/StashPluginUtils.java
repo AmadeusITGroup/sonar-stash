@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash;
 
+import org.sonar.api.issue.Issue;
+
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -8,19 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.sonar.api.issue.Issue;
-
 public final class StashPluginUtils {
 
   private StashPluginUtils() {
-      // Hiding implicit public constructor with an explicit private one (squid:S1118)
+    // Hiding implicit public constructor with an explicit private one (squid:S1118)
   }
 
   public static String formatPercentage(double d) {
 
     // Defining that our percentage is precise down to 0.1%
     DecimalFormat df = new DecimalFormat("0.0");
-    
+
     // Protecting this method against non-US locales that would not use '.' as decimal separation
     DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
     decimalFormatSymbols.setDecimalSeparator('.');
@@ -36,7 +36,7 @@ public final class StashPluginUtils {
   }
 
   public static long countIssuesBySeverity(List<Issue> issues, final String severity) {
-      return issues.stream().filter(i -> severity.equals(i.severity())).count();
+    return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
   public static Map<String, Issue> getUniqueRulesBySeverity(List<Issue> issues, final String severity) {

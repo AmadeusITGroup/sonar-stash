@@ -8,10 +8,9 @@ import java.util.List;
 
 /**
  * This class is a representation of the Stash Diff view.
- * 
+ * <p>
  * Purpose is to check if a SonarQube issue belongs to the Stash diff view before posting.
  * Indeed, Stash Diff view displays only comments which belong to this view.
- *
  */
 public class StashDiffReport {
 
@@ -24,31 +23,31 @@ public class StashDiffReport {
   public List<StashDiff> getDiffs() {
     return diffs;
   }
-  
+
   public void add(StashDiff diff) {
     diffs.add(diff);
   }
-  
+
   public void add(StashDiffReport report) {
-    for (StashDiff diff: report.getDiffs()) {
-      diffs.add(diff);  
+    for (StashDiff diff : report.getDiffs()) {
+      diffs.add(diff);
     }
   }
-  
-  public String getType(String path, long destination){
-    String result   = null;
+
+  public String getType(String path, long destination) {
+    String result = null;
     Boolean foundIt = false;
-    
+
     for (StashDiff diff : diffs) {
       // Line 0 never belongs to Stash Diff view.
       // It is a global comment with a type set to CONTEXT.
       if (StringUtils.equals(diff.getPath(), path) && (destination == 0)) {
-        result  = StashPlugin.CONTEXT_ISSUE_TYPE;
+        result = StashPlugin.CONTEXT_ISSUE_TYPE;
         foundIt = true;
       } else {
-        
+
         if (StringUtils.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
-          result  = diff.getType();
+          result = diff.getType();
           foundIt = true;
         }
       }
@@ -61,7 +60,7 @@ public class StashDiffReport {
 
     return result;
   }
-  
+
   /**
    * Depends on the type of the diff.
    * If type == "CONTEXT", return the source line of the diff.
@@ -82,7 +81,7 @@ public class StashDiffReport {
     }
     return result;
   }
-  
+
   public StashDiff getDiffByComment(long commentId) {
     StashDiff result = null;
     for (StashDiff diff : diffs) {
@@ -93,18 +92,18 @@ public class StashDiffReport {
     }
     return result;
   }
-  
+
   /**
    * Get all comments from the Stash differential report.
    */
   public List<StashComment> getComments() {
     List<StashComment> result = new ArrayList<>();
-    
-    for (StashDiff diff: this.diffs) {
+
+    for (StashDiff diff : this.diffs) {
       List<StashComment> comments = diff.getComments();
-      
-      for (StashComment comment: comments) {
-        if (! result.contains(comment)) {
+
+      for (StashComment comment : comments) {
+        if (!result.contains(comment)) {
           result.add(comment);
         }
       }

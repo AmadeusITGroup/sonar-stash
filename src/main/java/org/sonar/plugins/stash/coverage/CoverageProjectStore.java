@@ -16,39 +16,39 @@ import static org.sonar.plugins.stash.coverage.CoverageUtils.getLineCoverage;
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class CoverageProjectStore implements BatchComponent, Sensor {
 
-    private Double previousProjectCoverage = null;
-    private int linesToCover = 0;
-    private int uncoveredLines = 0;
+  private Double previousProjectCoverage = null;
+  private int linesToCover = 0;
+  private int uncoveredLines = 0;
 
-    private final StashPluginConfiguration config;
-    private ActiveRules activeRules;
+  private final StashPluginConfiguration config;
+  private ActiveRules activeRules;
 
-    public CoverageProjectStore(StashPluginConfiguration config, ActiveRules activeRules) {
-        this.config = config;
-        this.activeRules = activeRules;
-    }
+  public CoverageProjectStore(StashPluginConfiguration config, ActiveRules activeRules) {
+    this.config = config;
+    this.activeRules = activeRules;
+  }
 
-    public Double getProjectCoverage() {
-        return calculateCoverage(linesToCover, uncoveredLines);
-    }
+  public Double getProjectCoverage() {
+    return calculateCoverage(linesToCover, uncoveredLines);
+  }
 
-    public Double getPreviousProjectCoverage() {
-        return this.previousProjectCoverage;
-    }
+  public Double getPreviousProjectCoverage() {
+    return this.previousProjectCoverage;
+  }
 
-    @Override
-    public void analyse(Project module, SensorContext context) {
-        Sonar sonar = createSonarClient(config);
-        this.previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
-    }
+  @Override
+  public void analyse(Project module, SensorContext context) {
+    Sonar sonar = createSonarClient(config);
+    this.previousProjectCoverage = getLineCoverage(sonar, module.getEffectiveKey());
+  }
 
-    @Override
-    public boolean shouldExecuteOnProject(Project project) {
-        return CoverageUtils.shouldExecuteCoverage(config, activeRules);
-    }
+  @Override
+  public boolean shouldExecuteOnProject(Project project) {
+    return CoverageUtils.shouldExecuteCoverage(config, activeRules);
+  }
 
-    public void updateMeasurements(int linesToCover, int uncoveredLines) {
-        this.linesToCover += linesToCover;
-        this.uncoveredLines += uncoveredLines;
-    }
+  public void updateMeasurements(int linesToCover, int uncoveredLines) {
+    this.linesToCover += linesToCover;
+    this.uncoveredLines += uncoveredLines;
+  }
 }

@@ -1,9 +1,9 @@
 package org.sonar.plugins.stash;
 
+import org.junit.Test;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
-
-import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
 

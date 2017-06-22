@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.StashPluginConfiguration;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.base.HttpException;
@@ -48,9 +47,9 @@ public class CoverageUtilsTest {
   @Test
   public void testCreateSonarClient3params() {
 
-    String URL="";
-    String login="";
-    String pass="";
+    String URL = "";
+    String login = "";
+    String pass = "";
 
     StashPluginConfiguration config = mock(StashPluginConfiguration.class);
     doReturn(URL).when(config).getSonarQubeURL();
@@ -59,13 +58,13 @@ public class CoverageUtilsTest {
 
     assertNotNull(CoverageUtils.createSonarClient(config));
   }
-  
+
   @Test
   public void testCreateSonarClient1param() {
 
-    String URL="";
-    String login=null;
-    String pass="";
+    String URL = "";
+    String login = null;
+    String pass = "";
 
     StashPluginConfiguration config = mock(StashPluginConfiguration.class);
     doReturn(URL).when(config).getSonarQubeURL();
@@ -85,7 +84,7 @@ public class CoverageUtilsTest {
 
     assertNull(CoverageUtils.getLineCoverage(client, component));
   }
-  
+
   @Test
   public void testGetLineCoverageValue() {
 
@@ -94,7 +93,7 @@ public class CoverageUtilsTest {
 
     // From the inside out:
     // 1) we define the value we are interested in
-    Measure mes  = new Measure();
+    Measure mes = new Measure();
     mes.setMetricKey(CoreMetrics.LINE_COVERAGE_KEY);
     mes.setValue(1337.0);
 
@@ -110,7 +109,7 @@ public class CoverageUtilsTest {
 
     assertEquals(1337.0, CoverageUtils.getLineCoverage(client, component), DELTA);
   }
-  
+
   @Test
   public void testShouldExecuteCoverage() {
 
@@ -148,14 +147,14 @@ public class CoverageUtilsTest {
 
     //assertTrue(shouldExecuteCoverage(conf, arules_real));
   }
-  
+
   @Test
   public void testConstructorIsPrivate() throws Exception {
 
     // Let's use this for the greater good: we make sure that nobody can create an instance of this class
     Constructor constructor = CoverageUtils.class.getDeclaredConstructor();
     assertTrue(Modifier.isPrivate(constructor.getModifiers()));
-      
+
     // This part is for code coverage only (but is re-using the elments above... -_^)
     constructor.setAccessible(true);
     constructor.newInstance();

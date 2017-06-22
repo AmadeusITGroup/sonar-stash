@@ -1,5 +1,30 @@
 package org.sonar.plugins.stash.client;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.StashTest;
+import org.sonar.plugins.stash.exceptions.StashClientException;
+import org.sonar.plugins.stash.issue.StashComment;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
+import org.sonar.plugins.stash.issue.StashUser;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -21,55 +46,29 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashTest;
-import org.sonar.plugins.stash.exceptions.StashClientException;
-import org.sonar.plugins.stash.issue.StashComment;
-import org.sonar.plugins.stash.issue.StashCommentReport;
-import org.sonar.plugins.stash.issue.StashDiffReport;
-import org.sonar.plugins.stash.issue.StashPullRequest;
-import org.sonar.plugins.stash.issue.StashTask;
-import org.sonar.plugins.stash.issue.StashUser;
-import org.sonar.plugins.stash.issue.collector.DiffReportSample;
-
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-
 public class StashClientTest extends StashTest {
   private static final int timeout = 800;
   private static final int errorTimeout = timeout + 10;
 
   PullRequestRef pr = PullRequestRef.builder()
-          .setProject("Project")
-          .setRepository("Repository")
-          .setPullRequestId(1)
-          .build();
+                                    .setProject("Project")
+                                    .setRepository("Repository")
+                                    .setPullRequestId(1)
+                                    .build();
 
   @Rule
   public WireMockRule wireMock = new WireMockRule(new WireMockConfiguration().dynamicPort());
 
   StashClient client;
   StashUser testUser = new StashUser(1, "userName", "userSlug", "email");
-   
+
   @Before
   public void setUp() throws Exception {
     primeWireMock();
     client = new StashClient("http://127.0.0.1:" + wireMock.port(),
-            new StashCredentials("login@email.com", "password", "login"),
-            timeout,
-            "dummyVersion");
+                             new StashCredentials("login@email.com", "password", "login"),
+                             timeout,
+                             "dummyVersion");
   }
 
   @Test
@@ -81,12 +80,12 @@ public class StashClientTest extends StashTest {
 
   @Test
   public void testGetBaseUrl() {
-      Assert.assertEquals("http://127.0.0.1:" + wireMock.port(), client.getBaseUrl());
+    Assert.assertEquals("http://127.0.0.1:" + wireMock.port(), client.getBaseUrl());
   }
 
   @Test
   public void testGetLogin() {
-      Assert.assertEquals("login@email.com", client.getLogin());
+    Assert.assertEquals("login@email.com", client.getLogin());
   }
 
   @Test
@@ -95,12 +94,12 @@ public class StashClientTest extends StashTest {
 
     try {
       client.postCommentOnPullRequest(pr, "Report");
-    
+
       Assert.fail("Wrong HTTP result should raised StashClientException");
-    
+
     } catch (StashClientException e) {
       Assert.assertThat(e.getMessage(), CoreMatchers.containsString(
-              String.valueOf(HttpURLConnection.HTTP_NOT_IMPLEMENTED)));
+          String.valueOf(HttpURLConnection.HTTP_NOT_IMPLEMENTED)));
       Assert.assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
       Assert.assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
     }
@@ -108,28 +107,29 @@ public class StashClientTest extends StashTest {
 
   @Test(expected = StashClientException.class)
   public void testPostCommentOnPullRequestWithException() throws Exception {
-    wireMock.stubFor(any(anyUrl()).willReturn( aJsonResponse().withFixedDelay(errorTimeout)));
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withFixedDelay(errorTimeout)));
 
     client.postCommentOnPullRequest(pr, "Report");
   }
 
   @Test
   public void testGetPullRequestComments() throws Exception {
-    String stashJsonComment = "{\"values\": [{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
+    String stashJsonComment =
+        "{\"values\": [{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}]}";
 
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(stashJsonComment)));
 
     StashCommentReport report = client.getPullRequestComments(pr, "path");
-    
+
     assertTrue(report.contains("message", "path", 5));
     assertEquals(report.size(), 1);
   }
 
-  @Test (expected = StashClientException.class)
+  @Test(expected = StashClientException.class)
   public void testGetPullRequestCommentsWithoutAuthor() throws Exception {
     String stashJsonComment = "{\"values\": [{\"id\":1234, \"text\":\"message\","
-        + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}]}";
+                              + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}]}";
 
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(stashJsonComment)));
 
@@ -138,43 +138,47 @@ public class StashClientTest extends StashTest {
 
   @Test
   public void testGetPullRequestCommentsWithNextPage() throws Exception {
-    String stashJsonComment1 = "{\"values\": [{\"id\":1234, \"text\":\"message1\", \"anchor\": {\"path\":\"path\", \"line\":1},"
+    String stashJsonComment1 =
+        "{\"values\": [{\"id\":1234, \"text\":\"message1\", \"anchor\": {\"path\":\"path\", \"line\":1},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}], \"isLastPage\": false, \"nextPageStart\": 1}";
-    
-    String stashJsonComment2 = "{\"values\": [{\"id\":4321, \"text\":\"message2\", \"anchor\": {\"path\":\"path\", \"line\":2},"
+
+    String stashJsonComment2 =
+        "{\"values\": [{\"id\":4321, \"text\":\"message2\", \"anchor\": {\"path\":\"path\", \"line\":2},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}], \"isLastPage\": true}";
 
     wireMock.stubFor(get(
-            urlPathEqualTo("/rest/api/1.0/projects/Project/repos/Repository/pull-requests/1/comments"))
-            .withQueryParam("start", equalTo(String.valueOf(0))).willReturn(
-                    aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment1)
-    ));
+        urlPathEqualTo("/rest/api/1.0/projects/Project/repos/Repository/pull-requests/1/comments"))
+                         .withQueryParam("start", equalTo(String.valueOf(0))).willReturn(
+            aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment1)
+        ));
 
     wireMock.stubFor(get(
-            urlPathEqualTo("/rest/api/1.0/projects/Project/repos/Repository/pull-requests/1/comments"))
-            .withQueryParam("start", equalTo(String.valueOf(1))).willReturn(
-                    aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment2)
-            ));
+        urlPathEqualTo("/rest/api/1.0/projects/Project/repos/Repository/pull-requests/1/comments"))
+                         .withQueryParam("start", equalTo(String.valueOf(1))).willReturn(
+            aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment2)
+        ));
 
     StashCommentReport report = client.getPullRequestComments(pr, "path");
     assertTrue(report.contains("message1", "path", 1));
     assertTrue(report.contains("message2", "path", 2));
     assertEquals(report.size(), 2);
   }
-  
+
   @Test
   public void testGetPullRequestCommentsWithNoNextPage() throws Exception {
-    String stashJsonComment1 = "{\"values\": [{\"id\":1234, \"text\":\"message1\", \"anchor\": {\"path\":\"path\", \"line\":5},"
+    String stashJsonComment1 =
+        "{\"values\": [{\"id\":1234, \"text\":\"message1\", \"anchor\": {\"path\":\"path\", \"line\":5},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}], \"isLastPage\": true, \"nextPageStart\": 1}";
-    
-    String stashJsonComment2 = "{\"values\": [{\"id\":4321, \"text\":\"message2\", \"anchor\": {\"path\":\"path\", \"line\":10},"
+
+    String stashJsonComment2 =
+        "{\"values\": [{\"id\":4321, \"text\":\"message2\", \"anchor\": {\"path\":\"path\", \"line\":10},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}], \"isLastPage\": true}";
 
     wireMock.stubFor(get(anyUrl()).withQueryParam("start", equalTo(String.valueOf(0))).willReturn(
-            aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment1)));
+        aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment1)));
 
     wireMock.stubFor(get(anyUrl()).withQueryParam("start", equalTo(String.valueOf(1))).willReturn(
-            aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment2)));
+        aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment2)));
 
     StashCommentReport report = client.getPullRequestComments(pr, "path");
     assertTrue(report.contains("message1", "path", 5));
@@ -202,7 +206,8 @@ public class StashClientTest extends StashTest {
 
   @Test
   public void testGetPullRequestDiffs() throws Exception {
-    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_OK).withBody(DiffReportSample.baseReport)));
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_OK)
+                                                             .withBody(DiffReportSample.baseReport)));
 
     StashDiffReport report = client.getPullRequestDiffs(pr);
     assertEquals(report.getDiffs().size(), 4);
@@ -210,33 +215,35 @@ public class StashClientTest extends StashTest {
 
   @Test(expected = StashClientException.class)
   public void testGetPullRequestDiffsWithMalformedTasks() throws Exception {
-    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_OK).withBody(DiffReportSample.baseReportWithMalformedTasks)));
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_OK)
+                                                             .withBody(DiffReportSample.baseReportWithMalformedTasks)));
 
     client.getPullRequestDiffs(pr);
   }
 
   @Test(expected = StashClientException.class)
   public void testGetPullRequestDiffsWithWrongHTTPResult() throws Exception {
-    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_FORBIDDEN).withBody(DiffReportSample.baseReport)));
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_FORBIDDEN)
+                                                             .withBody(DiffReportSample.baseReport)));
     client.getPullRequestDiffs(pr);
   }
-  
+
   @Test(expected = StashClientException.class)
   public void testGetPullRequestDiffsWithException() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withFixedDelay(errorTimeout)));
     client.getPullRequestDiffs(pr);
   }
-  
+
   @Test
   public void testPostCommentLineOnPullRequest() throws Exception {
     String stashJsonComment = "{\"id\":1234, \"text\":\"message\", \"anchor\": {\"path\":\"path\", \"line\":5},"
-        + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}";
+                              + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}";
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_CREATED).withBody(stashJsonComment)));
 
     StashComment comment = client.postCommentLineOnPullRequest(pr, "message", "path", 5, "type");
     assertEquals(1234, comment.getId());
   }
-  
+
   @Test
   public void testPostCommentLineOnPullRequestWithWrongHTTPResult() throws Exception {
     addErrorResponse(any(anyUrl()), HTTP_FORBIDDEN);
@@ -249,7 +256,7 @@ public class StashClientTest extends StashTest {
       Assert.assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
     }
   }
-  
+
   @Test(expected = StashClientException.class)
   public void testPostCommentLineOnPullRequestWithException() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_CREATED).withFixedDelay(errorTimeout)));
@@ -262,14 +269,14 @@ public class StashClientTest extends StashTest {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(jsonUser)));
 
     StashUser user = client.getUser("sonarqube");
-    
+
     assertEquals(user.getId(), 1);
     assertEquals(user.getName(), "SonarQube");
     assertEquals(user.getEmail(), "sq@email.com");
     assertEquals(user.getSlug(), "sonarqube");
-    
+
   }
-    
+
   @Test(expected = StashClientException.class)
   public void testGetUserWithWrongHTTPResult() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_FORBIDDEN)));
@@ -283,20 +290,20 @@ public class StashClientTest extends StashTest {
     client.deletePullRequestComment(pr, stashComment);
     wireMock.verify(deleteRequestedFor(anyUrl()));
   }
-  
+
   @Test
   public void testGetPullRequest() throws Exception {
     String jsonPullRequest = "{\"version\": 1, \"title\":\"PR-Test\", \"description\":\"PR-test\", \"reviewers\": []}";
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(jsonPullRequest)));
 
     StashPullRequest pullRequest = client.getPullRequest(pr);
-    
+
     assertEquals(pullRequest.getId(), 1);
     assertEquals(pullRequest.getProject(), "Project");
     assertEquals(pullRequest.getRepository(), "Repository");
     assertEquals(pullRequest.getVersion(), 1);
   }
-    
+
 
   @Test
   public void testApprovePullRequest() throws Exception {
@@ -304,7 +311,7 @@ public class StashClientTest extends StashTest {
     client.approvePullRequest(pr);
     wireMock.verify(postRequestedFor(anyUrl()));
   }
-    
+
 
   @Test
   public void testResetPullRequestApproval() throws Exception {
@@ -319,18 +326,18 @@ public class StashClientTest extends StashTest {
 
     List<StashUser> reviewers = new ArrayList<>();
     reviewers.add(testUser);
-    
+
     client.addPullRequestReviewer(pr, 1L, reviewers);
     wireMock.verify(putRequestedFor(anyUrl()));
   }
-  
+
   @Test
   public void testAddPullRequestReviewerWithNoReviewer() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse()));
     client.addPullRequestReviewer(pr, 1L, new ArrayList<StashUser>());
     wireMock.verify(putRequestedFor(anyUrl()));
   }
-    
+
   @Test
   public void testPostTaskOnComment() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_CREATED)));
@@ -350,7 +357,7 @@ public class StashClientTest extends StashTest {
   public void testFollowInternalRedirection() throws Exception {
     String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
     wireMock.stubFor(get(anyUrl()).atPriority(2).willReturn(
-            aJsonResponse().withStatus(HTTP_MOVED_TEMP).withHeader("Location", "/foo")));
+        aJsonResponse().withStatus(HTTP_MOVED_TEMP).withHeader("Location", "/foo")));
     wireMock.stubFor(get(urlPathEqualTo("/foo")).atPriority(1).willReturn(aJsonResponse().withBody(jsonUser)));
     client.getUser("does not matter");
     wireMock.verify(getRequestedFor(urlPathEqualTo("/foo")));
@@ -364,37 +371,38 @@ public class StashClientTest extends StashTest {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse()));
 
     PullRequestRef pr = PullRequestRef.builder()
-            .setProject("Project")
-            .setRepository("Repository")
-            .setPullRequestId(hugePullRequestId)
-            .build();
+                                      .setProject("Project")
+                                      .setRepository("Repository")
+                                      .setPullRequestId(hugePullRequestId)
+                                      .build();
 
     client.getPullRequestComments(pr, "something");
     wireMock.verify(getRequestedFor(urlPathMatching(".*/pull-requests/1234567890/comments.*")));
   }
 
   private void addErrorResponse(MappingBuilder mapping, int statusCode) {
-    wireMock.stubFor(mapping.willReturn( aJsonResponse()
-            .withStatus(statusCode)
-            .withHeader("Content-Type", "application/json")
-            .withBody("{\n" +
-                    "    \"errors\": [\n" +
-                    "        {\n" +
-                    "            \"context\": null,\n" +
-                    "            \"message\": \"A detailed error message.\",\n" +
-                    "            \"exceptionName\": \"seriousException\"\n" +
-                    "        }\n" +
-                    "    ]\n" +
-                    "}")
+    wireMock.stubFor(mapping.willReturn(aJsonResponse()
+                                            .withStatus(statusCode)
+                                            .withHeader("Content-Type", "application/json")
+                                            .withBody("{\n" +
+                                                      "    \"errors\": [\n" +
+                                                      "        {\n" +
+                                                      "            \"context\": null,\n" +
+                                                      "            \"message\": \"A detailed error message.\",\n" +
+                                                      "            \"exceptionName\": \"seriousException\"\n" +
+                                                      "        }\n" +
+                                                      "    ]\n" +
+                                                      "}")
     ));
   }
 
   public static ResponseDefinitionBuilder aJsonResponse() {
-      return aResponse().withHeader("Content-Type", "application/json").withBody("{}");
+    return aResponse().withHeader("Content-Type", "application/json").withBody("{}");
   }
 
   public static ResponseDefinitionBuilder aXMLResponse() {
-      return aResponse().withHeader("Content-Type", "application/xml").withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?><empty/>");
+    return aResponse().withHeader("Content-Type", "application/xml")
+                      .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?><empty/>");
   }
 
   // The first request to wiremock may be slow.
@@ -402,7 +410,7 @@ public class StashClientTest extends StashTest {
   // So instead we perform a dummy request on each test invocation with a high timeout.
   // We now have many more request than before, but are faster anyways.
   private void primeWireMock() throws Exception {
-    HttpURLConnection conn = (HttpURLConnection) new URL("http://127.0.0.1:" + wireMock.port()).openConnection();
+    HttpURLConnection conn = (HttpURLConnection)new URL("http://127.0.0.1:" + wireMock.port()).openConnection();
     conn.setConnectTimeout(1000);
     conn.setConnectTimeout(1000);
     conn.connect();

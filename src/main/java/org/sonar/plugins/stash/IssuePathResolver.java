@@ -4,5 +4,5 @@ import org.sonar.api.issue.Issue;
 
 @FunctionalInterface
 public interface IssuePathResolver {
-    public String getIssuePath(Issue issue);
+  public String getIssuePath(Issue issue);
 }

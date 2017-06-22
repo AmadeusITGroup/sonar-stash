@@ -10,20 +10,20 @@ import static org.sonar.plugins.stash.coverage.CoverageRule.isDecreasingLineCove
 
 public class CoverageRuleTest {
 
-    @Test
-    public void testDecreasingLineCoverageRule() {
-        assertEquals("coverageEvolution-neutral:decreasingLineCoverage", decreasingLineCoverageRule("neutral").toString());
-    }
+  @Test
+  public void testDecreasingLineCoverageRule() {
+    assertEquals("coverageEvolution-neutral:decreasingLineCoverage", decreasingLineCoverageRule("neutral").toString());
+  }
 
-    @Test
-    public void testIsDecreasingLineCoverage() {
-        assertFalse(isDecreasingLineCoverage("foo:bar"));
-        assertFalse(isDecreasingLineCoverage("xxx-neutral:decreasingLineCoverage"));
-        assertFalse(isDecreasingLineCoverage("coverageEvolution-neutral:xxx"));
+  @Test
+  public void testIsDecreasingLineCoverage() {
+    assertFalse(isDecreasingLineCoverage("foo:bar"));
+    assertFalse(isDecreasingLineCoverage("xxx-neutral:decreasingLineCoverage"));
+    assertFalse(isDecreasingLineCoverage("coverageEvolution-neutral:xxx"));
 
-        assertTrue(isDecreasingLineCoverage("coverageEvolution-neutral:decreasingLineCoverage"));
-        assertTrue(isDecreasingLineCoverage("coverageEvolution-java:decreasingLineCoverage"));
-    }
+    assertTrue(isDecreasingLineCoverage("coverageEvolution-neutral:decreasingLineCoverage"));
+    assertTrue(isDecreasingLineCoverage("coverageEvolution-java:decreasingLineCoverage"));
+  }
 
 
 }

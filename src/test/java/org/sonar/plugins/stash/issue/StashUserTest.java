@@ -9,12 +9,12 @@ import static org.junit.Assert.assertEquals;
 public class StashUserTest {
 
   StashUser myUser;
-  
+
   @Before
-  public void setUp(){
+  public void setUp() {
     myUser = new StashUser(1, "SonarQube", "sonarqube", "sq@email.com");
   }
-  
+
   @Test
   public void testGetId() {
     assertEquals(myUser.getId(), 1);
@@ -34,6 +34,6 @@ public class StashUserTest {
   public void testGetEmail() {
     assertEquals(myUser.getEmail(), "sq@email.com");
   }
-  
-  
+
+
 }

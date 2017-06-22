@@ -51,7 +51,7 @@ public class StashPullRequest {
   public List<StashUser> getReviewers() {
     return reviewers;
   }
-  
+
   public StashUser getReviewer(String user) {
     StashUser result = null;
     for (StashUser stashReviewer : reviewers) {

@@ -12,7 +12,7 @@ import java.util.Map;
 public class InputFileCache implements BatchComponent {
 
   private final Map<String, InputFile> inputFileByKey = new HashMap<>();
-  
+
   public void putInputFile(String componentKey, InputFile inputFile) {
     inputFileByKey.put(componentKey, inputFile);
   }
