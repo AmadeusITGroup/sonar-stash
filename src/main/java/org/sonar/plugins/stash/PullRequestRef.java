@@ -1,6 +1,6 @@
 package org.sonar.plugins.stash;
 
-public class PullRequestRef {
+public final class PullRequestRef {
   private String project;
   private String repository;
   private int pullRequestId;

@@ -60,11 +60,14 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Post SQ analysis overview on Stash
    */
-  public void postAnalysisOverview(PullRequestRef pr, int issueThreshold, List<Issue> issueReport,
+  public void postAnalysisOverview(PullRequestRef pr,
+                                   int issueThreshold,
+                                   List<Issue> issueReport,
                                    StashClient stashClient) {
 
     try {
-      SonarSettings sonarConf = new SonarSettings(config.getSonarQubeURL(), issueThreshold,
+      SonarSettings sonarConf = new SonarSettings(config.getSonarQubeURL(),
+                                                  issueThreshold,
                                                   coverageProjectStore.getProjectCoverage(),
                                                   coverageProjectStore.getPreviousProjectCoverage());
 
@@ -144,8 +147,10 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Push SonarQube report into the pull-request as comments.
    */
-  public void postSonarQubeReport(PullRequestRef pr, List<Issue> issueReport,
-                                  StashDiffReport diffReport, StashClient stashClient) {
+  public void postSonarQubeReport(PullRequestRef pr,
+                                  List<Issue> issueReport,
+                                  StashDiffReport diffReport,
+                                  StashClient stashClient) {
     try {
       postCommentPerIssue(pr, issueReport, diffReport, stashClient);
 
@@ -160,8 +165,11 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Post one comment by found issue on Stash.
    */
-  void postCommentPerIssue(PullRequestRef pr, Collection<Issue> issues,
-                           StashDiffReport diffReport, StashClient stashClient) throws StashClientException {
+  void postCommentPerIssue(PullRequestRef pr,
+                           Collection<Issue> issues,
+                           StashDiffReport diffReport,
+                           StashClient stashClient)
+  throws StashClientException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
@@ -186,46 +194,47 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     }
   }
 
-  private void postIssueComment(PullRequestRef pr, Issue issue, Map<String, StashCommentReport> commentsByFile,
-                                StashDiffReport diffReport, StashClient stashClient, List<String> taskSeverities)
+  private void postIssueComment(PullRequestRef pr,
+                                Issue issue,
+                                Map<String, StashCommentReport> commentsByFile,
+                                StashDiffReport diffReport,
+                                StashClient stashClient,
+                                List<String> taskSeverities)
   throws StashClientException {
-    String path = getIssuePath(issue);
+    
+    String path     = getIssuePath(issue);
+    String issueKey = issue.key();
+
     StashCommentReport comments = commentsByFile.get(path);
     String commentContent = MarkdownPrinter.printIssueMarkdown(issue, config.getSonarQubeURL());
+
     Integer issueLine = issue.line();
-    // FIXME move this somewhere else
     if (issueLine == null) {
       issueLine = 0;
     }
+    // Surprisingly this syntax does not trigger the squid:NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE rule
+    //    but it does if you transform that into a ternary operator at the assignment level :/
+
 
     // if comment not already pushed to Stash
     if (comments != null && comments.contains(commentContent, path, issueLine)) {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
-                     path, issueLine);
-      }
+      LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issueKey, path, issueLine);
       return;
     }
 
     // check if issue belongs to the Stash diff view
     String type = diffReport.getType(path, issueLine);
     if (type == null) {
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                    issue.key(), path, issueLine);
-      }
+      LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
+                    issueKey, path, issueLine);
       return;
     }
 
     long line = diffReport.getLine(path, issueLine);
 
-    StashComment comment = stashClient.postCommentLineOnPullRequest(pr,
-                                                                    commentContent, path, line, type);
+    StashComment comment = stashClient.postCommentLineOnPullRequest(pr, commentContent, path, line, type);
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issue.key(), type,
-                   path, line);
-    }
+    LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issueKey, type, path, line);
 
     // Create task linked to the comment if configured
     if (taskSeverities.contains(issue.severity())) {
@@ -247,8 +256,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       password = System.getenv(passwordEnvVariable);
       if (password == null) {
         throw new StashConfigurationException(
-            "Unable to retrieve password from configured environment variable " +
-            StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
+            "Unable to retrieve password from configured environment variable "
+            + StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
       }
     }
 
@@ -269,8 +278,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     try {
       result = config.getIssueThreshold();
     } catch (NumberFormatException e) {
-      throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_ISSUE_THRESHOLD +
-                                            " from plugin configuration", e);
+      throw new StashConfigurationException("Unable to get " + StashPlugin.STASH_ISSUE_THRESHOLD
+                                           + " from plugin configuration", e);
     }
     return result;
   }
@@ -388,8 +397,10 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Reset all comments linked to a pull-request.
    */
-  public void resetComments(PullRequestRef pr, StashDiffReport diffReport,
-                            StashUser sonarUser, StashClient stashClient) {
+  public void resetComments(PullRequestRef pr,
+                            StashDiffReport diffReport,
+                            StashUser sonarUser,
+                            StashClient stashClient) {
     try {
       // Let's call this "diffRep_loop"
       for (StashComment comment : diffReport.getComments()) {
@@ -401,8 +412,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
           // comment contains tasks which cannot be deleted => do nothing
         } else if (comment.containsPermanentTasks()) {
-          LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")" +
-                       "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
+          LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")"
+                      + "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
                        comment.getPath(),
                        comment.getLine());
           continue;  // Next element in "diffRep_loop"

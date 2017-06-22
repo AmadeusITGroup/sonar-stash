@@ -63,13 +63,15 @@ public class StashClient implements AutoCloseable {
 
   private static final String API_ONE_PR_ONE_COMMENT = API_ONE_PR_ALL_COMMENTS + "/{4}?version={5}";
 
-  private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0} #{1,number,#}.";
+  private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0}"
+                                                                       + " #{1,number,#}.";
   private static final String PULL_REQUEST_GET_ERROR_MESSAGE = "Unable to retrieve pull-request {0} #{1,number,#}.";
   private static final String PULL_REQUEST_PUT_ERROR_MESSAGE = "Unable to update pull-request {0} #{1,number,#}.";
   private static final String USER_GET_ERROR_MESSAGE = "Unable to retrieve user {0}.";
   private static final String COMMENT_POST_ERROR_MESSAGE = "Unable to post a comment to {0} #{1,number,#}.";
   private static final String COMMENT_GET_ERROR_MESSAGE = "Unable to get comment linked to {0} #{1,number,#}.";
-  private static final String COMMENT_DELETION_ERROR_MESSAGE = "Unable to delete comment {0,number,#} from pull-request {1} #{2,number,#}.";
+  private static final String COMMENT_DELETION_ERROR_MESSAGE = "Unable to delete comment {0,number,#}"
+                                                             + " from pull-request {1} #{2,number,#}.";
   private static final String TASK_POST_ERROR_MESSAGE = "Unable to post a task on comment {0,number,#}.";
   private static final String TASK_DELETION_ERROR_MESSAGE = "Unable to delete task {0,number,#}.";
 

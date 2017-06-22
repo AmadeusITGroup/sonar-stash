@@ -98,8 +98,8 @@ public class StashPlugin extends SonarPlugin {
                           .onlyOnQualifiers(Qualifiers.PROJECT).build(),
         PropertyDefinition.builder(STASH_PASSWORD)
                           .name("Stash base Password")
-                          .description("Password for Stash base User " +
-                                       "(Do NOT use in production, passwords are public for everyone with UNAUTHENTICATED HTTP access to SonarQube")
+                          .description("Password for Stash base User (Do NOT use in production, passwords are public"
+                                      + " for everyone with UNAUTHENTICATED HTTP access to SonarQube")
                           .type(PropertyType.PASSWORD)
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT).build(),

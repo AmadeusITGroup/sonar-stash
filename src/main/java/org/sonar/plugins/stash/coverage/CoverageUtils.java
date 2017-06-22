@@ -11,7 +11,9 @@ import org.sonar.wsclient.services.Resource;
 import org.sonar.wsclient.services.ResourceQuery;
 
 public final class CoverageUtils {
+
   private static final Logger LOGGER = LoggerFactory.getLogger(CoverageUtils.class);
+  public static final int MAX_PERCENTAGE  = 100;
 
   private CoverageUtils() {
     // Hiding implicit public constructor with an explicit private one (squid:S1118)
@@ -19,10 +21,10 @@ public final class CoverageUtils {
 
   public static double calculateCoverage(int linesToCover, int uncoveredLines) {
     if (linesToCover == 0) {
-      return 100;
+      return MAX_PERCENTAGE;
     }
 
-    return (1 - (((double)uncoveredLines) / linesToCover)) * 100;
+    return (1 - (((double)uncoveredLines) / linesToCover)) * MAX_PERCENTAGE;
   }
 
   public static Sonar createSonarClient(StashPluginConfiguration config) {

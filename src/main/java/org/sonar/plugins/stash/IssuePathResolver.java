@@ -4,5 +4,6 @@ import org.sonar.api.issue.Issue;
 
 @FunctionalInterface
 public interface IssuePathResolver {
-  public String getIssuePath(Issue issue);
+  // this field is automatically public and static by default (pmd:UnusedModifier)
+  String getIssuePath(Issue issue);
 }

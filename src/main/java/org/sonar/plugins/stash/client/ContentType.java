@@ -10,6 +10,8 @@ public class ContentType {
 
   private String primaryType;
   private String subType;
+  
+  public static final int CONTENTTYPE_ELEM_NUM = 2;
 
   public ContentType(String primaryType, String subType, Object list) {
     if (list != null) {
@@ -20,10 +22,10 @@ public class ContentType {
   }
 
   public boolean match(String s) {
-    String[] parts = s.split(";", 2);
+    String[] parts = s.split(";", CONTENTTYPE_ELEM_NUM);
     // we ignore the parameters, match() does not care and we can't have our own
-    String[] types = StringUtils.strip(parts[0]).split("/", 2);
-    if (types.length < 2) {
+    String[] types = StringUtils.strip(parts[0]).split("/", CONTENTTYPE_ELEM_NUM);
+    if (types.length < CONTENTTYPE_ELEM_NUM) {
       return false;
     }
     return StringUtils.equalsIgnoreCase(primaryType, types[0])

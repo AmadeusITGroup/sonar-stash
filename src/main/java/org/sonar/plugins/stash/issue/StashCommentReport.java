@@ -34,9 +34,11 @@ public class StashCommentReport {
   public boolean contains(String message, String path, long line) {
     boolean result = false;
     for (StashComment comment : comments) {
-      if (StringUtils.equals(comment.getMessage(), message) &&
-          StringUtils.equals(comment.getPath(), path) &&
-          (comment.getLine() == line)) {
+
+      if (StringUtils.equals(comment.getMessage(), message)
+       && StringUtils.equals(comment.getPath(), path)
+       && comment.getLine() == line) {
+
         result = true;
         break;
       }
