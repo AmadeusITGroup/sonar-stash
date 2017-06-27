@@ -7,7 +7,7 @@ set -e
 #
 
 # This assumes that the 2 following variables are defined:
-# - SONAR_HOST_URL => should point to the public URL of the SQ server (e.g. for Nemo: https://nemo.sonarqube.org)
+# - SONAR_HOST_URL => should point to the public URL of the SQ server)
 # - SONAR_TOKEN    => token of a user who has the "Execute Analysis" permission on the SQ server
 
 # We don't want to run X times the same analysis because of the matrix configuration
@@ -24,7 +24,10 @@ if [ "$TRAVIS_BRANCH" = "master" ] && [ "${TRAVIS_PULL_REQUEST}" = "false" ]; th
 	#
 	# Analysis is done only on master so that build of branches don't push analyses to the same project and therefore "pollute" the results
 	echo "Starting analysis by SonarQube..."
-	mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -B -e -V
+	mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -B -e -V \
+		-Dsonar.host.url=$SONAR_HOST_URL \
+		-Dsonar.organization=$SONAR_ORGA \
+		-Dsonar.login=$SONAR_TOKEN
 
 elif [ "${TRAVIS_PULL_REQUEST}" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
 	# => This will analyse the PR and display found issues as comments in the PR, but it won't push results to the SonarQube server
@@ -35,7 +38,11 @@ elif [ "${TRAVIS_PULL_REQUEST}" != "false" ] && [ -n "${GITHUB_TOKEN-}" ]; then
 	# That's why the analysis does not need to be executed if the variable GITHUB_TOKEN is not defined.
 	echo "Starting Pull Request analysis by SonarQube..."
 	mvn clean package sonar:sonar -B -e -V \
+		-Dsonar.host.url=$SONAR_HOST_URL \
+		-Dsonar.login=$SONAR_TOKEN \
+		-Dsonar.organization=$SONAR_ORGA \
 		-Dsonar.analysis.mode=preview \
+		-Dsonar.github.oauth=$GITHUB_TOKEN \
 		-Dsonar.github.repository=$TRAVIS_REPO_SLUG \
 		-Dsonar.github.pullRequest=$TRAVIS_PULL_REQUEST
 

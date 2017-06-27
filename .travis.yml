@@ -1,4 +1,3 @@
-# required for sonar (https://docs.travis-ci.com/user/sonarqube/)
 language: java
 
 matrix:
@@ -22,20 +21,16 @@ matrix:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=5.6
 
-
-addons:
-  sonarcloud:
-    organization: "default"
-    token:
-      secure: "d8D4kV5mCz50taLbYX4agjOHvhBrR532rnjTOLGHUhETzXdVaWSH7bKyeIohSQiixEX09pPNY7/bLRENkDPwI25SG9kmrAKLbuJwhALsT0MreBBj+tkRJJhyPXPFvue09LrQOBLDUnrjCKzk+29WeIW0ScLhKIwaxgtN4lAPmFH5rm0rszkKQT0HCQ0FgS9MZsW8ZeCEg8Jkk7Wzd8JVDbCeVvC0PQD8QVEjgLwIQJRtrK+yXVbuzLeGvWRPxxxFzYkZSkXB9CDVfBqaM3RpBgKQpb81tqfVSwpNwTvwpaY1iuesHwOdlxzRuXzcY+wAp8hiZg/d8TjL2sXjBxuoD6a1C14abkdn72d8h43y5E5lWb5tVTaiepuN8DcNzstesN3HicqIZBxStGAgngmTn23eejSodJl7w/CshxuvUd+B2FxOuohPtsf5BgThr8f7Nvs/djIVgij12ovQBoDquTLWpJxhyYeJNlWSw3KOEIQSlXtrciYKcjpoDL8c81L+/TBk1jsp47AU/mSP4moiwKMYYHHw0mSnnV9yY6SZqWmIYLzxGNBW1UUMWH9vQYHzFO0VRQTzqfbMDoOrX/9CBjX4Z8x1dkHqhK+2jjh+rl5YZTXVUqaIHQ2MC04Iy9hgPpf4gSCFaoPUPDN6wn2Q4FAJj2Q054T3XVzrQPhx43w="
-      # SONAR_TOKEN as is (/!\ no VAR= /!\)
-
-    # Activating comments on PRs
-    github_token:
-      secure: "JTVHePzKgN9XuzjeFOMaookAuJ/vlQyKpncsl7tRgaZTBXrzBsvptMfGcwmzzmGSEYdIl5sCXD5BMfcF1yv/gY1rGn+uP3j1uKLs5HrxTUAablLfw3DLRGTT1ZLP1GXjVcfoBxhD6MShbC0Z0vyH81FQqJqzXNBUwzEPtwNdUkM0+wRjFZefIRAH0xol3q96FGYbYTWjbDBajOjRnPtUt1TtI9gqaBJ6LDtGvZtyFAuo4Z/rTErpwdxq2f5Gyb6aiv7q/RcSRxT6+kXWmDUnurO4h/FjowdEnViWvCdzJFl9B9I5B/0WwqfHP4qCmLFzA8PC44ntCvu/f89okZJMdpHTpCJdlUqiGxRzqHS/T/D7z2d4NhMgs1y5htef+DWn8eqHjZ1v/qicpHyIgR+FAmWRNw0CZeuXtvYa+FZF9aBJ0CbV7fz4AGIDDZXWP1FSEo7Q9Qc//IzTBM0xADUX9BI1IxwJXUqjdemCd34ELzeBbJVxXDNLbcjFfs/r9Tp7G4cWhPxqk/FjX+3sEpOzG/4nQKENhRHSzVjvON5XYGOhVD6n/RpAwi2OS+BLkkS2apsGQJFqHHtEzMr6Y4z4V7+e1k1+pKMj44z/d3Em52Oe7Ar5oB78vTh1wGYi05SMsfthbOZHftUlrJxYf5yv5K91z1aRcIXQ3mkSnWhzFJw="
-
-    # By default only master...
-    #branches:
+env:
+  global:
+    # GITHUB_TOKEN
+    - secure: "fusy970/nx59HQQQ+kEQNoFtDERp+Pn0MDeEjmi3l6nLW/2y97AyhuwlLC05ggu4P7VCATJyEvBhZcmdv+ofFN1NzxVEbmv6QboPg8JGDvV7GqWNV2AYRGyFe07TQpZo3dgtdlDMlyBS0FGeQb8h5EWp3Z0krkUbq4ewJ8xgZvyhY2GWsMZUODynf5xdqCB5mu6VqyzexoQFYdfUy1Us5Nt87h1jZ0Ua63rnVZN9dRgt9VQNusRdyk/GeG0Rb9xreDlkBd8LQgviiA+M8iTitBAcGgQORKfwIP5tXBjNvLJv1KsSKsWqk2hzZy31inFnXIrTQLSJBymX2sJiU2xxB0bAy4KU1Z2Z13YgqD9m3Fxs9Kl69vZc8fILj9RkfgLqZecKq0XC3G1tqc6s4U96HM9JhKid+wt1p8LO44oXVt0+lRfq2csAA67Iwr2YpNBVCk7BlUeDB8JZ6we8yeTnexIsoFrvanrObDFCHm78HAUmYbbPaeGTm9Mlyz7IbZ21mqlB/lsmOAWNXDtuBuEwUoSR2wkm5u5/DzB8q7nFRVfkYkjk65/0jRaDeQP5QCcK+XEmVSTcdL6D3fi8Lr8hyI1a1XuNssBKXYELMXdFImdqZgncWDdMW+QkR0hLWYdAtuxJQVtIGeeT5KuPAHJ72aOBqucIX8vSSmFUlp8yA+A="
+    #
+    - SONAR_HOST_URL="https://sonarcloud.io"
+    - SONAR_ORGA="default"
+    #
+    # SONAR_TOKEN
+    - secure: "ux1NYGmQR9xdobfJ9fMnh0oGmAUwlQ6d5neeptyopwD5SgtPawkjEL14jH+oIMiStwWU9psPR4jE7Unttmi+j94j2gJE91uwyVGYsjcqGOHxTh8hbsLX5aeI+0NitXkSraM8iY7WT2gGgH6n8G9QQXDVPCWO0MDQUzNjTI8XM1MYgVehSNXes2mzO7JN8pX+YSjsrFSG1j6Zwz0IiZIPvC5upS/w9JwLqyHeZqlpYVy5S+Gl3oGGtwONHyEM0vNs3YMgR4ylzLzRlNl40JvjLRbLDikS44O+W3ADBFe122p2OYMzVZN+KN8RuYqpJLggKWZijsZ09Yl/4ReRDZGwVg5uylcjUaAlwRfkW1pP6yuXgBqOmwBXfSXqflYERt8YUWrGcnT534WnffpjR+dW5d735DQv6uZkSA/dWBnhI8CmK6XbyNHSfRXTtTiL2Uogd6DpDtUghErz0408a/zvtBAhrrVA03AqutGVefyiSs/uWpDVM1cvB9gUD7AXB/MtZi4hgB/lSy4/DH2Fy1kDLVPvcnQpnAlaAPu88jCXIQtbzN+Ol1qe+yUj44YW5X0FxhGUrCa/akZh6DPCUn03gK6gY1zd1+5zPl73FnbVjpwTrNZZM+l78tW8L612aqSSItsnBi/oTrjWYXGvbCImTcxmkp266qSWmoML2PEp6s8="
 
 
 install:
@@ -50,3 +45,4 @@ dist: trusty
 
 notifications:
   email: false
+
