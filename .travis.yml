@@ -1,3 +1,4 @@
+# required for sonar (https://docs.travis-ci.com/user/sonarqube/)
 language: java
 
 matrix:
@@ -23,7 +24,7 @@ matrix:
 
 
 addons:
-  sonarqube:
+  sonarcloud:
     organization: "default"
     token:
       secure: "d8D4kV5mCz50taLbYX4agjOHvhBrR532rnjTOLGHUhETzXdVaWSH7bKyeIohSQiixEX09pPNY7/bLRENkDPwI25SG9kmrAKLbuJwhALsT0MreBBj+tkRJJhyPXPFvue09LrQOBLDUnrjCKzk+29WeIW0ScLhKIwaxgtN4lAPmFH5rm0rszkKQT0HCQ0FgS9MZsW8ZeCEg8Jkk7Wzd8JVDbCeVvC0PQD8QVEjgLwIQJRtrK+yXVbuzLeGvWRPxxxFzYkZSkXB9CDVfBqaM3RpBgKQpb81tqfVSwpNwTvwpaY1iuesHwOdlxzRuXzcY+wAp8hiZg/d8TjL2sXjBxuoD6a1C14abkdn72d8h43y5E5lWb5tVTaiepuN8DcNzstesN3HicqIZBxStGAgngmTn23eejSodJl7w/CshxuvUd+B2FxOuohPtsf5BgThr8f7Nvs/djIVgij12ovQBoDquTLWpJxhyYeJNlWSw3KOEIQSlXtrciYKcjpoDL8c81L+/TBk1jsp47AU/mSP4moiwKMYYHHw0mSnnV9yY6SZqWmIYLzxGNBW1UUMWH9vQYHzFO0VRQTzqfbMDoOrX/9CBjX4Z8x1dkHqhK+2jjh+rl5YZTXVUqaIHQ2MC04Iy9hgPpf4gSCFaoPUPDN6wn2Q4FAJj2Q054T3XVzrQPhx43w="
