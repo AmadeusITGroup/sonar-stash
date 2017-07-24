@@ -26,6 +26,7 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -438,20 +439,29 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
    * Get reported severities to create a task.
    */
   public List<String> getReportedSeverities() {
-    List<String> result = new ArrayList<>();
     String threshold = config.getTaskIssueSeverityThreshold();
 
     // threshold == NONE, no severities reported
-    if (!StringUtils.equals(threshold, StashPlugin.SEVERITY_NONE)) {
+    if (StringUtils.equals(threshold, StashPlugin.SEVERITY_NONE)) {
+      return Collections.emptyList();
+    }
 
-      // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
-      boolean hit = false;
-      for (String severity : StashPlugin.SEVERITY_LIST) {
+    return getGreatherThanOrEqualSeverities(threshold);
+  }
 
-        if (hit || StringUtils.equals(severity, threshold)) {
-          result.add(severity);
-          hit = true;
-        }
+  List<String> getRejectSeverities() {
+    return getGreatherThanOrEqualSeverities(config.getRejectSeverityThreshold());
+  }
+
+  private List<String> getGreatherThanOrEqualSeverities(String threshold) {
+    List<String> result = new ArrayList<>();
+    // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
+    boolean hit = false;
+    for (String severity : StashPlugin.SEVERITY_LIST) {
+
+      if (hit || StringUtils.equals(severity, threshold)) {
+        result.add(severity);
+        hit = true;
       }
     }
 

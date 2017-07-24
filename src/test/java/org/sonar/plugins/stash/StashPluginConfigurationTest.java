@@ -31,6 +31,7 @@ public class StashPluginConfigurationTest {
     settings.setProperty(StashPlugin.STASH_ISSUE_THRESHOLD, 42000);
     settings.setProperty(StashPlugin.STASH_TIMEOUT, 42);
     settings.setProperty(StashPlugin.STASH_REVIEWER_APPROVAL, true);
+    settings.setProperty(StashPlugin.STASH_REVIEWER_REJECT_SEVERITY_THRESHOLD, "Info");
     settings.setProperty(StashPlugin.STASH_RESET_COMMENTS, false);
     settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "Minor");
     settings.setProperty(CoreProperties.SERVER_VERSION, "5.6.3");
@@ -57,6 +58,7 @@ public class StashPluginConfigurationTest {
     assertEquals(42000, SPC.getIssueThreshold());
     assertEquals(42, SPC.getStashTimeout());
     assertEquals(true, SPC.canApprovePullRequest());
+    assertEquals("Info", SPC.getRejectSeverityThreshold());
     assertEquals(false, SPC.resetComments());
     assertEquals("Minor", SPC.getTaskIssueSeverityThreshold());
     assertEquals("5.6.3", SPC.getSonarQubeVersion());

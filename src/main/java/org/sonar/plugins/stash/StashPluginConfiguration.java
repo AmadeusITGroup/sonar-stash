@@ -77,6 +77,10 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL);
   }
 
+  public String getRejectSeverityThreshold() {
+    return settings.getString(StashPlugin.STASH_REVIEWER_REJECT_SEVERITY_THRESHOLD);
+  }
+
   public boolean resetComments() {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
   }

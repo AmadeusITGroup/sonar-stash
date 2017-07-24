@@ -35,13 +35,16 @@ public class StashPluginTest {
     PropertyDefinition SP_SRA = (PropertyDefinition)ext.get(14);
     assertEquals(StashPlugin.STASH_REVIEWER_APPROVAL, SP_SRA.key());
 
-    PropertyDefinition SP_SIT = (PropertyDefinition)ext.get(15);
+    PropertyDefinition SP_SAST = (PropertyDefinition)ext.get(15);
+    assertEquals(StashPlugin.STASH_REVIEWER_REJECT_SEVERITY_THRESHOLD, SP_SAST.key());
+
+    PropertyDefinition SP_SIT = (PropertyDefinition)ext.get(16);
     assertEquals(StashPlugin.STASH_ISSUE_THRESHOLD, SP_SIT.key());
 
-    PropertyDefinition SP_STST = (PropertyDefinition)ext.get(16);
+    PropertyDefinition SP_STST = (PropertyDefinition)ext.get(17);
     assertEquals(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, SP_STST.key());
 
-    PropertyDefinition SP_SIAO = (PropertyDefinition)ext.get(17);
+    PropertyDefinition SP_SIAO = (PropertyDefinition)ext.get(18);
     assertEquals(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW, SP_SIAO.key());
   }
 }

@@ -117,8 +117,6 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
                                      StashClient stashClient) {
 
     // Some local definitions
-    boolean canApprovePullrequest = config.canApprovePullRequest();
-
     int issueTotal = issueReport.size();
 
     // if threshold exceeded, do not push issue list to Stash
@@ -136,11 +134,13 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
 
     // if no new issues and coverage is improved,
     // plugin approves the pull-request
-    if (canApprovePullrequest) {
-      if (issueTotal == 0) {
-        stashRequestFacade.approvePullRequest(pr, stashClient);
-      } else {
+    if (config.canApprovePullRequest()) {
+      List<String> rejectSeverities = stashRequestFacade.getRejectSeverities();
+      boolean reject = issueReport.stream().anyMatch(issue -> rejectSeverities.contains(issue.severity()));
+      if (reject) {
         stashRequestFacade.resetPullRequestApproval(pr, stashClient);
+      } else {
+        stashRequestFacade.approvePullRequest(pr, stashClient);
       }
     }
   }

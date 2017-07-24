@@ -62,6 +62,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_PASSWORD = "sonar.stash.password";
   public static final String STASH_PASSWORD_ENVIRONMENT_VARIABLE = "sonar.stash.password.variable";
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
+  public static final String STASH_REVIEWER_REJECT_SEVERITY_THRESHOLD = "sonar.stash.reviewer.reject.severity.threshold";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
@@ -111,11 +112,19 @@ public class StashPlugin extends SonarPlugin {
                           .defaultValue(DEFAULT_STASH_TIMEOUT_VALUE).build(),
         PropertyDefinition.builder(STASH_REVIEWER_APPROVAL)
                           .name("Stash reviewer approval")
-                          .description("Does SonarQube approve the pull-request if there is no new issues?")
+                          .description("SonarQube approves pull-request if there is no new issues above approval threshold")
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
                           .type(PropertyType.BOOLEAN)
                           .defaultValue("false").build(),
+        PropertyDefinition.builder(STASH_REVIEWER_REJECT_SEVERITY_THRESHOLD)
+                          .name("Stash reviewer reject severity threshold")
+                          .description("Don't approve pull request when there are issues with this or higher severity")
+                          .type(PropertyType.SINGLE_SELECT_LIST)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(Severity.INFO)
+                          .options(SEVERITY_LIST).build(),
         PropertyDefinition.builder(STASH_ISSUE_THRESHOLD)
                           .name("Stash issue Threshold")
                           .description("Threshold to limit the number of issues pushed to Stash server")
