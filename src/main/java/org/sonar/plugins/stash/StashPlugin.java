@@ -14,6 +14,7 @@ import org.sonar.plugins.stash.coverage.CoverageSensor;
 
 import java.util.Arrays;
 import java.util.List;
+import org.sonar.plugins.stash.issue.StashDiffReport;
 
 @Properties({
                 @Property(key = StashPlugin.STASH_NOTIFICATION,
@@ -39,6 +40,9 @@ public class StashPlugin extends SonarPlugin {
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
   private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
+  private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
+  private static final int DEFAULT_STASH_INCLUDE_VICINITY_RANGE = StashDiffReport.VICINITY_RANGE_NONE;
+  private static final String DEFAULT_STASH_EXCLUDE_RULES = "";
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
 
@@ -68,6 +72,9 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_TASK_SEVERITY_THRESHOLD = "sonar.stash.task.issue.severity.threshold";
   public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.overview";
   public static final String STASH_REPOSITORY_ROOT = "sonar.stash.repository.root";
+  public static final String STASH_INCLUDE_EXISTING_ISSUES = "sonar.stash.include.existing.issues";
+  public static final String STASH_INCLUDE_VICINITY_RANGE = "sonar.stash.include.vicinity.issues.range";
+  public static final String STASH_EXCLUDE_RULES = "sonar.stash.exclude.rules";
 
   @Override
   public List getExtensions() {
@@ -136,7 +143,28 @@ public class StashPlugin extends SonarPlugin {
                           .type(PropertyType.BOOLEAN)
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
-                          .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW)).build()
+                          .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_EXISTING_ISSUES)
+                          .name("Include Existing Issues")
+                          .description("Set to true to include already existing issues on modified lines.")
+                          .type(PropertyType.BOOLEAN)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(Boolean.toString(DEFAULT_STASH_INCLUDE_EXISTING_ISSUES)).build(),
+        PropertyDefinition.builder(STASH_INCLUDE_VICINITY_RANGE)
+                          .name("Include Vicinity Issues Range")
+                          .description("Specifies the range around the actual changes for which issues are reported. (In lines)")
+                          .type(PropertyType.INTEGER)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(String.valueOf(DEFAULT_STASH_INCLUDE_VICINITY_RANGE)).build(),
+        PropertyDefinition.builder(STASH_EXCLUDE_RULES)
+                          .name("Excluded Rules")
+                          .description("Comma separated list of rules for which no comments should be created.")
+                          .type(PropertyType.STRING)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(DEFAULT_STASH_EXCLUDE_RULES).build()
     );
   }
 }

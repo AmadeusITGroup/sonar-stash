@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.issue.collector;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,6 +32,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
+import static org.sonar.plugins.stash.StashPluginUtils.getIssuesBySeverity;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -71,6 +74,8 @@ public class SonarQubeCollectorTest {
   InputFile inputFile2;
 
   DummyIssuePathResolver issuePathResolver;
+
+  Set<RuleKey> excludedRules;
 
   @Before
   public void setUp() throws Exception {
@@ -143,6 +148,8 @@ public class SonarQubeCollectorTest {
 
     issuePathResolver.add(issue1, inputFile1.relativePath());
     issuePathResolver.add(issue2, inputFile2.relativePath());
+
+    excludedRules = new HashSet<>();
   }
 
   @Test
@@ -150,7 +157,7 @@ public class SonarQubeCollectorTest {
     ArrayList<Issue> issues = new ArrayList<Issue>();
     when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules);
     assertEquals(0, report.size());
   }
 
@@ -161,7 +168,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules);
     assertEquals(2, report.size());
     assertEquals(1, countIssuesBySeverity(report, "severity1"));
     assertEquals(1, countIssuesBySeverity(report, "severity2"));
@@ -186,7 +193,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(1, countIssuesBySeverity(report, "severity1"));
     assertEquals(0, countIssuesBySeverity(report, "severity2"));
@@ -207,7 +214,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, "severity1"));
     assertEquals(1, countIssuesBySeverity(report, "severity2"));
@@ -223,7 +230,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue2);
     when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver);
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, "severity1"));
     assertEquals(1, countIssuesBySeverity(report, "severity2"));
@@ -244,5 +251,38 @@ public class SonarQubeCollectorTest {
     // This part is for code coverage only (but is re-using the elments above... -_^)
     constructor.setAccessible(true);
     constructor.newInstance();
+  }
+
+  @Test
+  public void testExtractIssueReportWithIncludeExistingIssuesOption() {
+    when(issue1.isNew()).thenReturn(false);
+    when(issue2.isNew()).thenReturn(true);
+
+    ArrayList<Issue> issues = new ArrayList<Issue>();
+    issues.add(issue1);
+    issues.add(issue2);
+    when(projectIssues.issues()).thenReturn(issues);
+
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, true, excludedRules);
+    assertEquals(2, report.size());
+    assertEquals(1, getIssuesBySeverity(report, "severity1").size());
+    assertEquals(1, getIssuesBySeverity(report, "severity2").size());
+  }
+
+  @Test
+  public void testExtractIssueReportWithExcludedRules() {
+    when(issue1.ruleKey()).thenReturn(RuleKey.of("foo", "bar"));
+    when(issue2.ruleKey()).thenReturn(RuleKey.of("foo", "baz"));
+
+    ArrayList<Issue> issues = new ArrayList<Issue>();
+    issues.add(issue1);
+    issues.add(issue2);
+    when(projectIssues.issues()).thenReturn(issues);
+
+    excludedRules.add(RuleKey.of("foo", "bar"));
+
+    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, true, excludedRules);
+    assertEquals(1, report.size());
+    assertEquals("key2", report.get(0).key());
   }
 }
