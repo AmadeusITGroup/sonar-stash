@@ -76,18 +76,18 @@ public class StashDiffReportTest {
 
   @Test
   public void testGetType() {
-    assertEquals(report1.getType("path/to/diff1", 20), StashPlugin.CONTEXT_ISSUE_TYPE);
-    assertEquals(report1.getType("path/to/diff2", 30), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE), StashPlugin.ADDED_ISSUE_TYPE);
 
-    assertEquals(report1.getType("path/to/diff2", 20), null);
-    assertEquals(report1.getType("path/to/diff1", 30), null);
-    assertEquals(report1.getType("path/to/diff4", 60), null);
+    assertEquals(report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE), null);
+    assertEquals(report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE), null);
+    assertEquals(report1.getType("path/to/diff4", 60, StashDiffReport.VICINITY_RANGE_NONE), null);
   }
 
   @Test
   public void testGetTypeWithNoDestination() {
-    assertEquals(report1.getType("path/to/diff1", 0), StashPlugin.CONTEXT_ISSUE_TYPE);
-    assertEquals(report1.getType("path/to/diff", 0), null);
+    assertEquals(report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE), null);
   }
 
   @Test

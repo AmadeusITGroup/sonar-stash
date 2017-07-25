@@ -223,7 +223,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     }
 
     // check if issue belongs to the Stash diff view
-    String type = diffReport.getType(path, issueLine);
+    String type = diffReport.getType(path, issueLine, config.issueVicinityRange());
     if (type == null) {
       LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
                     issueKey, path, issueLine);
