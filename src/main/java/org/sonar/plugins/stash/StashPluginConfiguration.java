@@ -1,5 +1,9 @@
 package org.sonar.plugins.stash;
 
+import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
@@ -7,6 +11,7 @@ import org.sonar.api.config.Settings;
 
 import java.io.File;
 import java.util.Optional;
+import org.sonar.api.rule.RuleKey;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration implements BatchComponent {
@@ -107,5 +112,14 @@ public class StashPluginConfiguration implements BatchComponent {
 
   public int issueVicinityRange() {
     return settings.getInt(StashPlugin.STASH_INCLUDE_VICINITY_RANGE);
+  }
+
+  public Set<RuleKey> excludedRules() {
+    return Sets.newHashSet(
+        settings.getStringArray(StashPlugin.STASH_EXCLUDE_RULES)
+    ).stream()
+        .map(String::trim)
+        .map(RuleKey::parse)
+        .collect(Collectors.toSet());
   }
 }

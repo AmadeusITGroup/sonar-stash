@@ -72,6 +72,8 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Include Vicinity Issues Range** (sonar.stash.include.vicinity.issues.range): Specifies in which area (in lines) around the current diff issues should be reported
 
+**Excluded Rules** (sonar.stash.exclude.rules): Comma separated list of rules for which no comments should be created.
+
 ## How to run the plugin?
 
 #### Plugin activation for an analysis

@@ -54,7 +54,10 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   }
 
   public List<Issue> extractIssueReport(ProjectIssues projectIssues) {
-    return SonarQubeCollector.extractIssueReport(projectIssues, this, config.includeExistingIssues());
+    return SonarQubeCollector.extractIssueReport(
+        projectIssues, this,
+        config.includeExistingIssues(), config.excludedRules()
+    );
   }
 
   /**

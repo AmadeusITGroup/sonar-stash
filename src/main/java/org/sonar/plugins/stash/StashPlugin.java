@@ -42,6 +42,7 @@ public class StashPlugin extends SonarPlugin {
   private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
   private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
   private static final int DEFAULT_STASH_INCLUDE_VICINITY_RANGE = StashDiffReport.VICINITY_RANGE_NONE;
+  private static final String DEFAULT_STASH_EXCLUDE_RULES = "";
 
   private static final String CONFIG_PAGE_SUB_CATEGORY_STASH = "Stash";
 
@@ -73,6 +74,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_REPOSITORY_ROOT = "sonar.stash.repository.root";
   public static final String STASH_INCLUDE_EXISTING_ISSUES = "sonar.stash.include.existing.issues";
   public static final String STASH_INCLUDE_VICINITY_RANGE = "sonar.stash.include.vicinity.issues.range";
+  public static final String STASH_EXCLUDE_RULES = "sonar.stash.exclude.rules";
 
   @Override
   public List getExtensions() {
@@ -155,7 +157,14 @@ public class StashPlugin extends SonarPlugin {
                           .type(PropertyType.INTEGER)
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
-                          .defaultValue(String.valueOf(DEFAULT_STASH_INCLUDE_VICINITY_RANGE)).build()
+                          .defaultValue(String.valueOf(DEFAULT_STASH_INCLUDE_VICINITY_RANGE)).build(),
+        PropertyDefinition.builder(STASH_EXCLUDE_RULES)
+                          .name("Excluded Rules")
+                          .description("Comma separated list of rules for which no comments should be created.")
+                          .type(PropertyType.STRING)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(DEFAULT_STASH_EXCLUDE_RULES).build()
     );
   }
 }
