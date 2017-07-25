@@ -68,6 +68,8 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 ![Screenshot SonarQube plugin](resources/Stash-plugin-task.PNG)
 
+**Include existing issues** (sonar.stash.include.existing.issues): Toggles whether already existing issues should also be reported.
+
 ## How to run the plugin?
 
 #### Plugin activation for an analysis

@@ -100,4 +100,8 @@ public class StashPluginConfiguration implements BatchComponent {
   public boolean scanAllFiles() {
     return settings.getBoolean("sonar.scanAllFiles");
   }
+
+  public boolean includeExistingIssues() {
+    return settings.getBoolean(StashPlugin.STASH_INCLUDE_EXISTING_ISSUES);
+  }
 }

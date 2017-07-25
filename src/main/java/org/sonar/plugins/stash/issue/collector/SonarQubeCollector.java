@@ -22,15 +22,16 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static List<Issue> extractIssueReport(ProjectIssues projectIssues, IssuePathResolver issuePathResolver) {
+  public static List<Issue> extractIssueReport(
+      ProjectIssues projectIssues, IssuePathResolver issuePathResolver, boolean includeExistingIssues) {
     return StreamSupport.stream(
         projectIssues.issues().spliterator(), false)
-                        .filter(issue -> shouldIncludeIssue(issue, issuePathResolver))
+                        .filter(issue -> shouldIncludeIssue(issue, issuePathResolver, includeExistingIssues))
                         .collect(Collectors.toList());
   }
 
-  private static boolean shouldIncludeIssue(Issue issue, IssuePathResolver issuePathResolver) {
-    if (!issue.isNew()) {
+  private static boolean shouldIncludeIssue(Issue issue, IssuePathResolver issuePathResolver, boolean includeExistingIssues) {
+    if (!includeExistingIssues && !issue.isNew()) {
 
       // squid:S2629 : no evaluation required if the logging level is not activated
       if (LOGGER.isDebugEnabled()) {
