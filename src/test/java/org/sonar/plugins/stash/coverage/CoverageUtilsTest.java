@@ -5,6 +5,7 @@ import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.plugins.stash.StashPluginConfiguration;
+import org.sonar.plugins.stash.StashTest;
 import org.sonar.wsclient.Sonar;
 import org.sonar.wsclient.base.HttpException;
 import org.sonar.wsclient.services.Measure;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.coverage.CoverageUtils.calculateCoverage;
 import static org.sonar.plugins.stash.coverage.CoverageUtils.shouldExecuteCoverage;
 
-public class CoverageUtilsTest {
+public class CoverageUtilsTest extends StashTest {
 
   private static final double DELTA = 1e-6;
 
