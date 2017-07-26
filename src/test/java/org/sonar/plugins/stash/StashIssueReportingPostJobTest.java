@@ -17,13 +17,20 @@ import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sonar.api.rule.Severity.BLOCKER;
+import static org.sonar.api.rule.Severity.CRITICAL;
+import static org.sonar.api.rule.Severity.INFO;
+import static org.sonar.api.rule.Severity.MAJOR;
+import static org.sonar.api.rule.Severity.MINOR;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -412,4 +419,54 @@ public class StashIssueReportingPostJobTest extends StashTest {
     verify(stashRequestFacade, times(0)).postAnalysisOverview(eq(pr), eq(STASH_ISSUE_THRESHOLD), eq(report), (StashClient) Mockito.anyObject());
   }
   */
+
+  @Test
+  public void whenNoIssues_approve() throws Exception {
+    when(config.canApprovePullRequest()).thenReturn(true);
+
+    List<Issue> report = Collections.emptyList();
+    when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
+
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
+    myJob.executeOn(project, context);
+
+    verify(stashRequestFacade, times(1)).approvePullRequest(eq(pr), Mockito.anyObject());
+  }
+
+  @Test
+  public void whenAllIssuesBelowThreshold_approve() throws Exception {
+    when(config.canApprovePullRequest()).thenReturn(true);
+
+    List<Issue> report = report(INFO, MINOR, MAJOR, CRITICAL);
+    when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
+
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
+    myJob.executeOn(project, context);
+
+    verify(stashRequestFacade, times(1)).approvePullRequest(eq(pr), Mockito.anyObject());
+  }
+
+  @Test
+  public void whenGotIssuesAboveThreshold_resetApproval() throws Exception {
+    when(config.canApprovePullRequest()).thenReturn(true);
+
+    List<Issue> report = report(INFO, MINOR, MAJOR, CRITICAL, BLOCKER);
+    when(stashRequestFacade.extractIssueReport(projectIssues)).thenReturn(report);
+    when(stashRequestFacade.getReportedSeverities()).thenReturn(Collections.singletonList(BLOCKER));
+
+    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade);
+    myJob.executeOn(project, context);
+
+    verify(stashRequestFacade, times(1)).resetPullRequestApproval(eq(pr), Mockito.anyObject());
+  }
+
+  private List<Issue> report(String... severities) {
+    List<Issue> result = new ArrayList<>();
+    for (String s : severities) {
+      Issue issue = mock(Issue.class);
+      when(issue.severity()).thenReturn(s);
+      result.add(issue);
+    }
+    return result;
+  }
 }
