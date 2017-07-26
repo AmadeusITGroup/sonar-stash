@@ -25,7 +25,6 @@ import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 import java.io.File;
 import java.text.MessageFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;

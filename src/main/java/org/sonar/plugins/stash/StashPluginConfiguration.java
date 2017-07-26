@@ -1,7 +1,6 @@
 package org.sonar.plugins.stash;
 
 import com.google.common.collect.Sets;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.sonar.api.BatchComponent;

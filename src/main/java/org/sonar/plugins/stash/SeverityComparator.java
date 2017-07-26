@@ -8,8 +8,6 @@ import org.sonar.api.rule.Severity;
 public class SeverityComparator implements Comparator<String> {
     private List<String> severities = Severity.ALL;
 
-    public SeverityComparator() { }
-
     @Override
     public int compare(String o1, String o2) {
       int io1 = indexOf(o1);
