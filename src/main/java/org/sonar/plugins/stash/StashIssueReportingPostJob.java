@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash;
 
+import java.util.Collection;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.BatchComponent;
@@ -116,9 +118,6 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
                                      StashDiffReport diffReport,
                                      StashClient stashClient) {
 
-    // Some local definitions
-    boolean canApprovePullrequest = config.canApprovePullRequest();
-
     int issueTotal = issueReport.size();
 
     // if threshold exceeded, do not push issue list to Stash
@@ -134,15 +133,24 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
       stashRequestFacade.postAnalysisOverview(pr, issueThreshold, issueReport, stashClient);
     }
 
-    // if no new issues and coverage is improved,
-    // plugin approves the pull-request
-    if (canApprovePullrequest) {
-      if (issueTotal == 0) {
+    if (config.canApprovePullRequest()) {
+      if (shouldApprovePullRequest(config.getApprovalSeverityThreshold(), issueReport)) {
         stashRequestFacade.approvePullRequest(pr, stashClient);
       } else {
         stashRequestFacade.resetPullRequestApproval(pr, stashClient);
       }
     }
+  }
+
+  static boolean shouldApprovePullRequest(Optional<String> approvalSeverityThreshold, Collection<Issue> report) {
+    if (approvalSeverityThreshold.isPresent()) {
+      SeverityComparator sc = new SeverityComparator();
+      return report.stream().noneMatch(issue ->
+          sc.compare(issue.severity(), approvalSeverityThreshold.get()) > 0
+      );
+    }
+
+    return report.isEmpty();
   }
 
 

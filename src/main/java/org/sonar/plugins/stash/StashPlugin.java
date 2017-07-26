@@ -67,6 +67,7 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_PASSWORD = "sonar.stash.password";
   public static final String STASH_PASSWORD_ENVIRONMENT_VARIABLE = "sonar.stash.password.variable";
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
+  public static final String STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD = "sonar.stash.reviewer.approval.severity.threshold";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_TIMEOUT = "sonar.stash.timeout";
   public static final String SONARQUBE_URL = "sonar.host.url";
@@ -130,6 +131,14 @@ public class StashPlugin extends SonarPlugin {
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
                           .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE).build(),
+        PropertyDefinition.builder(STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD)
+                          .name("Threshold tie the approval to the severity of the found issues")
+                          .description("Maximum severity of an issue for approval to complete")
+                          .type(PropertyType.SINGLE_SELECT_LIST)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(SEVERITY_NONE)
+                          .options(SEVERITY_LIST_WITH_NONE).build(),
         PropertyDefinition.builder(STASH_TASK_SEVERITY_THRESHOLD)
                           .name("Stash tasks severity threshold")
                           .description("Only create tasks for issues with the same or higher severity")

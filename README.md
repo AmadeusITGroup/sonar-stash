@@ -60,6 +60,8 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change. By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
 
+**Approval severity** (sonar.stash.reviewer.approval.severity.threshold): Only approve the pull-request if no issues higher than this threshold are detected.
+
 **Include Analysis Overview Comment** (sonar.stash.include.overview): Toggles whether a comment with overview information should be created.
 
 ![Screenshot SonarQube plugin](resources/Sonar-plugin-approver.PNG)

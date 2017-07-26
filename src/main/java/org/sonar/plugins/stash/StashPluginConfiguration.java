@@ -86,11 +86,11 @@ public class StashPluginConfiguration implements BatchComponent {
   }
 
   public Optional<String> getTaskIssueSeverityThreshold() {
-    String setting = settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
-    if (StashPlugin.SEVERITY_NONE.equals(setting)) {
-      return Optional.empty();
-    }
-    return Optional.of(setting);
+    return getOptionalSeveritySetting(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
+  }
+
+  public Optional<String> getApprovalSeverityThreshold() {
+    return getOptionalSeveritySetting(StashPlugin.STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD);
   }
 
   public String getSonarQubeVersion() {
@@ -124,5 +124,13 @@ public class StashPluginConfiguration implements BatchComponent {
         .map(String::trim)
         .map(RuleKey::parse)
         .collect(Collectors.toSet());
+  }
+
+  private Optional<String> getOptionalSeveritySetting(String key) {
+    String setting = settings.getString(key);
+    if (StashPlugin.SEVERITY_NONE.equals(setting)) {
+      return Optional.empty();
+    }
+    return Optional.of(setting);
   }
 }

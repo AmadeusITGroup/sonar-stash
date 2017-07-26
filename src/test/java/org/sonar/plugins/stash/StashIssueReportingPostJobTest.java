@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +10,9 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.issue.internal.DefaultIssue;
 import org.sonar.api.resources.Project;
+import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.coverage.CoverageProjectStore;
@@ -19,6 +22,8 @@ import org.sonar.plugins.stash.issue.StashUser;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -245,6 +250,36 @@ public class StashIssueReportingPostJobTest extends StashTest {
                                                               (StashClient)Mockito.anyObject());
     verify(stashRequestFacade, times(0)).approvePullRequest(eq(pr), (StashClient)Mockito.anyObject());
     verify(stashRequestFacade, times(0)).resetPullRequestApproval(eq(pr), (StashClient)Mockito.anyObject());
+  }
+
+  @Test
+  public void testShouldApprovePullRequest() {
+    Issue minorIssue = new DefaultIssue().setSeverity(Severity.MINOR);
+    Issue majorIssue = new DefaultIssue().setSeverity(Severity.MAJOR);
+
+    report = new ArrayList<>();
+
+    report.add(minorIssue);
+    report.add(majorIssue);
+
+    assertFalse(
+        StashIssueReportingPostJob.shouldApprovePullRequest(Optional.empty(), report)
+    );
+
+    report.clear();
+    assertTrue(
+        StashIssueReportingPostJob.shouldApprovePullRequest(Optional.empty(), report)
+    );
+
+    report.add(minorIssue);
+    assertTrue(
+        StashIssueReportingPostJob.shouldApprovePullRequest(Optional.of(Severity.MINOR), report)
+    );
+
+    report.add(majorIssue);
+    assertFalse(
+        StashIssueReportingPostJob.shouldApprovePullRequest(Optional.of(Severity.MINOR), report)
+    );
   }
 
   /* FIXME
