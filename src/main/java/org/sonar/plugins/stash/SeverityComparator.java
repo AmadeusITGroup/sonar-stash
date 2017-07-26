@@ -10,16 +10,7 @@ public class SeverityComparator implements Comparator<String> {
 
     @Override
     public int compare(String o1, String o2) {
-      int io1 = indexOf(o1);
-      int io2 = indexOf(o2);
-
-      if (io1 == io2) {
-        return 0;
-      }
-      if (io1 > io2) {
-        return 1;
-      }
-      return -1;
+      return Comparator.comparingInt(this::indexOf).compare(o1, o2);
     }
 
     private int indexOf(String o) {
