@@ -77,13 +77,6 @@ public class SonarQubeCollectorTest {
 
   @Before
   public void setUp() throws Exception {
-
-    // Activating debug level for class we are testing to ensure we go through all lines (because of squid:S2629)
-    //    huge thanks to C. Loiseau for nailing the proper syntax to subdue the Logger !
-    java.util.logging.Logger.getLogger(SonarQubeCollector.class.getCanonicalName())
-                            .setLevel(java.util.logging.Level.ALL);
-
-
     ///////// File system objects /////////
 
     ArrayList<InputFile> inputFiles = new ArrayList<InputFile>();

@@ -16,6 +16,7 @@ import java.util.logging.MemoryHandler;
 public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule {
   private boolean gobbleOnSuccess;
   private List<Handler> originalHandlers = new ArrayList<>();
+  private Level originalLevel;
   private ConsoleHandler console = new ConsoleHandler();
   private MemoryHandler spool = new MemoryHandler(console, 10000, Level.OFF);
   private Logger logger;
@@ -53,6 +54,7 @@ public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule 
     for (Handler h : originalHandlers) {
       logger.addHandler(h);
     }
+    logger.setLevel(originalLevel);
   }
 
   @Override
@@ -62,6 +64,9 @@ public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule 
       logger.removeHandler(h);
     }
     logger.addHandler(spool);
+
+    originalLevel = logger.getLevel();
+    logger.setLevel(Level.ALL);
   }
 
   private void emit() {

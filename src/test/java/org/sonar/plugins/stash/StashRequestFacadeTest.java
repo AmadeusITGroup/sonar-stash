@@ -119,11 +119,6 @@ public class StashRequestFacadeTest extends StashTest {
   @Before
   public void setUp() throws Exception {
 
-    // Activating debug level for class we are testing to ensure we go through all lines (because of squid:S2629)
-    //    huge thanks to C. Loiseau for nailing the proper syntax to subdue the Logger !
-    java.util.logging.Logger.getLogger(StashRequestFacade.class.getCanonicalName())
-                            .setLevel(java.util.logging.Level.ALL);
-
     config = mock(StashPluginConfiguration.class);
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.empty());
     when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
