@@ -21,8 +21,6 @@ import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -239,18 +237,6 @@ public class SonarQubeCollectorTest {
     assertEquals("message2", sqIssue2.message());
     assertEquals("project/path2", issuePathResolver.getIssuePath(sqIssue2));
     assertEquals((Integer)2, sqIssue2.line());
-  }
-
-  @Test
-  public void testConstructorIsPrivate() throws Exception {
-
-    // Let's use this for the greater good: we make sure that nobody can create an instance of this class
-    Constructor constructor = SonarQubeCollector.class.getDeclaredConstructor();
-    assertTrue(Modifier.isPrivate(constructor.getModifiers()));
-
-    // This part is for code coverage only (but is re-using the elments above... -_^)
-    constructor.setAccessible(true);
-    constructor.newInstance();
   }
 
   @Test

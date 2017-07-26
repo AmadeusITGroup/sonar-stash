@@ -13,9 +13,6 @@ import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -615,17 +612,5 @@ public class StashCollectorTest {
 
   private static JSONObject parse(String s) throws Exception {
     return (JSONObject)new JSONParser().parse(s);
-  }
-
-  @Test
-  public void testConstructorIsPrivate() throws Exception {
-
-    // Let's use this for the greater good: we make sure that nobody can create an instance of this class
-    Constructor constructor = StashCollector.class.getDeclaredConstructor();
-    assertTrue(Modifier.isPrivate(constructor.getModifiers()));
-
-    // This part is for code coverage only (but is re-using the elments above... -_^)
-    constructor.setAccessible(true);
-    constructor.newInstance();
   }
 }

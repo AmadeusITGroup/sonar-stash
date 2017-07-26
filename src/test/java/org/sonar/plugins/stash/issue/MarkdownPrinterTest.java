@@ -12,8 +12,6 @@ import org.sonar.plugins.stash.coverage.CoverageRule;
 import org.sonar.plugins.stash.coverage.CoverageSensorTest;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -358,17 +356,5 @@ public class MarkdownPrinterTest {
         "| Line Coverage: 40.0% |\n|---------------|\n",
         printCoverageReportMarkdown(40.0, null)
     );
-  }
-
-  @Test
-  public void testConstructorIsPrivate() throws Exception {
-
-    // Let's use this for the greater good: we make sure that nobody can create an instance of this class
-    Constructor constructor = MarkdownPrinter.class.getDeclaredConstructor();
-    assertTrue(Modifier.isPrivate(constructor.getModifiers()));
-
-    // This part is for code coverage only (but is re-using the elments above... -_^)
-    constructor.setAccessible(true);
-    constructor.newInstance();
   }
 }
