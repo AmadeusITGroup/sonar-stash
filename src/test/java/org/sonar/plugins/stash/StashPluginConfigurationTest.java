@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import java.util.Optional;
 import org.junit.Test;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.config.Settings;
@@ -58,12 +59,15 @@ public class StashPluginConfigurationTest {
     assertEquals(42, SPC.getStashTimeout());
     assertEquals(true, SPC.canApprovePullRequest());
     assertEquals(false, SPC.resetComments());
-    assertEquals("Minor", SPC.getTaskIssueSeverityThreshold());
+    assertEquals(Optional.of("Minor"), SPC.getTaskIssueSeverityThreshold());
     assertEquals("5.6.3", SPC.getSonarQubeVersion());
     assertEquals(true, SPC.includeAnalysisOverview());
     //assertEquals(, SPC.getRepositoryRoot());
 
     assertEquals(false, SPC.scanAllFiles());
+
+    settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "NONE");
+    assertEquals(Optional.empty(), SPC.getTaskIssueSeverityThreshold());
   }
 
 }

@@ -86,8 +86,12 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
   }
 
-  public String getTaskIssueSeverityThreshold() {
-    return settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
+  public Optional<String> getTaskIssueSeverityThreshold() {
+    String setting = settings.getString(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
+    if (StashPlugin.SEVERITY_NONE.equals(setting)) {
+      return Optional.empty();
+    }
+    return Optional.of(setting);
   }
 
   public String getSonarQubeVersion() {

@@ -49,7 +49,8 @@ public class StashPlugin extends SonarPlugin {
   public static final String SEVERITY_NONE = "NONE";
 
   // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
-  protected static final List<String> SEVERITY_LIST = Severity.ALL;
+  private static final List<String> SEVERITY_LIST = Severity.ALL;
+  private static final List<String> SEVERITY_LIST_WITH_NONE = Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
 
   public static final String CONTEXT_ISSUE_TYPE = "CONTEXT";
   public static final String REMOVED_ISSUE_TYPE = "REMOVED";
@@ -136,7 +137,7 @@ public class StashPlugin extends SonarPlugin {
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
                           .defaultValue(SEVERITY_NONE)
-                          .options(Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}))).build(),
+                          .options(SEVERITY_LIST_WITH_NONE).build(),
         PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
                           .name("Include Analysis Overview Comment")
                           .description("Create a comment to  the Pull Request providing a overview of the results")

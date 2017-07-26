@@ -52,5 +52,4 @@ public final class StashPluginUtils {
   public static List<Issue> getIssuesBySeverity(List<Issue> issues, String severity) {
     return issues.stream().filter(i -> severity.equals(i.severity())).collect(Collectors.toList());
   }
-
 }

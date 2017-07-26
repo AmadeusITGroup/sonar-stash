@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,11 +190,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       }
     }
 
-    // Severity available to create a task
-    List<String> taskSeverities = getReportedSeverities();
-
     for (Issue issue : issues) {
-      postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, taskSeverities);
+      postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, config.getTaskIssueSeverityThreshold());
     }
   }
 
@@ -202,8 +200,8 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
                                 Map<String, StashCommentReport> commentsByFile,
                                 StashDiffReport diffReport,
                                 StashClient stashClient,
-                                List<String> taskSeverities)
-  throws StashClientException {
+                                Optional<String> taskSeverityThreshold
+  ) throws StashClientException {
     
     String path     = getIssuePath(issue);
     String issueKey = issue.key();
@@ -240,14 +238,18 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     LOGGER.debug("Comment \"{}\" has been created ({}) on file {} ({})", issueKey, type, path, line);
 
     // Create task linked to the comment if configured
-    if (taskSeverities.contains(issue.severity())) {
+
+    if (
+        taskSeverityThreshold.isPresent()
+        && new SeverityComparator().compare(issue.severity(), taskSeverityThreshold.get()) >= 0
+        ) {
+
       stashClient.postTaskOnComment(issue.message(), comment.getId());
 
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
       }
     }
-
   }
 
   public StashCredentials getCredentials() throws StashConfigurationException {
@@ -435,30 +437,6 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     } catch (StashClientException e) {
       LOGGER.error("Unable to reset comment list", e);
     }
-  }
-
-  /**
-   * Get reported severities to create a task.
-   */
-  public List<String> getReportedSeverities() {
-    List<String> result = new ArrayList<>();
-    String threshold = config.getTaskIssueSeverityThreshold();
-
-    // threshold == NONE, no severities reported
-    if (!StringUtils.equals(threshold, StashPlugin.SEVERITY_NONE)) {
-
-      // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
-      boolean hit = false;
-      for (String severity : StashPlugin.SEVERITY_LIST) {
-
-        if (hit || StringUtils.equals(severity, threshold)) {
-          result.add(severity);
-          hit = true;
-        }
-      }
-    }
-
-    return result;
   }
 
   // this lives here, as we need access to both the InputFileCache and the StashRequestFacade

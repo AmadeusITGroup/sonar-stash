@@ -125,7 +125,7 @@ public class StashRequestFacadeTest extends StashTest {
                             .setLevel(java.util.logging.Level.ALL);
 
     config = mock(StashPluginConfiguration.class);
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.empty());
     when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
 
     ActiveRules activeRules = new ActiveRulesBuilder().build();
@@ -440,7 +440,7 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostTaskOnComment() throws Exception {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.INFO));
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -467,7 +467,7 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostTaskOnCommentWithRestrictedLevel() throws Exception {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.MAJOR));
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -494,7 +494,7 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostTaskOnCommentWithNotPresentLevel() throws Exception {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.BLOCKER);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.BLOCKER));
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -521,7 +521,7 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostTaskOnCommentWithSeverityNone() throws Exception {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
+    when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.empty());
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -830,41 +830,6 @@ public class StashRequestFacadeTest extends StashTest {
     assertTrue(myFacade.getPullRequest() instanceof PullRequestRef);
   }
 
-
-  @Test
-  public void testGetReportedSeverities() {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.INFO);
-
-    List<String> severities = myFacade.getReportedSeverities();
-
-    assertEquals(5, severities.size());
-    assertEquals(StashPlugin.SEVERITY_LIST.get(0), severities.get(0));
-    assertEquals(StashPlugin.SEVERITY_LIST.get(1), severities.get(1));
-    assertEquals(StashPlugin.SEVERITY_LIST.get(2), severities.get(2));
-    assertEquals(StashPlugin.SEVERITY_LIST.get(3), severities.get(3));
-    assertEquals(StashPlugin.SEVERITY_LIST.get(4), severities.get(4));
-  }
-
-  @Test
-  public void testGetReportedSeveritiesWithRestriction() {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
-
-    List<String> severities = myFacade.getReportedSeverities();
-
-    assertEquals(3, severities.size());
-    assertEquals(StashPlugin.SEVERITY_LIST.get(2), severities.get(0));
-    assertEquals(StashPlugin.SEVERITY_LIST.get(3), severities.get(1));
-    assertEquals(StashPlugin.SEVERITY_LIST.get(4), severities.get(2));
-  }
-
-  @Test
-  public void testGetReportedSeveritiesWithNoSeverity() {
-    when(config.getTaskIssueSeverityThreshold()).thenReturn(StashPlugin.SEVERITY_NONE);
-
-    List<String> severities = myFacade.getReportedSeverities();
-
-    assertEquals(0, severities.size());
-  }
 
   @Test
   public void testGetIssuePathWithoutExplicitSourceRootDir() {
