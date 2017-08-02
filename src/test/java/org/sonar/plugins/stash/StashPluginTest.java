@@ -38,10 +38,13 @@ public class StashPluginTest {
     PropertyDefinition SP_SIT = (PropertyDefinition)ext.get(15);
     assertEquals(StashPlugin.STASH_ISSUE_THRESHOLD, SP_SIT.key());
 
-    PropertyDefinition SP_STST = (PropertyDefinition)ext.get(16);
+    PropertyDefinition SP_RAST = (PropertyDefinition)ext.get(16);
+    assertEquals(StashPlugin.STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD, SP_RAST.key());
+
+    PropertyDefinition SP_STST = (PropertyDefinition)ext.get(17);
     assertEquals(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, SP_STST.key());
 
-    PropertyDefinition SP_SIAO = (PropertyDefinition)ext.get(17);
+    PropertyDefinition SP_SIAO = (PropertyDefinition)ext.get(18);
     assertEquals(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW, SP_SIAO.key());
   }
 }
