@@ -3,7 +3,7 @@ package org.sonar.plugins.stash;
 import org.sonar.api.issue.Issue;
 
 public final class CoverageCompat {
-  private final static String REPO = "coverageEvolution";
+  private static final String REPO = "coverageEvolution";
 
   private CoverageCompat() {}
 
