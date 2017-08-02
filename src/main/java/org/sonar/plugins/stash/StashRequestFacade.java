@@ -35,6 +35,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
+  private static final String ONE_PR_FILE_PATH = "{0}/projects/{1}/repos/{2}/pull-requests/{3,number,#}/diff#{4}";
   private static final String EXCEPTION_STASH_CONF = "Unable to get {0} from plugin configuration (value is null)";
   private static final String STACK_TRACE = "Exception stack trace";
 
@@ -215,18 +216,24 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     // Surprisingly this syntax does not trigger the squid:NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE rule
     //    but it does if you transform that into a ternary operator at the assignment level :/
 
-
-    // if comment not already pushed to Stash
-    if (comments != null && comments.contains(commentContent, path, issueLine)) {
-      LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issueKey, path, issueLine);
-      return;
-    }
-
     // check if issue belongs to the Stash diff view
     String type = diffReport.getType(path, issueLine, config.issueVicinityRange());
     if (type == null) {
-      LOGGER.info("Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
-                    issueKey, path, issueLine);
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("Comment {} \"{}\" cannot be pushed to Stash like it does not belong to diff view \n" +
+                "Path: {} (line: {})", commentContent, issue.key(), path, issueLine);
+        }
+      //add comment to line 0 with information where the issue is, even if issue does not belong to Stash diff view
+      commentContent += MessageFormat.format("\n Path: [{0}]({1})\n Issue line: {2}",
+              path, getPullRequestFilePath(pr, path), issueLine);
+      issueLine = 0;
+    }
+    // if comment not already pushed to Stash
+    if (comments != null && comments.contains( commentContent, path, issueLine)) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issue.key(),
+                path, issueLine);
+      }
       return;
     }
 
@@ -451,5 +458,17 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
         .orElse(projectBaseDir);
 
     return new PathResolver().relativePath(baseDir, inputFile.file());
+  }
+
+  private String getPullRequestFilePath(PullRequestRef pr, String path) {
+    try {
+      String fileUrl = MessageFormat.format(ONE_PR_FILE_PATH, getStashURL(),
+              pr.project(), pr.repository(), pr.pullRequestId(), path);
+      return fileUrl;
+    } catch (StashConfigurationException e) {
+      LOGGER.error("Unable to get stash URL: {}", e.getMessage());
+      LOGGER.debug(STACK_TRACE, e);
+      return "Cannot get url to specific file";
+    }
   }
 }
