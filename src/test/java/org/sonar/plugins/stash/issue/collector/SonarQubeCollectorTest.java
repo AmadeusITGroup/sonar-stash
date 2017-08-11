@@ -3,6 +3,8 @@ package org.sonar.plugins.stash.issue.collector;
 import java.util.HashSet;
 import java.util.Set;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,11 +25,13 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.issue.internal.DefaultIssue;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.Measure;
 import org.sonar.api.resources.Project;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.plugins.stash.IssuePathResolver;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -261,5 +265,37 @@ public class SonarQubeCollectorTest {
     List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, true, excludedRules, project);
     assertEquals(1, report.size());
     assertEquals("key2", report.get(0).key());
+  }
+
+  @Test
+  public void testShouldIncludeIssue() {
+    IssuePathResolver ipr = new IssuePathResolver() {
+      @Override
+      public String getIssuePath(Issue issue) {
+        return "some/path";
+      }
+    };
+    Set<RuleKey> er = new HashSet<>();
+
+    assertFalse(
+        SonarQubeCollector.shouldIncludeIssue(
+            new DefaultIssue().setNew(false), ipr, false, er, project
+        )
+    );
+    assertTrue(
+        SonarQubeCollector.shouldIncludeIssue(
+            new DefaultIssue().setNew(false), ipr, true, er, project
+        )
+    );
+    assertTrue(
+        SonarQubeCollector.shouldIncludeIssue(
+            new DefaultIssue().setNew(true), ipr, false, er, project
+        )
+    );
+    assertTrue(
+        SonarQubeCollector.shouldIncludeIssue(
+            new DefaultIssue().setNew(true), ipr, true, er, project
+        )
+    );
   }
 }

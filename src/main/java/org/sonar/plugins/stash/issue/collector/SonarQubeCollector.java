@@ -38,7 +38,7 @@ public final class SonarQubeCollector {
                         .collect(Collectors.toList());
   }
 
-  private static boolean shouldIncludeIssue(
+  static boolean shouldIncludeIssue(
       Issue issue, IssuePathResolver issuePathResolver,
       boolean includeExistingIssues, Set<RuleKey> excludedRules,
       Project project
