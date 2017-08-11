@@ -1,6 +1,9 @@
 package org.sonar.plugins.stash.issue;
 
 import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.issue.Issue;
@@ -10,13 +13,11 @@ import org.sonar.plugins.stash.IssuePathResolver;
 import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import org.sonar.plugins.stash.SeverityComparator;
 
 import static org.sonar.plugins.stash.CoverageCompat.isCoverageEvolution;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.getUniqueRulesBySeverity;
 import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 
 public final class MarkdownPrinter {
@@ -59,47 +60,46 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public String printIssueListBySeverityMarkdown(List<Issue> report, String severity) {
-    StringBuilder sb = new StringBuilder();
-
-    Map<String, Issue> rules = getUniqueRulesBySeverity(report, severity);
-
-    // applying squid:S2864 optimization
-    for (Map.Entry<String, Issue> rule : rules.entrySet()) {
-      Issue issue = rule.getValue();
-      sb.append("| ").append(printIssueMarkdown(issue)).append(" |").append(NEW_LINE);
-    }
-
-    return sb.toString();
-  }
-
-  public List<String> printIssueMarkdown(List<Issue> issues) {
+  private List<String> printIssueMarkdown(List<Issue> issues) {
     return issues.stream().map(this::printIssueMarkdown).collect(Collectors.toList());
   }
 
+  private String printIssueMarkdown(IssueMetaInformation issue) {
+    return printIssueMarkdown(issue, Optional.empty());
+  }
+
   public String printIssueMarkdown(Issue issue) {
-    StringBuilder sb = new StringBuilder();
     String message = issue.message();
+
+    if (message != null) {
+      String file = issuePathResolver.getIssuePath(issue);
+      if (file != null) {
+        String fileLink = link("`" + file + "`",
+            stashURL + "/projects/" + pr.project() +
+                "/repos/" + pr.repository() +
+                "/pull-requests/" + pr.pullRequestId() +
+                "/diff#" + file);
+        message = message.replace(file, fileLink);
+      }
+    }
+    return printIssueMarkdown(IssueMetaInformation.from(issue), Optional.ofNullable(message));
+  }
+
+  private String printIssueMarkdown(IssueMetaInformation issue, Optional<String> preparedMessage) {
+    StringBuilder sb = new StringBuilder();
+    String message;
+
+    message = preparedMessage.orElseGet(issue::message);
 
     if (message == null) {
       return "No message";
     }
 
-    String file = issuePathResolver.getIssuePath(issue);
-    if (file != null) {
-      String fileLink = link("`" + file + "`",
-          stashURL + "/projects/" + pr.project() +
-              "/repos/" + pr.repository() +
-              "/pull-requests/" + pr.pullRequestId() +
-              "/diff#" + file);
-      message = message.replace(file, fileLink);
-
-    }
     sb.append(MarkdownPrinter.printSeverityMarkdown(issue.severity()))
         .append(message)
         .append(" [")
-        .append(link(issue.ruleKey().toString(),
-            sonarQubeURL + "/" + CODING_RULES_RULE_KEY + issue.ruleKey()))
+        .append(link(issue.rule().toString(),
+            sonarQubeURL + "/" + CODING_RULES_RULE_KEY + issue.rule()))
         .append("]");
 
     return sb.toString();
@@ -143,24 +143,16 @@ public final class MarkdownPrinter {
       for (String severity : orderedSeverities) {
         sb.append(printIssueNumberBySeverityMarkdown(allIssues, severity));
       }
-      sb.append(NEW_LINE).append(NEW_LINE);
 
-      // Issue list
-      sb.append("| Issues list |").append(NEW_LINE);
-      sb.append("|------------|").append(NEW_LINE);
-      /*
-      List<IssueMetaInformation> uniqueSortedInformation = generalIssues.stream()
+      List<String> uniqueSortedInformation = generalIssues.stream()
               .map(IssueMetaInformation::from)
               .distinct()
-              .sorted(Comparator.comparing((item) -> Severity.ALL.indexOf(item.severity()), Comparator.reverseOrder()))
+              .sorted(Comparator.comparing(IssueMetaInformation::severity, new SeverityComparator().reversed()))
+              .map(this::printIssueMarkdown)
               .collect(Collectors.toList());
-              */
-      // FIXME printIssueMarkdown for this
-      // make unique by  severity/
-      for (String severity : orderedSeverities) {
-        sb.append(printIssueListBySeverityMarkdown(generalIssues, severity));
-      }
-      sb.append(NEW_LINE).append(NEW_LINE);
+      sb.append(
+          formatTableList("Issues list", uniqueSortedInformation)
+      );
     }
 
     sb.append(
@@ -179,14 +171,23 @@ public final class MarkdownPrinter {
       return "";
     }
 
+
     StringBuilder sb = new StringBuilder();
+    sb.append(NEW_LINE).append(NEW_LINE);
     sb.append("| ").append(caption).append(" |").append(NEW_LINE);
-    sb.append("|---------------|").append(NEW_LINE);
+    sb.append("|");
+    sb.append(repeatString(caption.length() + 2, "-"));
+    sb.append("|");
+    sb.append(NEW_LINE);
     for (String item : items) {
       sb.append("| ").append(item).append(" |").append(NEW_LINE);
     }
 
     return sb.toString();
+  }
+
+  private String repeatString(int n, String s) {
+    return String.join("", Collections.nCopies(n, s));
   }
 
   private static String link(String title, String target) {

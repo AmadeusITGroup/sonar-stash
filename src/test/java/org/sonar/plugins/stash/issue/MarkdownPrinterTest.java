@@ -148,23 +148,6 @@ public class MarkdownPrinterTest {
   }
 
   @Test
-  public void testPrintIssueListBySeverityMarkdown() {
-    report.remove(coverageIssue);
-
-    assertEquals(
-        "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n",
-        printer.printIssueListBySeverityMarkdown(report, "BLOCKER"));
-
-    assertEquals(
-        "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n",
-        printer.printIssueListBySeverityMarkdown(report, "CRITICAL"));
-
-    assertEquals(
-        "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n",
-        printer.printIssueListBySeverityMarkdown(report, "MAJOR"));
-  }
-
-  @Test
   public void testPrintReportMarkdown() {
     String issueReportMarkdown = printer.printReportMarkdown(report, project);
     String reportString = "## SonarQube analysis Overview\n"
@@ -176,12 +159,12 @@ public class MarkdownPrinterTest {
         + "| MINOR | 0 |\n"
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
-        + "|------------|\n"
+        + "|-------------|\n"
         + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
         + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n"
         + "| Coverage |\n"
-        + "|---------------|\n"
+        + "|----------|\n"
         + "| *MAJOR* - some text [[coverageEvolution-java:bla](sonarqube/URL/coding_rules#rule_key=coverageEvolution-java:bla)] |"
         + "\n";
 
@@ -202,12 +185,12 @@ public class MarkdownPrinterTest {
         + "| MINOR | 0 |\n"
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
-        + "|------------|\n"
+        + "|-------------|\n"
         + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
         + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n"
         + "| Coverage |\n"
-        + "|---------------|\n"
+        + "|----------|\n"
         + "| *MAJOR* - some text [[coverageEvolution-java:bla](sonarqube/URL/coding_rules#rule_key=coverageEvolution-java:bla)] |"
         + "\n";
 
@@ -239,10 +222,8 @@ public class MarkdownPrinterTest {
         + "| MAJOR | 1 |\n"
         + "| MINOR | 0 |\n"
         + "| INFO | 0 |\n\n\n"
-        + "| Issues list |\n"
-        + "|------------|\n\n\n"
         + "| Coverage |\n"
-        + "|---------------|\n"
+        + "|----------|\n"
         + "| *MAJOR* - some text [[coverageEvolution-java:bla](sonarqube/URL/coding_rules#rule_key=coverageEvolution-java:bla)] |"
         + "\n";
 
@@ -263,10 +244,10 @@ public class MarkdownPrinterTest {
         + "| MINOR | 0 |\n"
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
-        + "|------------|\n"
+        + "|-------------|\n"
         + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n";
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n";
 
     assertEquals(reportString, issueReportMarkdown);
   }

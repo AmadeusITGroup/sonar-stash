@@ -43,6 +43,11 @@ public class IssueMetaInformation {
     }
 
     @Override
+    public String toString() {
+        return severity() + " " + rule() + " " + message();
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(severity, message, rule);
     }

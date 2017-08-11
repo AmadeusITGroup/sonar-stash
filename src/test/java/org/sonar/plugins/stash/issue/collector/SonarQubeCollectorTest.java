@@ -3,14 +3,11 @@ package org.sonar.plugins.stash.issue.collector;
 import java.util.HashSet;
 import java.util.Set;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Before;
@@ -32,17 +29,6 @@ import org.sonar.api.resources.Project;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.getIssuesBySeverity;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SonarQubeCollectorTest {
@@ -258,8 +244,6 @@ public class SonarQubeCollectorTest {
 
     List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, true, excludedRules, project);
     assertEquals(2, report.size());
-    assertEquals(1, getIssuesBySeverity(report, "severity1").size());
-    assertEquals(1, getIssuesBySeverity(report, "severity2").size());
   }
 
   @Test
