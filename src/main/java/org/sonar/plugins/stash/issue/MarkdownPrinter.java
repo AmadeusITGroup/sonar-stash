@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
 import com.google.common.collect.Lists;
+import java.util.stream.Collectors;
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.resources.Project;
@@ -70,6 +71,10 @@ public final class MarkdownPrinter {
     }
 
     return sb.toString();
+  }
+
+  public List<String> printIssueMarkdown(List<Issue> issues) {
+    return issues.stream().map(this::printIssueMarkdown).collect(Collectors.toList());
   }
 
   public String printIssueMarkdown(Issue issue) {
@@ -158,22 +163,18 @@ public final class MarkdownPrinter {
       sb.append(NEW_LINE).append(NEW_LINE);
     }
 
-    sb.append(printGlobalCoverageReportMarkdown(globalCoverageIssues));
+    sb.append(
+        formatTableList("Project-wide coverage", printIssueMarkdown(globalCoverageIssues))
+    );
 
-    sb.append(printCoverageReportMarkdown(coverageIssues));
+    sb.append(
+        formatTableList("Coverage", printIssueMarkdown(coverageIssues))
+    );
 
     return sb.toString();
   }
 
-  public String printGlobalCoverageReportMarkdown(List<Issue> issues) {
-    return formatTableList("Project-wide coverage", issues);
-  }
-
-  public String printCoverageReportMarkdown(List<Issue> coverageReport) {
-    return formatTableList("Coverage", coverageReport);
-  }
-
-  private String formatTableList(String caption, Collection<Issue> items) {
+  private String formatTableList(String caption, List<String> items) {
     if (items.isEmpty()) {
       return "";
     }
@@ -181,8 +182,8 @@ public final class MarkdownPrinter {
     StringBuilder sb = new StringBuilder();
     sb.append("| ").append(caption).append(" |").append(NEW_LINE);
     sb.append("|---------------|").append(NEW_LINE);
-    for (Issue item : items) {
-      sb.append("| ").append(printIssueMarkdown(item)).append(" |").append(NEW_LINE);
+    for (String item : items) {
+      sb.append("| ").append(item).append(" |").append(NEW_LINE);
     }
 
     return sb.toString();
