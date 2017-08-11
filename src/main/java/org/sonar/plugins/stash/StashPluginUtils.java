@@ -1,16 +1,13 @@
 package org.sonar.plugins.stash;
 
 import org.sonar.api.issue.Issue;
-import org.sonar.api.resources.Project;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import org.sonar.api.resources.Project;
 
 public final class StashPluginUtils {
 
