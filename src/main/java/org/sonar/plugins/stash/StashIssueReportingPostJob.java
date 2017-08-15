@@ -10,6 +10,7 @@ import org.sonar.api.batch.PostJob;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.platform.Server;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
@@ -25,13 +26,16 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   private final ProjectIssues projectIssues;
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
+  private final Server sonarQubeServer;
 
   public StashIssueReportingPostJob(StashPluginConfiguration stashPluginConfiguration,
       ProjectIssues projectIssues,
-      StashRequestFacade stashRequestFacade) {
+      StashRequestFacade stashRequestFacade,
+      Server sonarQubeServer) {
     this.projectIssues = projectIssues;
     this.config = stashPluginConfiguration;
     this.stashRequestFacade = stashRequestFacade;
+    this.sonarQubeServer = sonarQubeServer;
   }
 
   @Override
@@ -51,7 +55,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
       try (StashClient stashClient = new StashClient(stashURL,
           stashCredentials,
           stashTimeout,
-          config.getSonarQubeVersion())) {
+          sonarQubeServer.getVersion())) {
 
         // Down the rabbit hole...
         updateStashWithSonarInfo(project, stashClient, stashCredentials);

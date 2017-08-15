@@ -93,10 +93,6 @@ public class StashPluginConfiguration implements BatchComponent {
     return getOptionalSeveritySetting(StashPlugin.STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD);
   }
 
-  public String getSonarQubeVersion() {
-    return settings.getString(CoreProperties.SERVER_VERSION);
-  }
-
   public boolean includeAnalysisOverview() {
     return settings.getBoolean(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW);
   }
