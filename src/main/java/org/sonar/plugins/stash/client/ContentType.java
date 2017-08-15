@@ -1,6 +1,6 @@
 package org.sonar.plugins.stash.client;
 
-import org.apache.commons.lang3.StringUtils;
+import static java.util.Objects.requireNonNull;
 
 /*
  * basic implementation of RFC 7231, section 3.1.1.1
@@ -17,18 +17,18 @@ public class ContentType {
     if (list != null) {
       throw new IllegalArgumentException();
     }
-    this.primaryType = primaryType;
-    this.subType = subType;
+    this.primaryType = requireNonNull(primaryType);
+    this.subType = requireNonNull(subType);
   }
 
   public boolean match(String s) {
     String[] parts = s.split(";", CONTENTTYPE_ELEM_NUM);
     // we ignore the parameters, match() does not care and we can't have our own
-    String[] types = StringUtils.strip(parts[0]).split("/", CONTENTTYPE_ELEM_NUM);
+    String[] types = parts[0].trim().split("/", CONTENTTYPE_ELEM_NUM);
     if (types.length < CONTENTTYPE_ELEM_NUM) {
       return false;
     }
-    return StringUtils.equalsIgnoreCase(primaryType, types[0])
-           && StringUtils.equalsIgnoreCase(subType, types[1]);
+    return primaryType.equalsIgnoreCase(types[0])
+           && subType.equalsIgnoreCase(types[1]);
   }
 }

@@ -1,6 +1,6 @@
 package org.sonar.plugins.stash.issue;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +35,8 @@ public class StashCommentReport {
     boolean result = false;
     for (StashComment comment : comments) {
 
-      if (StringUtils.equals(comment.getMessage(), message)
-       && StringUtils.equals(comment.getPath(), path)
+      if (Objects.equals(comment.getMessage(), message)
+       && Objects.equals(comment.getPath(), path)
        && comment.getLine() == line) {
 
         result = true;

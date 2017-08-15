@@ -1,6 +1,5 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -195,7 +194,7 @@ public final class StashCollector {
         //
         JSONArray jsonLines = (JSONArray)jsonSegment.get("lines");
 
-        if (StringUtils.equals(type, StashPlugin.REMOVED_ISSUE_TYPE) || jsonLines == null) {
+        if (StashPlugin.REMOVED_ISSUE_TYPE.equals(type) || jsonLines == null) {
 
           continue;  // Let's process the next item in "objsegm_loop"
         }

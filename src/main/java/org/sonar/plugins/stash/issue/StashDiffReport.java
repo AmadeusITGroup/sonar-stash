@@ -1,7 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
 import com.google.common.collect.Range;
-import org.apache.commons.lang3.StringUtils;
+import java.util.Objects;
 import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ public class StashDiffReport {
 
   public String getType(String path, long destination, int vicinityRange) {
     for (StashDiff diff : diffs) {
-      if (StringUtils.equals(diff.getPath(), path)) {
+      if (Objects.equals(diff.getPath(), path)) {
         // Line 0 never belongs to Stash Diff view.
         // It is a global comment with a type set to CONTEXT.
         if (destination == 0) {
@@ -68,7 +68,7 @@ public class StashDiffReport {
   public long getLine(String path, long destination) {
     long result = 0;
     for (StashDiff diff : diffs) {
-      if (StringUtils.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
+      if (Objects.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
 
         if (diff.isTypeOfContext()) {
           result = diff.getSource();

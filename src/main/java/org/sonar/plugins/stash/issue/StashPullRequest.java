@@ -1,6 +1,5 @@
 package org.sonar.plugins.stash.issue;
 
-import org.apache.commons.lang3.StringUtils;
 import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public class StashPullRequest {
   public StashUser getReviewer(String user) {
     StashUser result = null;
     for (StashUser stashReviewer : reviewers) {
-      if (StringUtils.equals(user, stashReviewer.getSlug())) {
+      if (user.equals(stashReviewer.getSlug())) {
         result = stashReviewer;
         break;
       }

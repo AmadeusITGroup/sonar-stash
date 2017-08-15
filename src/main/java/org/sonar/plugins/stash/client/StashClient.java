@@ -1,6 +1,5 @@
 package org.sonar.plugins.stash.client;
 
-import org.apache.commons.lang3.StringUtils;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -193,7 +192,7 @@ public class StashClient implements AutoCloseable {
     }
 
     String fileType = "TO";
-    if (StringUtils.equals(type, StashPlugin.CONTEXT_ISSUE_TYPE)) {
+    if (StashPlugin.CONTEXT_ISSUE_TYPE.equals(type)) {
       fileType = "FROM";
     }
     anchor.put("fileType", fileType);
@@ -374,7 +373,7 @@ public class StashClient implements AutoCloseable {
       Reader body = new InputStreamReader(bodyStream);
 
       String contentType = response.getHeader("Content-Type");
-      if (!JSON.match(StringUtils.strip(contentType))) {
+      if (!JSON.match(contentType.trim())) {
         throw new StashClientException("Received response with type " + contentType + " instead of JSON");
       }
       Object obj = new JSONParser().parse(body);
@@ -411,7 +410,7 @@ public class StashClient implements AutoCloseable {
 
     }
 
-    return StringUtils.join(errorParts, ", ");
+    return String.join(", ", errorParts);
   }
 
   // We can't test this, as the manifest can only be loaded when deployed from a JAR-archive.

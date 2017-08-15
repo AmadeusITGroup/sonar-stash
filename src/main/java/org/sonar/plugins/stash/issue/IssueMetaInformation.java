@@ -1,7 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
-import static org.apache.commons.lang3.builder.EqualsBuilder.reflectionEquals;
-import static org.apache.commons.lang3.builder.HashCodeBuilder.reflectionHashCode;
+import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
+import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
 
 import org.sonar.api.issue.Issue;
 import org.sonar.api.rule.RuleKey;

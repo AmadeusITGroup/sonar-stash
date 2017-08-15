@@ -1,6 +1,5 @@
 package org.sonar.plugins.stash.issue;
 
-import org.apache.commons.lang3.StringUtils;
 import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class StashDiff {
   }
 
   public boolean isTypeOfContext() {
-    return StringUtils.equals(StashPlugin.CONTEXT_ISSUE_TYPE, type);
+    return StashPlugin.CONTEXT_ISSUE_TYPE.equals(type);
   }
 
   public boolean containsComment(long commentId) {
