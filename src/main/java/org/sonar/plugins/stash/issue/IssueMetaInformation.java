@@ -6,8 +6,6 @@ import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode
 import org.sonar.api.issue.Issue;
 import org.sonar.api.rule.RuleKey;
 
-import java.util.Objects;
-
 public class IssueMetaInformation {
     private String severity;
     private String message;

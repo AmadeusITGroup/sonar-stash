@@ -2,7 +2,6 @@ package org.sonar.plugins.stash;
 
 import java.io.IOException;
 import java.util.Properties;
-import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.issue.Issue;
 
 import java.math.RoundingMode;
