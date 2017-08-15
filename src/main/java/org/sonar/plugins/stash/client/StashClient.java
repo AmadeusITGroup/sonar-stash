@@ -15,9 +15,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
-import org.sonar.plugins.stash.PluginUtils;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
+import org.sonar.plugins.stash.StashPluginUtils;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
@@ -416,7 +416,7 @@ public class StashClient implements AutoCloseable {
   // We can't test this, as the manifest can only be loaded when deployed from a JAR-archive.
   // During unit testing this is not the case
   private static String getUserAgent(String sonarQubeVersion) {
-    PluginInfo info = PluginUtils.infoForPluginClass(StashPlugin.class);
+    PluginInfo info = StashPluginUtils.getPluginInfo();
     String name;
     String version;
     name = version = "unknown";

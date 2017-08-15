@@ -1,5 +1,8 @@
 package org.sonar.plugins.stash;
 
+import java.io.IOException;
+import java.util.Properties;
+import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.issue.Issue;
 
 import java.math.RoundingMode;
@@ -39,5 +42,19 @@ public final class StashPluginUtils {
   public static boolean isProjectWide(Issue issue, Project project) {
     String k = issue.componentKey();
     return (k != null && Objects.equals(k, project.getKey()));
+  }
+
+  public static PluginInfo getPluginInfo() {
+    Properties props = new Properties();
+    try {
+      props.load(StashPluginUtils.class.getClassLoader().getResourceAsStream("org/sonar/plugins/stash/sonar-stash.properties"));
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+
+    return new PluginInfo(
+        props.getProperty("project.name"),
+        props.getProperty("project.version")
+    );
   }
 }
