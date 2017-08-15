@@ -8,9 +8,6 @@ import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.rule.Severity;
-import org.sonar.plugins.stash.coverage.CoverageProjectStore;
-import org.sonar.plugins.stash.coverage.CoverageRule;
-import org.sonar.plugins.stash.coverage.CoverageSensor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -86,9 +83,6 @@ public class StashPlugin extends SonarPlugin {
         InputFileCache.class,
         StashProjectBuilder.class,
         StashRequestFacade.class,
-        CoverageRule.class,
-        CoverageSensor.class,
-        CoverageProjectStore.class,
         InputFileCacheSensor.class,
         PropertyDefinition.builder(STASH_URL)
                           .name("Stash base URL")

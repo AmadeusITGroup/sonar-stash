@@ -5,16 +5,13 @@ import org.sonar.api.issue.Issue;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
+import org.sonar.api.resources.Project;
 
 public final class StashPluginUtils {
 
-  private StashPluginUtils() {
-    // Hiding implicit public constructor with an explicit private one (squid:S1118)
-  }
+  private StashPluginUtils() {}
 
   public static String formatPercentage(double d) {
 
@@ -39,17 +36,8 @@ public final class StashPluginUtils {
     return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
-  public static Map<String, Issue> getUniqueRulesBySeverity(List<Issue> issues, final String severity) {
-    Map<String, Issue> result = new HashMap<>();
-
-    for (Issue issue : getIssuesBySeverity(issues, severity)) {
-      result.put(issue.ruleKey().toString(), issue);
-    }
-
-    return result;
-  }
-
-  public static List<Issue> getIssuesBySeverity(List<Issue> issues, String severity) {
-    return issues.stream().filter(i -> severity.equals(i.severity())).collect(Collectors.toList());
+  public static boolean isProjectWide(Issue issue, Project project) {
+    String k = issue.componentKey();
+    return (k != null && Objects.equals(k, project.getKey()));
   }
 }

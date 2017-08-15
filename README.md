@@ -52,8 +52,6 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash user slug** (sonar.stash.user.slug): If the user username contains special characters the API requires the use of a different slug.
 
-**Stash coverage severity** (sonar.stash.coverage.severity.threshold): If the contribution reduced the coverage on a file, the plugin generates an issue with the following severity.
-
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
 
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
@@ -114,19 +112,7 @@ sonar-runner -Dsonar.analysis.mode=incremental -Dsonar.stash.notification -Dsona
 
 ## How to activate the coverage inside the pull-request
 
-*Note: The coverage functionality is experimental and is subject to change without notice and will be moved to its own plugin eventually*
-
-The plugin can push into the pull-request the coverage computed with the help of the Unit Tests.
-This feature is based on "line coverage" metric, which compares the "uncovered lines" with the "lines to cover" on a file. 
-
-![Screenshot SonarQube plugin](resources/Stash-plugin-coverage.PNG)
-
-To activate this feature, enable the "Coverage on files should not decrease"
-rules in your relevant Quality Profile.
-The rule is part of this plugin. To add the rule, install the plugin and
-restart the SonarQube server.
-
-**Be careful, with SonarQube 4.5.6, this feature does not work with incremental mode.**
+*This functionality has been moved to its own plugin: https://github.com/AmadeusITGroup/sonar-coverage-evolution*
 
 ## Protect passwords
 
