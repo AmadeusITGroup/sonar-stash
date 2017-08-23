@@ -334,7 +334,7 @@ public class StashClient implements AutoCloseable {
                                     String errorMessage)
   throws StashClientException {
     if (body != null) {
-      requestBuilder.setBody(body.toString());
+      requestBuilder.setBody(body.toJson());
     }
     Realm realm = new Realm.Builder(credentials.getLogin(), credentials.getPassword())
         .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
