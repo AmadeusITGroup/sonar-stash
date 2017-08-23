@@ -18,12 +18,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.sonar.api.batch.SensorContext;
+import org.sonar.api.batch.postjob.PostJobContext;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
-import org.sonar.api.issue.internal.DefaultIssue;
 import org.sonar.api.platform.Server;
 import org.sonar.api.resources.Project;
-import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -44,16 +45,13 @@ public class StashIssueReportingPostJobTest extends StashTest {
   StashPluginConfiguration config;
 
   @Mock
-  ProjectIssues projectIssues;
-
-  @Mock
   StashDiffReport diffReport;
 
   @Mock
-  List<Issue> report;
+  List<PostJobIssue> report;
 
   @Mock
-  SensorContext context;
+  PostJobContext context;
 
   @Mock
   Server server;
@@ -89,8 +87,9 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
 
     when(report.size()).thenReturn(10);
-    when(stashRequestFacade.extractIssueReport(eq(projectIssues), Mockito.any()))
+    when(stashRequestFacade.extractIssueReport(report, Mockito.any()))
         .thenReturn(report);
+    when(context.issues()).thenReturn(report);
 
     when(stashRequestFacade.getIssueThreshold()).thenReturn(STASH_ISSUE_THRESHOLD);
     when(stashRequestFacade.getStashProject()).thenReturn(STASH_PROJECT);
@@ -112,8 +111,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
 
   @Test
   public void testExecuteOn() throws Exception {
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, server);
-    myJob.executeOn(PROJECT, context);
+    myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
+    myJob.execute(context);
 
     verify(stashRequestFacade, times(0))
         .resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -132,13 +131,13 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithReachedThreshold() throws Exception {
     when(stashRequestFacade.getIssueThreshold()).thenReturn(10);
 
-    List<Issue> report = spy(new ArrayList<Issue>());
+    List<PostJobIssue> report = spy(new ArrayList<>());
     when(report.size()).thenReturn(55);
-    when(stashRequestFacade.extractIssueReport(eq(projectIssues), Mockito.any()))
+    when(stashRequestFacade.extractIssueReport(eq(report), Mockito.any()))
         .thenReturn(report);
 
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, server);
-    myJob.executeOn(PROJECT, context);
+    myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
+    myJob.execute(context);
 
     verify(stashRequestFacade, times(0))
         .resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -153,8 +152,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithNoPluginActivation() throws Exception {
     when(config.hasToNotifyStash()).thenReturn(false);
 
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, server);
-    myJob.executeOn(PROJECT, context);
+    myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
+    myJob.execute(context);
 
     verify(stashRequestFacade, times(0))
         .resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -174,8 +173,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(stashRequestFacade.getSonarQubeReviewer(Mockito.anyString(),
         (StashClient) Mockito.anyObject())).thenReturn(null);
 
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, server);
-    myJob.executeOn(PROJECT, context);
+    myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
+    myJob.execute(context);
 
     verify(stashRequestFacade, times(0))
         .resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -194,8 +193,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithResetCommentActivated() throws Exception {
     when(config.resetComments()).thenReturn(true);
 
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, server);
-    myJob.executeOn(PROJECT, context);
+    myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
+    myJob.execute(context);
 
     verify(stashRequestFacade, times(1))
         .resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -212,8 +211,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(stashRequestFacade.getPullRequestDiffReport(eq(pr), (StashClient) Mockito.anyObject()))
         .thenReturn(diffReport);
 
-    myJob = new StashIssueReportingPostJob(config, projectIssues, stashRequestFacade, server);
-    myJob.executeOn(PROJECT, context);
+    myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
+    myJob.execute(context);
 
     verify(stashRequestFacade, times(0))
         .resetComments(eq(pr), eq(diffReport), eq(stashUser), (StashClient) Mockito.anyObject());
@@ -230,8 +229,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
 
   @Test
   public void testShouldApprovePullRequest() {
-    Issue minorIssue = new DefaultIssue().setSeverity(Severity.MINOR);
-    Issue majorIssue = new DefaultIssue().setSeverity(Severity.MAJOR);
+    PostJobIssue minorIssue = new DefaultIssue().setSeverity(Severity.MINOR);
+    PostJobIssue majorIssue = new DefaultIssue().setSeverity(Severity.MAJOR);
 
     report = new ArrayList<>();
 

@@ -1,14 +1,14 @@
 package org.sonar.plugins.stash.issue;
 
-import com.google.common.collect.Lists;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.resources.Project;
-import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.ArrayList;
@@ -23,18 +23,22 @@ public final class MarkdownPrinter {
 
   static final String NEW_LINE = "\n";
   static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
-  static final List<String> orderedSeverities = Lists.reverse(Severity.ALL);
 
   private String stashURL;
   private PullRequestRef pr;
   private int issueThreshold;
   private String sonarQubeURL;
 
+  private Severity[] orderedSeverities;
+
   public MarkdownPrinter(String stashURL, PullRequestRef pr, int issueThreshold, String sonarQubeURL) {
     this.stashURL = stashURL;
     this.pr = pr;
     this.issueThreshold = issueThreshold;
     this.sonarQubeURL = sonarQubeURL;
+
+    orderedSeverities = Severity.values();
+    Arrays.sort(orderedSeverities, Comparator.reverseOrder());
   }
 
   public static String printSeverityMarkdown(org.sonar.api.batch.rule.Severity severity) {
@@ -44,7 +48,7 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public static String printIssueNumberBySeverityMarkdown(Collection<PostJobIssue> report, String severity) {
+  public static String printIssueNumberBySeverityMarkdown(Collection<PostJobIssue> report, Severity severity) {
     StringBuilder sb = new StringBuilder();
     long issueNumber = countIssuesBySeverity(report, severity);
     sb.append("| ").append(severity).append(" | ").append(issueNumber).append(" |")
@@ -133,7 +137,7 @@ public final class MarkdownPrinter {
 
       sb.append("| Total New Issues | ").append(issueNumber).append(" |").append(NEW_LINE);
       sb.append("|-----------------|------|").append(NEW_LINE);
-      for (String severity : orderedSeverities) {
+      for (Severity severity : orderedSeverities) {
         sb.append(printIssueNumberBySeverityMarkdown(allIssues, severity));
       }
 

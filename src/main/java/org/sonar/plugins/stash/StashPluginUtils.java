@@ -11,6 +11,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Objects;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.resources.Project;
 
 public final class StashPluginUtils {
@@ -36,7 +37,7 @@ public final class StashPluginUtils {
     return (left > right) && !formatPercentage(left).equals(formatPercentage(right));
   }
 
-  public static long countIssuesBySeverity(Collection<PostJobIssue> issues, final String severity) {
+  public static long countIssuesBySeverity(Collection<PostJobIssue> issues, final Severity severity) {
     return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
@@ -67,10 +68,14 @@ public final class StashPluginUtils {
   }
 
   public static String getIssuePath(InputComponent c) {
+    if (c == null) {
+      return null;
+    }
+
     if (!c.isFile()) {
       return null;
     }
-    return ((InputFile) c).absolutePath();
+    return ((InputFile) c).relativePath();
   }
 
   public static String getIssuePath(PostJobIssue i) {

@@ -47,8 +47,7 @@ public class StashRequestFacade {
 
   public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues, Project project) {
     return SonarQubeCollector.extractIssueReport(
-        issues, this,
-        config.includeExistingIssues(), config.excludedRules(), project
+        issues, config.includeExistingIssues(), config.excludedRules(), project
     );
   }
 

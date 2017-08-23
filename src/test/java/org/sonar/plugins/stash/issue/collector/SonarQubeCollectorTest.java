@@ -9,6 +9,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
+import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,30 +22,25 @@ import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FilePredicate;
 import org.sonar.api.batch.fs.FilePredicates;
 import org.sonar.api.batch.fs.FileSystem;
+import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.issue.ProjectIssues;
-import org.sonar.api.issue.internal.DefaultIssue;
-import org.sonar.api.measures.CoreMetrics;
-import org.sonar.api.measures.Measure;
+import org.sonar.api.batch.postjob.PostJobContext;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.resources.Project;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
-import org.sonar.plugins.stash.IssuePathResolver;
-import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
+import org.sonar.plugins.stash.DefaultIssue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SonarQubeCollectorTest {
 
   @Mock
-  ProjectIssues projectIssues;
+  DefaultIssue issue1;
 
   @Mock
-  Issue issue1;
-
-  @Mock
-  Issue issue2;
+  DefaultIssue issue2;
 
   @Mock
   SensorContext context;
@@ -56,27 +52,16 @@ public class SonarQubeCollectorTest {
   Resource resource2;
 
   @Mock
-  Measure<Integer> measure1;
-
-  @Mock
-  Measure<Integer> measure2;
-
-  @Mock
-  Measure<Integer> measure3;
-
-  @Mock
-  Measure<Integer> measure4;
-
-  @Mock
   InputFile inputFile1;
 
   @Mock
   InputFile inputFile2;
 
-  DummyIssuePathResolver issuePathResolver;
-
   Set<RuleKey> excludedRules;
   Project project = new Project("foobar");
+
+  @Mock
+  PostJobContext postJobContext;
 
   @Before
   public void setUp() throws Exception {
@@ -94,30 +79,12 @@ public class SonarQubeCollectorTest {
     when(fileSystem.inputFiles((FilePredicate) anyObject())).thenReturn(inputFiles);
     when(fileSystem.predicates()).thenReturn(filePredicates);
 
-    ///////// Metric object ////////
-
-    when(measure1.getValue()).thenReturn(33.33);
-
-    when(measure2.getValue()).thenReturn(100.0);
-
-    when(measure3.getValue()).thenReturn(66.66);
-
-    when(measure4.getValue()).thenReturn(100.0);
-
-    when(context.getResource(inputFile1)).thenReturn(resource1);
-    when(context.getMeasure(resource1, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure1);
-    when(context.getMeasure(resource1, CoreMetrics.LINES_TO_COVER)).thenReturn(measure2);
-
-    when(context.getResource(inputFile2)).thenReturn(resource2);
-    when(context.getMeasure(resource2, CoreMetrics.UNCOVERED_LINES)).thenReturn(measure3);
-    when(context.getMeasure(resource2, CoreMetrics.LINES_TO_COVER)).thenReturn(measure4);
-
     ///////// SonarQube issues /////////
 
     when(issue1.line()).thenReturn(1);
     when(issue1.message()).thenReturn("message1");
     when(issue1.key()).thenReturn("key1");
-    when(issue1.severity()).thenReturn("severity1");
+    when(issue1.severity()).thenReturn(Severity.BLOCKER);
     when(issue1.componentKey()).thenReturn("component1");
     when(issue1.isNew()).thenReturn(true);
 
@@ -128,7 +95,7 @@ public class SonarQubeCollectorTest {
     when(issue2.line()).thenReturn(2);
     when(issue2.message()).thenReturn("message2");
     when(issue2.key()).thenReturn("key2");
-    when(issue2.severity()).thenReturn("severity2");
+    when(issue2.severity()).thenReturn(Severity.CRITICAL);
     when(issue2.componentKey()).thenReturn("component2");
     when(issue2.isNew()).thenReturn(true);
 
@@ -136,46 +103,39 @@ public class SonarQubeCollectorTest {
     when(rule2.toString()).thenReturn("rule2");
     when(issue2.ruleKey()).thenReturn(rule2);
 
-    issuePathResolver = new DummyIssuePathResolver();
-
-    inputFile1 = new DefaultInputFile("project/path1").setKey("inputFile1");
-    inputFile2 = new DefaultInputFile("project/path2").setKey("inputFile2");
-
-    issuePathResolver.add(issue1, inputFile1.relativePath());
-    issuePathResolver.add(issue2, inputFile2.relativePath());
+    inputFile1 = new DefaultInputFile("project/path1", "inputFile1");
+    inputFile2 = new DefaultInputFile("project/path2", "inputFile2");
 
     excludedRules = new HashSet<>();
   }
 
   @Test
   public void testExtractEmptyIssueReport() {
-    ArrayList<Issue> issues = new ArrayList<Issue>();
-    when(projectIssues.issues()).thenReturn(issues);
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
     assertEquals(0, report.size());
   }
 
   @Test
   public void testExtractIssueReport() {
-    ArrayList<Issue> issues = new ArrayList<Issue>();
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
-    when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
     assertEquals(2, report.size());
-    assertEquals(1, countIssuesBySeverity(report, "severity1"));
-    assertEquals(1, countIssuesBySeverity(report, "severity2"));
+    assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
+    assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
 
-    Issue sqIssue1 = report.get(0);
+    PostJobIssue sqIssue1 = report.get(0);
     assertEquals("message1", sqIssue1.message());
-    assertEquals("project/path1", issuePathResolver.getIssuePath(sqIssue1));
+    assertEquals("project/path1", getIssuePath(sqIssue1));
     assertEquals((Integer) 1, sqIssue1.line());
 
-    Issue sqIssue2 = report.get(1);
+    PostJobIssue sqIssue2 = report.get(1);
     assertEquals("message2", sqIssue2.message());
-    assertEquals("project/path2", issuePathResolver.getIssuePath(sqIssue2));
+    assertEquals("project/path2", getIssuePath(sqIssue2));
     assertEquals((Integer) 2, sqIssue2.line());
 
   }
@@ -184,18 +144,17 @@ public class SonarQubeCollectorTest {
   public void testExtractIssueReportWithNoLine() {
     when(issue1.line()).thenReturn(null);
 
-    ArrayList<Issue> issues = new ArrayList<Issue>();
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
-    when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
     assertEquals(1, report.size());
-    assertEquals(1, countIssuesBySeverity(report, "severity1"));
-    assertEquals(0, countIssuesBySeverity(report, "severity2"));
+    assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
+    assertEquals(0, countIssuesBySeverity(report, Severity.CRITICAL));
 
-    Issue sqIssue1 = report.get(0);
+    PostJobIssue sqIssue1 = report.get(0);
     assertEquals("message1", sqIssue1.message());
-    assertEquals("project/path1", issuePathResolver.getIssuePath(sqIssue1));
+    assertEquals("project/path1", getIssuePath(sqIssue1));
     assertEquals(null, sqIssue1.line());
   }
 
@@ -204,35 +163,32 @@ public class SonarQubeCollectorTest {
     when(issue1.isNew()).thenReturn(false);
     when(issue2.isNew()).thenReturn(true);
 
-    ArrayList<Issue> issues = new ArrayList<Issue>();
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
-    when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
     assertEquals(1, report.size());
-    assertEquals(0, countIssuesBySeverity(report, "severity1"));
-    assertEquals(1, countIssuesBySeverity(report, "severity2"));
+    assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
+    assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
   }
 
   @Test
   public void testExtractIssueReportWithOneIssueWithoutInputFile() {
-    issuePathResolver.clear();
-    issuePathResolver.add(issue2, "project/path2");
+    issue1.setInputComponent(null);
 
-    ArrayList<Issue> issues = new ArrayList<Issue>();
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
-    when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
     assertEquals(1, report.size());
-    assertEquals(0, countIssuesBySeverity(report, "severity1"));
-    assertEquals(1, countIssuesBySeverity(report, "severity2"));
+    assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
+    assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
 
-    Issue sqIssue2 = report.get(0);
+    PostJobIssue sqIssue2 = report.get(0);
     assertEquals("message2", sqIssue2.message());
-    assertEquals("project/path2", issuePathResolver.getIssuePath(sqIssue2));
+    assertEquals("project/path2", getIssuePath(sqIssue2));
     assertEquals((Integer) 2, sqIssue2.line());
   }
 
@@ -241,12 +197,11 @@ public class SonarQubeCollectorTest {
     when(issue1.isNew()).thenReturn(false);
     when(issue2.isNew()).thenReturn(true);
 
-    ArrayList<Issue> issues = new ArrayList<Issue>();
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
-    when(projectIssues.issues()).thenReturn(issues);
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, true, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules, project);
     assertEquals(2, report.size());
   }
 
@@ -255,46 +210,40 @@ public class SonarQubeCollectorTest {
     when(issue1.ruleKey()).thenReturn(RuleKey.of("foo", "bar"));
     when(issue2.ruleKey()).thenReturn(RuleKey.of("foo", "baz"));
 
-    ArrayList<Issue> issues = new ArrayList<Issue>();
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
-    when(projectIssues.issues()).thenReturn(issues);
 
     excludedRules.add(RuleKey.of("foo", "bar"));
 
-    List<Issue> report = SonarQubeCollector.extractIssueReport(projectIssues, issuePathResolver, true, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules, project);
     assertEquals(1, report.size());
     assertEquals("key2", report.get(0).key());
   }
 
   @Test
   public void testShouldIncludeIssue() {
-    IssuePathResolver ipr = new IssuePathResolver() {
-      @Override
-      public String getIssuePath(Issue issue) {
-        return "some/path";
-      }
-    };
     Set<RuleKey> er = new HashSet<>();
+    InputComponent ic = new DefaultInputFile("module", "some/path");
 
     assertFalse(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false), ipr, false, er, project
+            new DefaultIssue().setNew(false).setInputComponent(ic), false, er, project
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false), ipr, true, er, project
+            new DefaultIssue().setNew(false).setInputComponent(ic), true, er, project
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true), ipr, false, er, project
+            new DefaultIssue().setNew(true).setInputComponent(ic), false, er, project
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true), ipr, true, er, project
+            new DefaultIssue().setNew(true).setInputComponent(ic), true, er, project
         )
     );
   }

@@ -28,7 +28,7 @@ public final class SonarQubeCollector {
    * analysis.
    */
   public static List<PostJobIssue> extractIssueReport(
-      Iterable<PostJobIssue> issues, StashRequestFacade issuePathResolver,
+      Iterable<PostJobIssue> issues,
       boolean includeExistingIssues, Set<RuleKey> excludedRules, Project project) {
     return StreamSupport.stream(
         issues.spliterator(), false)
