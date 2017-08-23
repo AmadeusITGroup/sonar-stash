@@ -1,7 +1,7 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.simple.JsonObject;
+import org.json.simple.Jsoner;
 import org.junit.Test;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -579,19 +579,12 @@ public class StashCollectorTest {
     String jsonTask = "{ \"id\":" + id + ", \"text\":\"" + text + "\", \"state\":\"" + state + "\","
                       + "\"permittedOperations\": { \"deletable\":" + deletable + "}}";
 
-    StashTask task = StashCollector.extractTask(jsonTask);
+    StashTask task = StashCollector.extractTask(parse(jsonTask));
 
     assertEquals(id, (long)task.getId());
     assertEquals(text, task.getText());
     assertEquals(state, task.getState());
     assertEquals(deletable, task.isDeletable());
-  }
-
-  @Test(expected = StashReportExtractionException.class)
-  public void testExtractTaskException() throws Exception {
-
-    String jsonFail = "{ /*-++*/-*-/**-*/!@*&$^*&%#$^*!&#@^%(!^*&)(*#&@%)(*";
-    StashCollector.extractTask(jsonFail);
   }
 
   @Test
@@ -602,7 +595,7 @@ public class StashCollectorTest {
 
     String jsonTask = "{ \"id\":" + id + ", \"text\":\"" + text + "\", \"state\": \"" + state + "\"}";
 
-    StashTask task = StashCollector.extractTask(jsonTask);
+    StashTask task = StashCollector.extractTask(parse(jsonTask));
 
     assertEquals(id, (long)task.getId());
     assertEquals(text, task.getText());
@@ -610,7 +603,7 @@ public class StashCollectorTest {
     assertEquals(true, task.isDeletable());
   }
 
-  private static JSONObject parse(String s) throws Exception {
-    return (JSONObject)new JSONParser().parse(s);
+  private static JsonObject parse(String s) throws Exception {
+    return (JsonObject) Jsoner.deserialize(s);
   }
 }

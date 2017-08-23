@@ -1,9 +1,10 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import java.math.BigDecimal;
+import org.json.simple.DeserializationException;
+import org.json.simple.JsonArray;
+import org.json.simple.JsonObject;
+import org.json.simple.Jsoner;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -24,14 +25,14 @@ public final class StashCollector {
     // Hiding implicit public constructor with an explicit private one (squid:S1118)
   }
 
-  public static StashCommentReport extractComments(JSONObject jsonComments) throws StashReportExtractionException {
+  public static StashCommentReport extractComments(JsonObject jsonComments) throws StashReportExtractionException {
     StashCommentReport result = new StashCommentReport();
 
-    JSONArray jsonValues = (JSONArray)jsonComments.get("values");
+    JsonArray jsonValues = (JsonArray)jsonComments.get("values");
     if (jsonValues != null) {
 
       for (Object obj : jsonValues.toArray()) {
-        JSONObject jsonComment = (JSONObject)obj;
+        JsonObject jsonComment = (JsonObject)obj;
 
         StashComment comment = extractComment(jsonComment);
         result.add(comment);
@@ -41,22 +42,22 @@ public final class StashCollector {
     return result;
   }
 
-  public static StashComment extractComment(JSONObject jsonComment, String path, Long line) {
+  public static StashComment extractComment(JsonObject jsonComment, String path, Long line) {
 
-    long id = (long)jsonComment.get("id");
+    long id = getLong(jsonComment, "id");
     String message = (String)jsonComment.get("text");
 
-    long version = (long)jsonComment.get(VERSION);
+    long version = getLong(jsonComment, VERSION);
 
-    JSONObject jsonAuthor = (JSONObject)jsonComment.get(AUTHOR);
+    JsonObject jsonAuthor = (JsonObject)jsonComment.get(AUTHOR);
     StashUser stashUser = extractUser(jsonAuthor);
 
     return new StashComment(id, message, path, line, stashUser, version);
   }
 
-  public static StashComment extractComment(JSONObject jsonComment) throws StashReportExtractionException {
+  public static StashComment extractComment(JsonObject jsonComment) throws StashReportExtractionException {
 
-    JSONObject jsonAnchor = (JSONObject)jsonComment.get("anchor");
+    JsonObject jsonAnchor = (JsonObject)jsonComment.get("anchor");
     if (jsonAnchor == null) {
       throw new StashReportExtractionException("JSON Comment does not contain any \"anchor\" tag"
                                                + " to describe comment \"line\" and \"path\"");
@@ -65,24 +66,24 @@ public final class StashCollector {
     String path = (String)jsonAnchor.get("path");
 
     // can be null if comment is attached to the global file
-    Long line = (Long)jsonAnchor.get("line");
+    Long line = getLong(jsonAnchor, "line");
 
     return extractComment(jsonComment, path, line);
   }
 
   public static StashPullRequest extractPullRequest(PullRequestRef pr,
-                                                    JSONObject jsonPullRequest) {
+                                                    JsonObject jsonPullRequest) {
     StashPullRequest result = new StashPullRequest(pr);
 
-    long version = (long)jsonPullRequest.get(VERSION);
+    long version = getLong(jsonPullRequest, VERSION);
     result.setVersion(version);
 
-    JSONArray jsonReviewers = (JSONArray)jsonPullRequest.get("reviewers");
+    JsonArray jsonReviewers = (JsonArray)jsonPullRequest.get("reviewers");
     if (jsonReviewers != null) {
       for (Object objReviewer : jsonReviewers.toArray()) {
-        JSONObject jsonReviewer = (JSONObject)objReviewer;
+        JsonObject jsonReviewer = (JsonObject)objReviewer;
 
-        JSONObject jsonUser = (JSONObject)jsonReviewer.get("user");
+        JsonObject jsonUser = (JsonObject)jsonReviewer.get("user");
         if (jsonUser != null) {
           StashUser reviewer = extractUser(jsonUser);
           result.addReviewer(reviewer);
@@ -93,8 +94,8 @@ public final class StashCollector {
     return result;
   }
 
-  public static StashUser extractUser(JSONObject jsonUser) {
-    long id = (long)jsonUser.get("id");
+  public static StashUser extractUser(JsonObject jsonUser) {
+    long id = getLong(jsonUser, "id");
     String name = (String)jsonUser.get("name");
     String slug = (String)jsonUser.get("slug");
     String email = (String)jsonUser.get("email");
@@ -102,10 +103,10 @@ public final class StashCollector {
     return new StashUser(id, name, slug, email);
   }
 
-  public static StashDiffReport extractDiffs(JSONObject jsonObject) throws StashReportExtractionException {
+  public static StashDiffReport extractDiffs(JsonObject jsonObject) throws StashReportExtractionException {
 
     StashDiffReport result = new StashDiffReport();
-    JSONArray jsonDiffs = (JSONArray)jsonObject.get("diffs");
+    JsonArray jsonDiffs = (JsonArray)jsonObject.get("diffs");
 
     if (jsonDiffs == null) {
       return null;
@@ -114,17 +115,17 @@ public final class StashCollector {
     // Let's call this for loop "objdiff_loop"
     for (Object objDiff : jsonDiffs.toArray()) {
 
-      JSONObject jsonDiff = (JSONObject)objDiff;
+      JsonObject jsonDiff = (JsonObject)objDiff;
       // destination path in diff view
       // if status of the file is deleted, destination == null
-      JSONObject destinationPath = (JSONObject)jsonDiff.get("destination");
+      JsonObject destinationPath = (JsonObject)jsonDiff.get("destination");
 
       if (destinationPath == null) {
         continue;  // Let's process the next item in "objdiff_loop"
       }
 
       String path = (String)destinationPath.get("toString");
-      JSONArray jsonHunks = (JSONArray)jsonDiff.get("hunks");
+      JsonArray jsonHunks = (JsonArray)jsonDiff.get("hunks");
 
       if (jsonHunks == null) {
         continue;  // Let's process the next item in "objdiff_loop"
@@ -134,7 +135,7 @@ public final class StashCollector {
       result.add(parseHunksIntoDiffs(path, jsonHunks, jsonDiff));
 
       // Extract File Comments: this kind of comment will be attached to line 0
-      JSONArray jsonLineComments = (JSONArray)jsonDiff.get("fileComments");
+      JsonArray jsonLineComments = (JsonArray)jsonDiff.get("fileComments");
 
       if (jsonLineComments == null) {
         continue;  // Let's process the next item in "objdiff_loop"
@@ -145,13 +146,13 @@ public final class StashCollector {
       // Let's call this for loop "objlinc_loop"
       for (Object objLineComment : jsonLineComments.toArray()) {
 
-        JSONObject jsonLineComment = (JSONObject)objLineComment;
+        JsonObject jsonLineComment = (JsonObject)objLineComment;
 
-        long lineCommentId = (long)jsonLineComment.get("id");
+        long lineCommentId = getLong(jsonLineComment, "id");
         String lineCommentMessage = (String)jsonLineComment.get("text");
-        long lineCommentVersion = (long)jsonLineComment.get(VERSION);
+        long lineCommentVersion = getLong(jsonLineComment, VERSION);
 
-        JSONObject objAuthor = (JSONObject)jsonLineComment.get(AUTHOR);
+        JsonObject objAuthor = (JsonObject)jsonLineComment.get(AUTHOR);
 
         if (objAuthor == null) {
           continue;  // Let's process the next item in "objlinc_loop"
@@ -169,7 +170,7 @@ public final class StashCollector {
     return result;
   }
 
-  private static StashDiffReport parseHunksIntoDiffs(String path, JSONArray jsonHunks, JSONObject jsonDiff)
+  private static StashDiffReport parseHunksIntoDiffs(String path, JsonArray jsonHunks, JsonObject jsonDiff)
   throws StashReportExtractionException {
 
     StashDiffReport result = new StashDiffReport();
@@ -177,8 +178,8 @@ public final class StashCollector {
     // Let's call this for loop "objhunk_loop"
     for (Object objHunk : jsonHunks.toArray()) {
 
-      JSONObject jsonHunk = (JSONObject)objHunk;
-      JSONArray jsonSegments = (JSONArray)jsonHunk.get("segments");
+      JsonObject jsonHunk = (JsonObject)objHunk;
+      JsonArray jsonSegments = (JsonArray)jsonHunk.get("segments");
 
       if (jsonSegments == null) {
         continue;  // Let's process the next item in "objhunk_loop"
@@ -187,12 +188,12 @@ public final class StashCollector {
       // Let's call this for loop "objsegm_loop"
       for (Object objSegment : jsonSegments.toArray()) {
 
-        JSONObject jsonSegment = (JSONObject)objSegment;
+        JsonObject jsonSegment = (JsonObject)objSegment;
         // type of the diff in diff view
         // We filter REMOVED type, like useless for SQ analysis
         String type = (String)jsonSegment.get("type");
         //
-        JSONArray jsonLines = (JSONArray)jsonSegment.get("lines");
+        JsonArray jsonLines = (JsonArray)jsonSegment.get("lines");
 
         if (StashPlugin.REMOVED_ISSUE_TYPE.equals(type) || jsonLines == null) {
 
@@ -202,14 +203,14 @@ public final class StashCollector {
         // Let's call this for loop "objline_loop"
         for (Object objLine : jsonLines.toArray()) {
 
-          JSONObject jsonLine = (JSONObject)objLine;
+          JsonObject jsonLine = (JsonObject)objLine;
           // destination line in diff view
-          long source = (long)jsonLine.get("source");
-          long destination = (long)jsonLine.get("destination");
+          long source = getLong(jsonLine, "source");
+          long destination = getLong(jsonLine,"destination");
 
           StashDiff diff = new StashDiff(type, path, source, destination);
           // Add comment attached to the current line
-          JSONArray jsonCommentIds = (JSONArray)jsonLine.get("commentIds");
+          JsonArray jsonCommentIds = (JsonArray)jsonLine.get("commentIds");
 
           // To keep this method depth under control (squid:S134), we outsourced the comments extraction
           result.add(extractCommentsForDiff(diff, jsonDiff, jsonCommentIds));
@@ -219,7 +220,7 @@ public final class StashCollector {
     return result;
   }
 
-  private static StashDiff extractCommentsForDiff(StashDiff diff, JSONObject jsonDiff, JSONArray jsonCommentIds)
+  private static StashDiff extractCommentsForDiff(StashDiff diff, JsonObject jsonDiff, JsonArray jsonCommentIds)
   throws StashReportExtractionException {
 
     // If there is no comments, we just return the diff as-is
@@ -230,8 +231,8 @@ public final class StashCollector {
     // Let's call this for loop "objcomm_loop"
     for (Object objCommentId : jsonCommentIds.toArray()) {
 
-      long commentId = (long)objCommentId;
-      JSONArray jsonLineComments = (JSONArray)jsonDiff.get("lineComments");
+      long commentId = getLong(objCommentId);
+      JsonArray jsonLineComments = (JsonArray)jsonDiff.get("lineComments");
 
       if (jsonLineComments == null) {
         continue;  // Let's process the next item in "objcomm_loop"
@@ -240,9 +241,9 @@ public final class StashCollector {
       // Let's call this for loop "objlico_loop"
       for (Object objLineComment : jsonLineComments.toArray()) {
 
-        JSONObject jsonLineComment = (JSONObject)objLineComment;
+        JsonObject jsonLineComment = (JsonObject)objLineComment;
 
-        long lineCommentId = (long)jsonLineComment.get("id");
+        long lineCommentId = getLong(jsonLineComment, "id");
 
         if (lineCommentId != commentId) {
           continue;  // Let's process the next item in "objcomm_loop"
@@ -260,20 +261,20 @@ public final class StashCollector {
         diff.addComment(comment);
 
         // get the tasks linked to the current comment
-        updateCommentTasks(comment, (JSONArray)jsonLineComment.get("tasks"));
+        updateCommentTasks(comment, (JsonArray)jsonLineComment.get("tasks"));
       }
     }
     return diff;
   }
 
-  private static StashComment buildCommentFromJSON(JSONObject jsonLineComment, StashDiff diff) {
+  private static StashComment buildCommentFromJSON(JsonObject jsonLineComment, StashDiff diff) {
 
-    long lineCommentId = (long)jsonLineComment.get("id");
+    long lineCommentId = getLong(jsonLineComment, "id");
 
     String lineCommentMessage = (String)jsonLineComment.get("text");
-    long lineCommentVersion = (long)jsonLineComment.get(VERSION);
+    long lineCommentVersion = getLong(jsonLineComment, VERSION);
 
-    JSONObject objAuthor = (JSONObject)jsonLineComment.get(AUTHOR);
+    JsonObject objAuthor = (JsonObject)jsonLineComment.get(AUTHOR);
 
     if (objAuthor == null) {
       return null;
@@ -285,7 +286,7 @@ public final class StashCollector {
                             diff.getDestination(), author, lineCommentVersion);
   }
 
-  private static void updateCommentTasks(StashComment comment, JSONArray jsonTasks)
+  private static void updateCommentTasks(StashComment comment, JsonArray jsonTasks)
   throws StashReportExtractionException {
 
     // No need to fail on NullPointerException but we want to keep caller's complexity down
@@ -294,48 +295,54 @@ public final class StashCollector {
     }
 
     for (Object objTask : jsonTasks.toArray()) {
-      JSONObject jsonTask = (JSONObject)objTask;
+      JsonObject jsonTask = (JsonObject)objTask;
 
-      comment.addTask(extractTask(jsonTask.toString()));
+      comment.addTask(extractTask(jsonTask));
     }
   }
 
-  public static StashTask extractTask(String jsonBody) throws StashReportExtractionException {
-    try {
-      JSONObject jsonTask = (JSONObject)new JSONParser().parse(jsonBody);
+  public static StashTask extractTask(JsonObject jsonTask) throws StashReportExtractionException {
+    long taskId = getLong(jsonTask, "id");
+    String taskText = (String)jsonTask.get("text");
+    String taskState = (String)jsonTask.get("state");
 
-      long taskId = (long)jsonTask.get("id");
-      String taskText = (String)jsonTask.get("text");
-      String taskState = (String)jsonTask.get("state");
+    boolean deletable = true;
 
-      boolean deletable = true;
-
-      JSONObject objPermission = (JSONObject)jsonTask.get("permittedOperations");
-      if (objPermission != null) {
-        deletable = (boolean)objPermission.get("deletable");
-      }
-
-      return new StashTask(taskId, taskText, taskState, deletable);
-
-    } catch (ParseException e) {
-      throw new StashReportExtractionException(e);
+    JsonObject objPermission = (JsonObject)jsonTask.get("permittedOperations");
+    if (objPermission != null) {
+      deletable = (boolean)objPermission.get("deletable");
     }
+
+    return new StashTask(taskId, taskText, taskState, deletable);
   }
 
-  public static boolean isLastPage(JSONObject jsonObject) {
+  public static boolean isLastPage(JsonObject jsonObject) {
     if (jsonObject.get("isLastPage") != null) {
       return (Boolean)jsonObject.get("isLastPage");
     }
     return true;
   }
 
-  public static long getNextPageStart(JSONObject jsonObject) {
+  public static long getNextPageStart(JsonObject jsonObject) {
 
     if (jsonObject.get("nextPageStart") != null) {
-      return (Long)jsonObject.get("nextPageStart");
+      return getLong(jsonObject,"nextPageStart");
     }
 
     return 0;
+  }
+
+  private static final Long getLong(JsonObject o, String name) {
+    return getLong(o.get(name));
+  }
+
+  private static final Long getLong(Object o) {
+    BigDecimal bd = (BigDecimal) o;
+    if (bd == null) {
+      return null;
+    }
+
+    return bd.longValue();
   }
 
 }
