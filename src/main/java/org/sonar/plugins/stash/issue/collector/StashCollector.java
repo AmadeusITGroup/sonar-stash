@@ -1,10 +1,8 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import java.math.BigDecimal;
-import org.json.simple.DeserializationException;
 import org.json.simple.JsonArray;
 import org.json.simple.JsonObject;
-import org.json.simple.Jsoner;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -301,7 +299,7 @@ public final class StashCollector {
     }
   }
 
-  public static StashTask extractTask(JsonObject jsonTask) throws StashReportExtractionException {
+  public static StashTask extractTask(JsonObject jsonTask) {
     long taskId = getLong(jsonTask, "id");
     String taskText = (String)jsonTask.get("text");
     String taskState = (String)jsonTask.get("state");
