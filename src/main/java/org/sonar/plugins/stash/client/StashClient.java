@@ -436,6 +436,7 @@ public class StashClient implements AutoCloseable {
             .setUserAgent(getUserAgent(sonarQubeVersion))
             .setCompressionEnforced(true)
             .setUseProxySelector(true)
+            .setUseProxyProperties(true)
             .build()
     );
   }

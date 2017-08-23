@@ -101,7 +101,7 @@ public final class StashCollector {
     return new StashUser(id, name, slug, email);
   }
 
-  public static StashDiffReport extractDiffs(JsonObject jsonObject) throws StashReportExtractionException {
+  public static StashDiffReport extractDiffs(JsonObject jsonObject) {
 
     StashDiffReport result = new StashDiffReport();
     JsonArray jsonDiffs = (JsonArray)jsonObject.get("diffs");
@@ -168,8 +168,7 @@ public final class StashCollector {
     return result;
   }
 
-  private static StashDiffReport parseHunksIntoDiffs(String path, JsonArray jsonHunks, JsonObject jsonDiff)
-  throws StashReportExtractionException {
+  private static StashDiffReport parseHunksIntoDiffs(String path, JsonArray jsonHunks, JsonObject jsonDiff) {
 
     StashDiffReport result = new StashDiffReport();
 
@@ -218,8 +217,7 @@ public final class StashCollector {
     return result;
   }
 
-  private static StashDiff extractCommentsForDiff(StashDiff diff, JsonObject jsonDiff, JsonArray jsonCommentIds)
-  throws StashReportExtractionException {
+  private static StashDiff extractCommentsForDiff(StashDiff diff, JsonObject jsonDiff, JsonArray jsonCommentIds) {
 
     // If there is no comments, we just return the diff as-is
     if (jsonCommentIds == null) {
