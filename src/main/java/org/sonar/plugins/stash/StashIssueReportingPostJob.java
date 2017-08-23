@@ -1,15 +1,15 @@
 package org.sonar.plugins.stash;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.BatchComponent;
-import org.sonar.api.batch.PostJob;
-import org.sonar.api.batch.SensorContext;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.batch.BatchSide;
+import org.sonar.api.batch.postjob.PostJob;
+import org.sonar.api.batch.postjob.PostJobContext;
+import org.sonar.api.batch.postjob.PostJobDescriptor;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.platform.Server;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
@@ -18,28 +18,26 @@ import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
-public class StashIssueReportingPostJob implements PostJob, BatchComponent {
+@BatchSide
+public class StashIssueReportingPostJob implements PostJob {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashIssueReportingPostJob.class);
   private static final String STACK_TRACE = "Exception stack trace";
 
-  private final ProjectIssues projectIssues;
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
   private final Server sonarQubeServer;
 
   public StashIssueReportingPostJob(StashPluginConfiguration stashPluginConfiguration,
-      ProjectIssues projectIssues,
       StashRequestFacade stashRequestFacade,
       Server sonarQubeServer) {
-    this.projectIssues = projectIssues;
     this.config = stashPluginConfiguration;
     this.stashRequestFacade = stashRequestFacade;
     this.sonarQubeServer = sonarQubeServer;
   }
 
   @Override
-  public void executeOn(Project project, SensorContext context) {
+  public void execute(PostJobContext context) {
     if (!config.hasToNotifyStash()) {
       LOGGER.info("{} not enabled, skipping", this);
       return;
@@ -58,7 +56,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
           sonarQubeServer.getVersion())) {
 
         // Down the rabbit hole...
-        updateStashWithSonarInfo(project, stashClient, stashCredentials);
+        updateStashWithSonarInfo(null, stashClient, stashCredentials, context.issues());
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
@@ -71,14 +69,14 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   * Second part of the code necessary for the executeOn() -- squid:S134
   */
   private void updateStashWithSonarInfo(Project project, StashClient stashClient,
-      StashCredentials stashCredentials) {
+      StashCredentials stashCredentials, Iterable<PostJobIssue> issues) {
 
     try {
       int issueThreshold = stashRequestFacade.getIssueThreshold();
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
       // SonarQube objects
-      List<Issue> issueReport = stashRequestFacade.extractIssueReport(projectIssues, project);
+      List<PostJobIssue> issueReport = stashRequestFacade.extractIssueReport(issues, project);
 
       StashUser stashUser = stashRequestFacade
           .getSonarQubeReviewer(stashCredentials.getUserSlug(), stashClient);
@@ -123,7 +121,7 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
   *   and third part of the executeOn() method (call of a call) -- squid:MethodCyclomaticComplexity
   */
   private void postInfoAndPRsActions(
-      PullRequestRef pr, List<Issue> issueReport, int issueThreshold,
+      PullRequestRef pr, List<PostJobIssue> issueReport, int issueThreshold,
       StashDiffReport diffReport, StashClient stashClient,
       Project project
   ) {
@@ -151,15 +149,19 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
     }
   }
 
-  static boolean shouldApprovePullRequest(Optional<String> approvalSeverityThreshold, Collection<Issue> report) {
+  static boolean shouldApprovePullRequest(Optional<Severity> approvalSeverityThreshold, List<PostJobIssue> report) {
     if (approvalSeverityThreshold.isPresent()) {
-      SeverityComparator sc = new SeverityComparator();
       return report.stream().noneMatch(issue ->
-          sc.compare(issue.severity(), approvalSeverityThreshold.get()) > 0
+          issue.severity().compareTo(approvalSeverityThreshold.get()) > 0
       );
     }
 
     return report.isEmpty();
+  }
+
+  @Override
+  public void describe(PostJobDescriptor descriptor) {
+    descriptor.requireProperty(StashPlugin.STASH_NOTIFICATION);
   }
 
 

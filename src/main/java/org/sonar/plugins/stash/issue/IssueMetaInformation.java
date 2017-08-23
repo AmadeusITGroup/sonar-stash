@@ -1,19 +1,18 @@
 package org.sonar.plugins.stash.issue;
 
-import static org.apache.commons.lang.builder.EqualsBuilder.reflectionEquals;
-import static org.apache.commons.lang.builder.HashCodeBuilder.reflectionHashCode;
-
-import org.sonar.api.issue.Issue;
+import java.util.Objects;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
 
 public class IssueMetaInformation {
-    private String severity;
+    private Severity severity;
     private String message;
     private RuleKey rule;
 
     protected IssueMetaInformation() {}
 
-    public String severity() {
+    public Severity severity() {
         return severity;
     }
 
@@ -25,7 +24,7 @@ public class IssueMetaInformation {
         return rule;
     }
 
-    public static IssueMetaInformation from(Issue issue) {
+    public static IssueMetaInformation from(PostJobIssue issue) {
         IssueMetaInformation imi = new IssueMetaInformation();
         imi.severity = issue.severity();
         imi.message = issue.message();
@@ -34,17 +33,26 @@ public class IssueMetaInformation {
     }
 
     @Override
+    public String toString() {
+        return severity() + " " + rule() + " " + message();
+    }
+
+    @Override
     public boolean equals(Object o) {
-      return reflectionEquals(this, o);
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IssueMetaInformation that = (IssueMetaInformation) o;
+        return Objects.equals(severity, that.severity) &&
+            Objects.equals(message, that.message) &&
+            Objects.equals(rule, that.rule);
     }
 
     @Override
     public int hashCode() {
-      return reflectionHashCode(this);
-    }
-
-    @Override
-    public String toString() {
-        return severity() + " " + rule() + " " + message();
+        return Objects.hash(severity, message, rule);
     }
 }

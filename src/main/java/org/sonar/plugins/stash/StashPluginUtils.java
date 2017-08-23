@@ -1,13 +1,15 @@
 package org.sonar.plugins.stash;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Properties;
-import org.sonar.api.issue.Issue;
+import org.sonar.api.batch.fs.InputComponent;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.List;
 import java.util.Objects;
 import org.sonar.api.resources.Project;
 
@@ -34,11 +36,11 @@ public final class StashPluginUtils {
     return (left > right) && !formatPercentage(left).equals(formatPercentage(right));
   }
 
-  public static long countIssuesBySeverity(List<Issue> issues, final String severity) {
+  public static long countIssuesBySeverity(Collection<PostJobIssue> issues, final String severity) {
     return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
-  public static boolean isProjectWide(Issue issue, Project project) {
+  public static boolean isProjectWide(PostJobIssue issue, Project project) {
     String k = issue.componentKey();
     return (k != null && Objects.equals(k, project.getKey()));
   }
@@ -56,4 +58,23 @@ public final class StashPluginUtils {
         props.getProperty("project.version")
     );
   }
+
+  public static String removeEnd(String s, String suffix) {
+    if (s.endsWith(suffix)) {
+      return removeEnd(s.substring(0, s.length() - suffix.length()), suffix);
+    }
+    return s;
+  }
+
+  public static String getIssuePath(InputComponent c) {
+    if (!c.isFile()) {
+      return null;
+    }
+    return ((InputFile) c).absolutePath();
+  }
+
+  public static String getIssuePath(PostJobIssue i) {
+    return getIssuePath(i.inputComponent());
+  }
+
 }

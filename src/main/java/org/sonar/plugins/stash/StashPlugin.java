@@ -80,10 +80,8 @@ public class StashPlugin extends SonarPlugin {
     return Arrays.asList(
         StashIssueReportingPostJob.class,
         StashPluginConfiguration.class,
-        InputFileCache.class,
         StashProjectBuilder.class,
         StashRequestFacade.class,
-        InputFileCacheSensor.class,
         PropertyDefinition.builder(STASH_URL)
                           .name("Stash base URL")
                           .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")

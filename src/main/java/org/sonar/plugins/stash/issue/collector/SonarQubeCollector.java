@@ -1,6 +1,8 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import java.util.Set;
+
+import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
 import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 
 import java.util.List;
@@ -8,11 +10,10 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.issue.ProjectIssues;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.resources.Project;
-import org.sonar.plugins.stash.IssuePathResolver;
+import org.sonar.plugins.stash.StashRequestFacade;
 
 public final class SonarQubeCollector {
 
@@ -26,20 +27,20 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
    */
-  public static List<Issue> extractIssueReport(
-      ProjectIssues projectIssues, IssuePathResolver issuePathResolver,
+  public static List<PostJobIssue> extractIssueReport(
+      Iterable<PostJobIssue> issues, StashRequestFacade issuePathResolver,
       boolean includeExistingIssues, Set<RuleKey> excludedRules, Project project) {
     return StreamSupport.stream(
-        projectIssues.issues().spliterator(), false)
+        issues.spliterator(), false)
                         .filter(issue -> shouldIncludeIssue(
-                            issue, issuePathResolver,
+                            issue,
                             includeExistingIssues, excludedRules, project
                         ))
                         .collect(Collectors.toList());
   }
 
   static boolean shouldIncludeIssue(
-      Issue issue, IssuePathResolver issuePathResolver,
+      PostJobIssue issue,
       boolean includeExistingIssues, Set<RuleKey> excludedRules,
       Project project
   ) {
@@ -58,7 +59,7 @@ public final class SonarQubeCollector {
       return false;
     }
 
-    String path = issuePathResolver.getIssuePath(issue);
+    String path = getIssuePath(issue);
     if (!isProjectWide(issue, project) && path == null) {
       // squid:S2629 : no evaluation required if the logging level is not activated
       if (LOGGER.isDebugEnabled()) {
