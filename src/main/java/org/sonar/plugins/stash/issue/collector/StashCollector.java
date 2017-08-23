@@ -284,8 +284,7 @@ public final class StashCollector {
                             diff.getDestination(), author, lineCommentVersion);
   }
 
-  private static void updateCommentTasks(StashComment comment, JsonArray jsonTasks)
-  throws StashReportExtractionException {
+  private static void updateCommentTasks(StashComment comment, JsonArray jsonTasks) {
 
     // No need to fail on NullPointerException but we want to keep caller's complexity down
     if (jsonTasks == null) {
