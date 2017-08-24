@@ -68,20 +68,4 @@ public final class StashPluginUtils {
     }
     return s;
   }
-
-  public static String getIssuePath(InputComponent c) {
-    if (c == null) {
-      return null;
-    }
-
-    if (!c.isFile()) {
-      return null;
-    }
-    return ((InputFile) c).relativePath();
-  }
-
-  public static String getIssuePath(PostJobIssue i) {
-    return getIssuePath(i.inputComponent());
-  }
-
 }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.plugins.stash.IssuePathResolver;
 import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.ArrayList;
@@ -15,7 +16,6 @@ import java.util.List;
 
 import static org.sonar.plugins.stash.CoverageCompat.isCoverageEvolution;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
 import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 
 public final class MarkdownPrinter {
@@ -27,10 +27,12 @@ public final class MarkdownPrinter {
   private PullRequestRef pr;
   private int issueThreshold;
   private String sonarQubeURL;
+  private IssuePathResolver issuePathResolver;
 
   private Severity[] orderedSeverities;
 
-  public MarkdownPrinter(String stashURL, PullRequestRef pr, int issueThreshold, String sonarQubeURL) {
+  public MarkdownPrinter(IssuePathResolver issuePathResolver, String stashURL, PullRequestRef pr, int issueThreshold, String sonarQubeURL) {
+    this.issuePathResolver = issuePathResolver;
     this.stashURL = stashURL;
     this.pr = pr;
     this.issueThreshold = issueThreshold;
@@ -68,7 +70,7 @@ public final class MarkdownPrinter {
     String message = issue.message();
 
     if (message != null) {
-      String file = getIssuePath(issue);
+      String file = issuePathResolver.getIssuePath(issue);
       if (file != null) {
         String fileLink = link("`" + file + "`",
             stashURL + "/projects/" + pr.project() +

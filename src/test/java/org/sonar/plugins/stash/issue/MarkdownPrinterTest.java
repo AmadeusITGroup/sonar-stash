@@ -14,6 +14,7 @@ import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.CoverageCompat;
 import org.sonar.plugins.stash.DefaultIssue;
 import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 public class MarkdownPrinterTest {
 
@@ -26,6 +27,7 @@ public class MarkdownPrinterTest {
   private static final String STASH_URL = "stash/URL";
   private MarkdownPrinter printer;
   private int issueThreshold;
+  private DummyIssuePathResolver ipr;
 
   PullRequestRef pr = PullRequestRef.builder()
       .setProject("stashProject")
@@ -68,8 +70,9 @@ public class MarkdownPrinterTest {
     report.add(coverageIssue);
 
     issueThreshold = 100;
+    ipr = new DummyIssuePathResolver();
 
-    printer = new MarkdownPrinter(STASH_URL, pr, issueThreshold, SONAR_URL);
+    printer = new MarkdownPrinter(ipr, STASH_URL, pr, issueThreshold, SONAR_URL);
   }
 
   @Test
@@ -165,7 +168,7 @@ public class MarkdownPrinterTest {
 
   @Test
   public void testPrintReportMarkdownWithIssueLimitation() {
-    printer = new MarkdownPrinter(STASH_URL, pr, 3, SONAR_URL);
+    printer = new MarkdownPrinter(ipr, STASH_URL, pr, 3, SONAR_URL);
     String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "### Too many issues detected (4/3): Issues cannot be displayed in Diff view.\n\n"

@@ -81,6 +81,7 @@ public class StashPlugin implements Plugin {
         StashIssueReportingPostJob.class,
         StashPluginConfiguration.class,
         StashRequestFacade.class,
+        StashProjectBuilder.class,
         PropertyDefinition.builder(STASH_URL)
                           .name("Stash base URL")
                           .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")

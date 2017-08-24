@@ -2,7 +2,6 @@ package org.sonar.plugins.stash.issue.collector;
 
 import java.util.Set;
 
-import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
 import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 
 import java.util.List;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.plugins.stash.IssuePathResolver;
 
 public final class SonarQubeCollector {
 
@@ -26,19 +26,19 @@ public final class SonarQubeCollector {
    * analysis.
    */
   public static List<PostJobIssue> extractIssueReport(
-      Iterable<PostJobIssue> issues,
+      Iterable<PostJobIssue> issues, IssuePathResolver issuePathResolver,
       boolean includeExistingIssues, Set<RuleKey> excludedRules) {
     return StreamSupport.stream(
         issues.spliterator(), false)
                         .filter(issue -> shouldIncludeIssue(
-                            issue,
+                            issue, issuePathResolver,
                             includeExistingIssues, excludedRules
                         ))
                         .collect(Collectors.toList());
   }
 
   static boolean shouldIncludeIssue(
-      PostJobIssue issue,
+      PostJobIssue issue, IssuePathResolver issuePathResolver,
       boolean includeExistingIssues, Set<RuleKey> excludedRules
   ) {
     if (!includeExistingIssues && !issue.isNew()) {
@@ -55,7 +55,7 @@ public final class SonarQubeCollector {
       return false;
     }
 
-    String path = getIssuePath(issue);
+    String path = issuePathResolver.getIssuePath(issue);
     if (!isProjectWide(issue) && path == null) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());

@@ -9,7 +9,6 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +30,8 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.DefaultIssue;
+import org.sonar.plugins.stash.IssuePathResolver;
+import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SonarQubeCollectorTest {
@@ -60,6 +61,8 @@ public class SonarQubeCollectorTest {
 
   @Mock
   PostJobContext postJobContext;
+
+  IssuePathResolver ipr = new DummyIssuePathResolver();
 
   @Before
   public void setUp() throws Exception {
@@ -113,7 +116,7 @@ public class SonarQubeCollectorTest {
   public void testExtractEmptyIssueReport() {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
     assertEquals(0, report.size());
   }
 
@@ -123,19 +126,19 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
     assertEquals(2, report.size());
     assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
 
     PostJobIssue sqIssue1 = report.get(0);
     assertEquals("message1", sqIssue1.message());
-    assertEquals("project/path1", getIssuePath(sqIssue1));
+    assertEquals("project/path1", ipr.getIssuePath(sqIssue1));
     assertEquals((Integer) 1, sqIssue1.line());
 
     PostJobIssue sqIssue2 = report.get(1);
     assertEquals("message2", sqIssue2.message());
-    assertEquals("project/path2", getIssuePath(sqIssue2));
+    assertEquals("project/path2", ipr.getIssuePath(sqIssue2));
     assertEquals((Integer) 2, sqIssue2.line());
 
   }
@@ -147,14 +150,14 @@ public class SonarQubeCollectorTest {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(0, countIssuesBySeverity(report, Severity.CRITICAL));
 
     PostJobIssue sqIssue1 = report.get(0);
     assertEquals("message1", sqIssue1.message());
-    assertEquals("project/path1", getIssuePath(sqIssue1));
+    assertEquals("project/path1", ipr.getIssuePath(sqIssue1));
     assertEquals(null, sqIssue1.line());
   }
 
@@ -167,7 +170,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -181,14 +184,14 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
 
     PostJobIssue sqIssue2 = report.get(0);
     assertEquals("message2", sqIssue2.message());
-    assertEquals("project/path2", getIssuePath(sqIssue2));
+    assertEquals("project/path2", ipr.getIssuePath(sqIssue2));
     assertEquals((Integer) 2, sqIssue2.line());
   }
 
@@ -201,7 +204,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, true, excludedRules);
     assertEquals(2, report.size());
   }
 
@@ -216,7 +219,7 @@ public class SonarQubeCollectorTest {
 
     excludedRules.add(RuleKey.of("foo", "bar"));
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, true, excludedRules);
     assertEquals(1, report.size());
     assertEquals("key2", report.get(0).key());
   }
@@ -228,22 +231,22 @@ public class SonarQubeCollectorTest {
 
     assertFalse(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false).setInputComponent(ic), false, er
+            new DefaultIssue().setNew(false).setInputComponent(ic), ipr, false, er
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false).setInputComponent(ic), true, er
+            new DefaultIssue().setNew(false).setInputComponent(ic), ipr, true, er
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true).setInputComponent(ic), false, er
+            new DefaultIssue().setNew(true).setInputComponent(ic), ipr, false, er
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true).setInputComponent(ic), true, er
+            new DefaultIssue().setNew(true).setInputComponent(ic), ipr, true, er
         )
     );
   }

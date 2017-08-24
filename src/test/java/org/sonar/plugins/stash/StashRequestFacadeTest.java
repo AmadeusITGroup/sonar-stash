@@ -19,6 +19,7 @@ import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
+import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
@@ -96,6 +97,9 @@ public class StashRequestFacadeTest extends StashTest {
 
   List<PostJobIssue> report;
 
+  IssuePathResolver ipr;
+  StashProjectBuilder spr;
+
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
   private static final int STASH_PULLREQUEST_ID = 1;
@@ -126,7 +130,10 @@ public class StashRequestFacadeTest extends StashTest {
 
     ActiveRules activeRules = new ActiveRulesBuilder().build();
 
-    StashRequestFacade facade = new StashRequestFacade(config);
+    ipr = new DummyIssuePathResolver();
+    spr = new DummyStashProjectBuilder(new File("basedir"));
+
+    StashRequestFacade facade = new StashRequestFacade(config, spr);
     myFacade = spy(facade);
 
     stashClient = mock(StashClient.class);
@@ -141,7 +148,7 @@ public class StashRequestFacadeTest extends StashTest {
     stashUser = mock(StashUser.class);
     when(stashUser.getId()).thenReturn((long) 1234);
 
-    MarkdownPrinter printer = new MarkdownPrinter("http://stash/url", pr, 100,
+    MarkdownPrinter printer = new MarkdownPrinter(ipr, "http://stash/url", pr, 100,
         SONARQUBE_URL);
 
     report = new ArrayList<PostJobIssue>();

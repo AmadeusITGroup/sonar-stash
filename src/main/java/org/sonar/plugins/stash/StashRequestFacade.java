@@ -1,7 +1,6 @@
 package org.sonar.plugins.stash;
 
-import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
-
+import java.io.File;
 import java.util.Collection;
 import java.util.Optional;
 import java.text.MessageFormat;
@@ -11,8 +10,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.BatchSide;
+import org.sonar.api.batch.fs.InputComponent;
+import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
@@ -27,7 +29,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 @BatchSide
-public class StashRequestFacade {
+public class StashRequestFacade implements IssuePathResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
@@ -36,18 +38,22 @@ public class StashRequestFacade {
 
   private StashPluginConfiguration config;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration) {
+  private File projectBaseDir;
+
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration,
+      StashProjectBuilder projectBuilder) {
     this.config = stashPluginConfiguration;
+    this.projectBaseDir = projectBuilder.getProjectBaseDir();
   }
 
   public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues) {
     return SonarQubeCollector.extractIssueReport(
-        issues, config.includeExistingIssues(), config.excludedRules()
+        issues, this, config.includeExistingIssues(), config.excludedRules()
     );
   }
 
   private MarkdownPrinter getMarkdownPrinter() throws StashConfigurationException {
-    return new MarkdownPrinter(config.getStashURL(), getPullRequest(), getIssueThreshold(),
+    return new MarkdownPrinter(this, config.getStashURL(), getPullRequest(), getIssueThreshold(),
         config.getSonarQubeURL());
   }
 
@@ -423,5 +429,20 @@ public class StashRequestFacade {
     } catch (StashClientException e) {
       LOGGER.error("Unable to reset comment list", e);
     }
+  }
+
+  @Override
+  public String getIssuePath(PostJobIssue issue) {
+    InputComponent ip = issue.inputComponent();
+    if (ip == null || !ip.isFile()) {
+      return null;
+    }
+    InputFile inputFile = (InputFile) ip;
+
+    File baseDir = config
+        .getRepositoryRoot()
+        .orElse(projectBaseDir);
+
+    return new PathResolver().relativePath(baseDir, inputFile.file());
   }
 }
