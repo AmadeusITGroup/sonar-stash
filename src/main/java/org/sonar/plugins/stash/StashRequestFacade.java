@@ -56,7 +56,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   }
 
   private MarkdownPrinter getMarkdownPrinter() throws StashConfigurationException {
-    return new MarkdownPrinter(config.getStashURL(), getPullRequest(), this, getIssueThreshold(),
+    return new MarkdownPrinter(getStashURL(), getPullRequest(), this, getIssueThreshold(),
         config.getSonarQubeURL());
   }
 
