@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.List;
 import org.slf4j.Logger;
@@ -11,7 +12,6 @@ import org.sonar.api.batch.postjob.PostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.platform.Server;
-import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
@@ -56,7 +56,7 @@ public class StashIssueReportingPostJob implements PostJob {
           sonarQubeServer.getVersion())) {
 
         // Down the rabbit hole...
-        updateStashWithSonarInfo(null, stashClient, stashCredentials, context.issues());
+        updateStashWithSonarInfo(stashClient, stashCredentials, context.issues());
       }
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
@@ -68,7 +68,7 @@ public class StashIssueReportingPostJob implements PostJob {
   /*
   * Second part of the code necessary for the executeOn() -- squid:S134
   */
-  private void updateStashWithSonarInfo(Project project, StashClient stashClient,
+  private void updateStashWithSonarInfo(StashClient stashClient,
       StashCredentials stashCredentials, Iterable<PostJobIssue> issues) {
 
     try {
@@ -76,7 +76,7 @@ public class StashIssueReportingPostJob implements PostJob {
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
       // SonarQube objects
-      List<PostJobIssue> issueReport = stashRequestFacade.extractIssueReport(issues, project);
+      List<PostJobIssue> issueReport = stashRequestFacade.extractIssueReport(issues);
 
       StashUser stashUser = stashRequestFacade
           .getSonarQubeReviewer(stashCredentials.getUserSlug(), stashClient);
@@ -103,7 +103,7 @@ public class StashIssueReportingPostJob implements PostJob {
         stashRequestFacade.addPullRequestReviewer(pr, stashCredentials.getUserSlug(), stashClient);
       }
 
-      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient, project);
+      postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient);
 
     } catch (StashConfigurationException e) {
       LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
@@ -122,8 +122,7 @@ public class StashIssueReportingPostJob implements PostJob {
   */
   private void postInfoAndPRsActions(
       PullRequestRef pr, List<PostJobIssue> issueReport, int issueThreshold,
-      StashDiffReport diffReport, StashClient stashClient,
-      Project project
+      StashDiffReport diffReport, StashClient stashClient
   ) {
 
     int issueTotal = issueReport.size();
@@ -137,7 +136,7 @@ public class StashIssueReportingPostJob implements PostJob {
     }
 
     if (config.includeAnalysisOverview()) {
-      stashRequestFacade.postAnalysisOverview(pr, issueReport, stashClient, project);
+      stashRequestFacade.postAnalysisOverview(pr, issueReport, stashClient);
     }
 
     if (config.canApprovePullRequest()) {

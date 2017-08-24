@@ -85,7 +85,7 @@ public class SonarQubeCollectorTest {
     when(issue1.message()).thenReturn("message1");
     when(issue1.key()).thenReturn("key1");
     when(issue1.severity()).thenReturn(Severity.BLOCKER);
-    when(issue1.componentKey()).thenReturn("component1");
+    when(issue1.componentKey()).thenReturn("module1:component1");
     when(issue1.isNew()).thenReturn(true);
 
     RuleKey rule1 = mock(RuleKey.class);
@@ -96,15 +96,17 @@ public class SonarQubeCollectorTest {
     when(issue2.message()).thenReturn("message2");
     when(issue2.key()).thenReturn("key2");
     when(issue2.severity()).thenReturn(Severity.CRITICAL);
-    when(issue2.componentKey()).thenReturn("component2");
+    when(issue2.componentKey()).thenReturn("module2:component2");
     when(issue2.isNew()).thenReturn(true);
 
     RuleKey rule2 = mock(RuleKey.class);
     when(rule2.toString()).thenReturn("rule2");
     when(issue2.ruleKey()).thenReturn(rule2);
 
-    inputFile1 = new DefaultInputFile("project/path1", "inputFile1");
-    inputFile2 = new DefaultInputFile("project/path2", "inputFile2");
+    inputFile1 = new DefaultInputFile("module1", "project/path1");
+    inputFile2 = new DefaultInputFile("module2", "project/path2");
+    when(issue1.inputComponent()).thenReturn(inputFile1);
+    when(issue2.inputComponent()).thenReturn(inputFile2);
 
     excludedRules = new HashSet<>();
   }
@@ -113,7 +115,7 @@ public class SonarQubeCollectorTest {
   public void testExtractEmptyIssueReport() {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
     assertEquals(0, report.size());
   }
 
@@ -123,7 +125,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
     assertEquals(2, report.size());
     assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -147,7 +149,7 @@ public class SonarQubeCollectorTest {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(0, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -167,7 +169,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -175,13 +177,13 @@ public class SonarQubeCollectorTest {
 
   @Test
   public void testExtractIssueReportWithOneIssueWithoutInputFile() {
-    issue1.setInputComponent(null);
+    when(issue1.inputComponent()).thenReturn(null);
 
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, false, excludedRules);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -201,7 +203,7 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules);
     assertEquals(2, report.size());
   }
 
@@ -216,7 +218,7 @@ public class SonarQubeCollectorTest {
 
     excludedRules.add(RuleKey.of("foo", "bar"));
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules, project);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, true, excludedRules);
     assertEquals(1, report.size());
     assertEquals("key2", report.get(0).key());
   }
@@ -228,22 +230,22 @@ public class SonarQubeCollectorTest {
 
     assertFalse(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false).setInputComponent(ic), false, er, project
+            new DefaultIssue().setNew(false).setInputComponent(ic), false, er
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false).setInputComponent(ic), true, er, project
+            new DefaultIssue().setNew(false).setInputComponent(ic), true, er
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true).setInputComponent(ic), false, er, project
+            new DefaultIssue().setNew(true).setInputComponent(ic), false, er
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true).setInputComponent(ic), true, er, project
+            new DefaultIssue().setNew(true).setInputComponent(ic), true, er
         )
     );
   }

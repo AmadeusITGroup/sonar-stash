@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.ArrayList;
@@ -102,7 +101,7 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public String printReportMarkdown(Collection<PostJobIssue> allIssues, Project project) {
+  public String printReportMarkdown(Collection<PostJobIssue> allIssues) {
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
 
@@ -111,7 +110,7 @@ public final class MarkdownPrinter {
     List<PostJobIssue> globalCoverageIssues = new ArrayList<>();
 
     for (PostJobIssue issue : allIssues) {
-      if (isProjectWide(issue, project)) {
+      if (isProjectWide(issue)) {
         globalCoverageIssues.add(issue);
       } else if (isCoverageEvolution(issue)) {
         coverageIssues.add(issue);

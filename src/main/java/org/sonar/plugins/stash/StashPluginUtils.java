@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import com.google.common.base.CharMatcher;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
@@ -12,7 +13,6 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Objects;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.resources.Project;
 
 public final class StashPluginUtils {
 
@@ -41,9 +41,12 @@ public final class StashPluginUtils {
     return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
-  public static boolean isProjectWide(PostJobIssue issue, Project project) {
+  public static boolean isProjectWide(PostJobIssue issue) {
     String k = issue.componentKey();
-    return (k != null && Objects.equals(k, project.getKey()));
+    if (k == null) {
+      return false;
+    }
+    return CharMatcher.is(':').countIn(k) == 0;
   }
 
   public static PluginInfo getPluginInfo() {

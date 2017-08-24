@@ -144,7 +144,7 @@ public class MarkdownPrinterTest {
 
   @Test
   public void testPrintReportMarkdown() {
-    String issueReportMarkdown = printer.printReportMarkdown(report, project);
+    String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 4 |\n"
         + "|-----------------|------|\n"
@@ -169,7 +169,7 @@ public class MarkdownPrinterTest {
   @Test
   public void testPrintReportMarkdownWithIssueLimitation() {
     printer = new MarkdownPrinter(STASH_URL, pr, 3, SONAR_URL);
-    String issueReportMarkdown = printer.printReportMarkdown(report, project);
+    String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "### Too many issues detected (4/3): Issues cannot be displayed in Diff view.\n\n"
         + "| Total New Issues | 4 |\n"
@@ -196,7 +196,7 @@ public class MarkdownPrinterTest {
   public void testPrintEmptyReportMarkdown() {
     report = new ArrayList<>();
 
-    String issueReportMarkdown = printer.printReportMarkdown(report, project);
+    String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "### No new issues detected!\n\n";
 
@@ -208,7 +208,7 @@ public class MarkdownPrinterTest {
     report = new ArrayList<>();
     report.add(coverageIssue);
 
-    String issueReportMarkdown = printer.printReportMarkdown(report, project);
+    String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 1 |\n"
         + "|-----------------|------|\n"
@@ -229,7 +229,7 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdownWithEmptyCoverageReport() {
     report.remove(coverageIssue);
 
-    String issueReportMarkdown = printer.printReportMarkdown(report, project);
+    String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 3 |\n"
         + "|-----------------|------|\n"

@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
@@ -45,9 +44,9 @@ public class StashRequestFacade {
     this.projectBaseDir = projectBuilder.getProjectBaseDir();
   }
 
-  public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues, Project project) {
+  public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues) {
     return SonarQubeCollector.extractIssueReport(
-        issues, config.includeExistingIssues(), config.excludedRules(), project
+        issues, config.includeExistingIssues(), config.excludedRules()
     );
   }
 
@@ -61,11 +60,10 @@ public class StashRequestFacade {
    */
   public void postAnalysisOverview(PullRequestRef pr,
       Collection<PostJobIssue> issueReport,
-      StashClient stashClient,
-      Project project) {
+      StashClient stashClient) {
 
     try {
-      String report = getMarkdownPrinter().printReportMarkdown(issueReport, project);
+      String report = getMarkdownPrinter().printReportMarkdown(issueReport);
       stashClient.postCommentOnPullRequest(pr, report);
 
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");

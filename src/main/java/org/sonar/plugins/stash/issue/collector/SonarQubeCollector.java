@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.rule.RuleKey;
-import org.sonar.api.resources.Project;
-import org.sonar.plugins.stash.StashRequestFacade;
 
 public final class SonarQubeCollector {
 
@@ -29,23 +27,21 @@ public final class SonarQubeCollector {
    */
   public static List<PostJobIssue> extractIssueReport(
       Iterable<PostJobIssue> issues,
-      boolean includeExistingIssues, Set<RuleKey> excludedRules, Project project) {
+      boolean includeExistingIssues, Set<RuleKey> excludedRules) {
     return StreamSupport.stream(
         issues.spliterator(), false)
                         .filter(issue -> shouldIncludeIssue(
                             issue,
-                            includeExistingIssues, excludedRules, project
+                            includeExistingIssues, excludedRules
                         ))
                         .collect(Collectors.toList());
   }
 
   static boolean shouldIncludeIssue(
       PostJobIssue issue,
-      boolean includeExistingIssues, Set<RuleKey> excludedRules,
-      Project project
+      boolean includeExistingIssues, Set<RuleKey> excludedRules
   ) {
     if (!includeExistingIssues && !issue.isNew()) {
-      // squid:S2629 : no evaluation required if the logging level is not activated
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
       }
@@ -60,8 +56,7 @@ public final class SonarQubeCollector {
     }
 
     String path = getIssuePath(issue);
-    if (!isProjectWide(issue, project) && path == null) {
-      // squid:S2629 : no evaluation required if the logging level is not activated
+    if (!isProjectWide(issue) && path == null) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
       }

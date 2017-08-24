@@ -47,7 +47,8 @@ public class StashPlugin extends SonarPlugin {
 
   // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
   private static final List<String> SEVERITY_LIST = Severity.ALL;
-  private static final List<String> SEVERITY_LIST_WITH_NONE = Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
+  private static final List<String> SEVERITY_LIST_WITH_NONE = Lists
+      .asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
 
   public static final String CONTEXT_ISSUE_TYPE = "CONTEXT";
   public static final String REMOVED_ISSUE_TYPE = "REMOVED";

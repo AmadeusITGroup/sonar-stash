@@ -160,7 +160,7 @@ public class StashRequestFacadeTest extends StashTest {
                                      .setSeverity(Severity.MAJOR)
                                      .setMessage("message2")
                                      .setRuleKey(RuleKey.of("foo", "rule2"))
-                                     .setInputComponent(new DefaultInputFile("module2", FILE_PATH_2))
+                                     .setInputComponent(new DefaultInputFile("module2", FILE_PATH_1))
                                      .setLine(2);
     stashCommentMessage2 = printer.printIssueMarkdown(issue2);
     report.add(issue2);

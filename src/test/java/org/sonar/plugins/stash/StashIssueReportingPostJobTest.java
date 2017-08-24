@@ -3,12 +3,14 @@ package org.sonar.plugins.stash;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.junit.Before;
@@ -17,12 +19,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.platform.Server;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
@@ -87,7 +86,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
 
     when(report.size()).thenReturn(10);
-    when(stashRequestFacade.extractIssueReport(report, Mockito.any()))
+    when(stashRequestFacade.extractIssueReport(eq(report)))
         .thenReturn(report);
     when(context.issues()).thenReturn(report);
 
@@ -120,7 +119,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
         .postSonarQubeReport(eq(pr), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(1))
         .postAnalysisOverview(eq(pr), eq(report),
-            (StashClient) Mockito.anyObject(), eq(PROJECT));
+            (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .approvePullRequest(eq(pr), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
@@ -131,9 +130,9 @@ public class StashIssueReportingPostJobTest extends StashTest {
   public void testExecuteOnWithReachedThreshold() throws Exception {
     when(stashRequestFacade.getIssueThreshold()).thenReturn(10);
 
-    List<PostJobIssue> report = spy(new ArrayList<>());
+    List<PostJobIssue> report = mock(ArrayList.class);
     when(report.size()).thenReturn(55);
-    when(stashRequestFacade.extractIssueReport(eq(report), Mockito.any()))
+    when(stashRequestFacade.extractIssueReport(eq(report)))
         .thenReturn(report);
 
     myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);
@@ -144,8 +143,8 @@ public class StashIssueReportingPostJobTest extends StashTest {
     verify(stashRequestFacade, times(0))
         .postSonarQubeReport(eq(pr), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(1))
-        .postAnalysisOverview(eq(pr), eq(report), (StashClient) Mockito.anyObject(),
-            eq(PROJECT));
+        .postAnalysisOverview(eq(pr), Mockito.any(Collection.class), (StashClient) Mockito.anyObject()
+        );
   }
 
   @Test
@@ -161,7 +160,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
         .postSonarQubeReport(eq(pr), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .postAnalysisOverview(eq(pr), eq(report),
-            (StashClient) Mockito.anyObject(), eq(PROJECT));
+            (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .approvePullRequest(eq(pr), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
@@ -182,7 +181,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
         .postSonarQubeReport(eq(pr), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .postAnalysisOverview(eq(pr), eq(report),
-            (StashClient) Mockito.anyObject(), eq(PROJECT));
+            (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .approvePullRequest(eq(pr), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
@@ -202,7 +201,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
         .postSonarQubeReport(eq(pr), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(1))
         .postAnalysisOverview(eq(pr), eq(report),
-            (StashClient) Mockito.anyObject(), eq(PROJECT));
+            (StashClient) Mockito.anyObject());
   }
 
   @Test
@@ -220,7 +219,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
         .postSonarQubeReport(eq(pr), eq(report), eq(diffReport), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .postAnalysisOverview(eq(pr), eq(report),
-            (StashClient) Mockito.anyObject(), eq(PROJECT));
+            (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
         .approvePullRequest(eq(pr), (StashClient) Mockito.anyObject());
     verify(stashRequestFacade, times(0))
