@@ -103,10 +103,6 @@ public class StashPluginConfiguration {
     return Optional.ofNullable(settings.getString(StashPlugin.STASH_REPOSITORY_ROOT)).map(File::new);
   }
 
-  public boolean scanAllFiles() {
-    return settings.getBoolean("sonar.scanAllFiles");
-  }
-
   public boolean includeExistingIssues() {
     return settings.getBoolean(StashPlugin.STASH_INCLUDE_EXISTING_ISSUES);
   }

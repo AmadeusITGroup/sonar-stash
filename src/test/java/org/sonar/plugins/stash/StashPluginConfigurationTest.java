@@ -38,8 +38,6 @@ public class StashPluginConfigurationTest {
     settings.setProperty(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW, true);
     //Optional getRepositoryRoot() ???
 
-    settings.setProperty("sonar.scanAllFiles", false);
-
     StashPluginConfiguration SPC = new StashPluginConfiguration(settings);
 
     assertEquals(true, SPC.hasToNotifyStash());
@@ -62,8 +60,6 @@ public class StashPluginConfigurationTest {
     assertEquals(Optional.of(Severity.MINOR), SPC.getTaskIssueSeverityThreshold());
     assertEquals(true, SPC.includeAnalysisOverview());
     //assertEquals(, SPC.getRepositoryRoot());
-
-    assertEquals(false, SPC.scanAllFiles());
 
     settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "NONE");
     assertEquals(Optional.empty(), SPC.getTaskIssueSeverityThreshold());
