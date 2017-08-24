@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.resources.Project;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.CoverageCompat;
 import org.sonar.plugins.stash.DefaultIssue;
@@ -27,7 +26,6 @@ public class MarkdownPrinterTest {
   private static final String STASH_URL = "stash/URL";
   private MarkdownPrinter printer;
   private int issueThreshold;
-  private Project project;
 
   PullRequestRef pr = PullRequestRef.builder()
       .setProject("stashProject")
@@ -71,7 +69,6 @@ public class MarkdownPrinterTest {
 
     issueThreshold = 100;
 
-    project = new Project("project");
     printer = new MarkdownPrinter(STASH_URL, pr, issueThreshold, SONAR_URL);
   }
 

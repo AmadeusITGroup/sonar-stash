@@ -23,7 +23,6 @@ import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.platform.Server;
-import org.sonar.api.resources.Project;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -72,7 +71,6 @@ public class StashIssueReportingPostJobTest extends StashTest {
 
 
   private static final String SONARQUBE_URL = "http://url/to/sonarqube";
-  private static final Project PROJECT = new Project("some:project");
 
   @Before
   public void setUp() throws Exception {

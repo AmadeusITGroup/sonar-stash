@@ -125,9 +125,8 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getStashRepository()).thenReturn(STASH_REPOSITORY);
 
     ActiveRules activeRules = new ActiveRulesBuilder().build();
-    StashProjectBuilder projectBuilder = new DummyStashProjectBuilder(new File("/root/"));
 
-    StashRequestFacade facade = new StashRequestFacade(config, projectBuilder);
+    StashRequestFacade facade = new StashRequestFacade(config);
     myFacade = spy(facade);
 
     stashClient = mock(StashClient.class);

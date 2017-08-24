@@ -11,7 +11,6 @@ import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.Objects;
 import org.sonar.api.batch.rule.Severity;
 
 public final class StashPluginUtils {

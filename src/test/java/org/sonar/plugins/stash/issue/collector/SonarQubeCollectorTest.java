@@ -28,7 +28,6 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.resources.Project;
 import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.DefaultIssue;
@@ -58,7 +57,6 @@ public class SonarQubeCollectorTest {
   InputFile inputFile2;
 
   Set<RuleKey> excludedRules;
-  Project project = new Project("foobar");
 
   @Mock
   PostJobContext postJobContext;

@@ -1,6 +1,5 @@
 package org.sonar.plugins.stash;
 
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.List;
 import org.slf4j.Logger;
@@ -161,6 +160,7 @@ public class StashIssueReportingPostJob implements PostJob {
   @Override
   public void describe(PostJobDescriptor descriptor) {
     descriptor.requireProperty(StashPlugin.STASH_NOTIFICATION);
+    descriptor.name("Stash/Bitbucket notification");
   }
 
 

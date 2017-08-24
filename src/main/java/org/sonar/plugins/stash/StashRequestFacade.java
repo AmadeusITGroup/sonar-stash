@@ -4,7 +4,6 @@ import static org.sonar.plugins.stash.StashPluginUtils.getIssuePath;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.io.File;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -36,12 +35,9 @@ public class StashRequestFacade {
   private static final String STACK_TRACE = "Exception stack trace";
 
   private StashPluginConfiguration config;
-  private File projectBaseDir;
 
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration,
-      StashProjectBuilder projectBuilder) {
+  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration) {
     this.config = stashPluginConfiguration;
-    this.projectBaseDir = projectBuilder.getProjectBaseDir();
   }
 
   public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues) {
