@@ -157,18 +157,14 @@ public class StashClient implements AutoCloseable {
   throws StashClientException {
     StashDiffReport result = null;
 
-    try {
-      String request = MessageFormat.format(API_ONE_PR_DIFF,
-                                            baseUrl,
-                                            pr.project(),
-                                            pr.repository(),
-                                            pr.pullRequestId());
-      JsonObject jsonDiffs = get(request,
-                                 MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
-      result = StashCollector.extractDiffs(jsonDiffs);
-    } catch (StashReportExtractionException e) {
-      throw new StashClientException(e);
-    }
+    String request = MessageFormat.format(API_ONE_PR_DIFF,
+        baseUrl,
+        pr.project(),
+        pr.repository(),
+        pr.pullRequestId());
+    JsonObject jsonDiffs = get(request,
+        MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+    result = StashCollector.extractDiffs(jsonDiffs);
 
     return result;
   }
