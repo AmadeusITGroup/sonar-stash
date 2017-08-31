@@ -17,17 +17,14 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FilePredicate;
 import org.sonar.api.batch.fs.FilePredicates;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
-import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.resources.Resource;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.DefaultIssue;
 import org.sonar.plugins.stash.IssuePathResolver;
@@ -43,15 +40,6 @@ public class SonarQubeCollectorTest {
   DefaultIssue issue2;
 
   @Mock
-  SensorContext context;
-
-  @Mock
-  Resource resource1;
-
-  @Mock
-  Resource resource2;
-
-  @Mock
   InputFile inputFile1;
 
   @Mock
@@ -59,26 +47,10 @@ public class SonarQubeCollectorTest {
 
   Set<RuleKey> excludedRules;
 
-  @Mock
-  PostJobContext postJobContext;
-
   IssuePathResolver ipr = new DummyIssuePathResolver();
 
   @Before
   public void setUp() throws Exception {
-
-    ///////// File system objects /////////
-
-    ArrayList<InputFile> inputFiles = new ArrayList<InputFile>();
-    inputFiles.add(inputFile1);
-    inputFiles.add(inputFile2);
-
-    FilePredicates filePredicates = mock(FilePredicates.class);
-    when(filePredicates.all()).thenReturn(mock(FilePredicate.class));
-
-    FileSystem fileSystem = mock(FileSystem.class);
-    when(fileSystem.inputFiles((FilePredicate) anyObject())).thenReturn(inputFiles);
-    when(fileSystem.predicates()).thenReturn(filePredicates);
 
     ///////// SonarQube issues /////////
 
@@ -88,6 +60,7 @@ public class SonarQubeCollectorTest {
     when(issue1.severity()).thenReturn(Severity.BLOCKER);
     when(issue1.componentKey()).thenReturn("module1:component1");
     when(issue1.isNew()).thenReturn(true);
+    when(issue1.inputComponent()).thenReturn(new DefaultInputFile("module1", "file1"));
 
     RuleKey rule1 = mock(RuleKey.class);
     when(rule1.toString()).thenReturn("rule1");
@@ -99,6 +72,7 @@ public class SonarQubeCollectorTest {
     when(issue2.severity()).thenReturn(Severity.CRITICAL);
     when(issue2.componentKey()).thenReturn("module2:component2");
     when(issue2.isNew()).thenReturn(true);
+    when(issue2.inputComponent()).thenReturn(new DefaultInputFile("module2", "file2"));
 
     RuleKey rule2 = mock(RuleKey.class);
     when(rule2.toString()).thenReturn("rule2");

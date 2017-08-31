@@ -443,6 +443,7 @@ public class StashRequestFacade implements IssuePathResolver {
         .getRepositoryRoot()
         .orElse(projectBaseDir);
 
+
     return new PathResolver().relativePath(baseDir, inputFile.file());
   }
 }
