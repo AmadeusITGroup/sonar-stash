@@ -4,6 +4,8 @@ import com.google.common.base.CharMatcher;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
+import org.sonar.api.batch.fs.InputComponent;
+import org.sonar.api.batch.fs.InputModule;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 
 import java.math.RoundingMode;
@@ -39,11 +41,15 @@ public final class StashPluginUtils {
   }
 
   public static boolean isProjectWide(PostJobIssue issue) {
-    String k = issue.componentKey();
-    if (k == null) {
+    InputComponent ic = issue.inputComponent();
+    if (!(ic instanceof InputModule)) {
       return false;
     }
-    return CharMatcher.is(':').countIn(k) == 0;
+    InputModule im = (InputModule) ic;
+    if (im.key() == null) {
+      return false;
+    }
+    return CharMatcher.is(':').countIn(im.key()) == 0;
   }
 
   public static PluginInfo getPluginInfo() {
