@@ -33,7 +33,7 @@ public class CompleteITCase {
   protected static final int stashPullRequest = 42;
 
   @Rule
-  public WireMockRule wireMock = new WireMockRule(WireMockConfiguration.options().port(8080));
+  public WireMockRule wireMock = new WireMockRule(WireMockConfiguration.options().dynamicPort());
   @ClassRule
   public static SonarQubeRule sonarqube = new SonarQubeRule(MavenSonarFixtures.getSonarqube(9000));
 

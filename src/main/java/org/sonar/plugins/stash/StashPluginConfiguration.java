@@ -10,15 +10,18 @@ import org.sonar.api.config.Settings;
 
 import java.io.File;
 import java.util.Optional;
+import org.sonar.api.platform.Server;
 import org.sonar.api.rule.RuleKey;
 
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration implements BatchComponent {
 
   private Settings settings;
+  private Server server;
 
-  public StashPluginConfiguration(Settings settings) {
+  public StashPluginConfiguration(Settings settings, Server server) {
     this.settings = settings;
+    this.server = server;
   }
 
   public boolean hasToNotifyStash() {
@@ -58,7 +61,7 @@ public class StashPluginConfiguration implements BatchComponent {
   }
 
   public String getSonarQubeURL() {
-    return settings.getString(StashPlugin.SONARQUBE_URL);
+    return server.getURL();
   }
 
   public String getSonarQubeLogin() {

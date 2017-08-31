@@ -25,7 +25,6 @@ public class StashPluginConfigurationTest {
     settings.setProperty(StashPlugin.STASH_USER_SLUG, "mini.me");
     settings.setProperty(StashPlugin.STASH_PASSWORD, "unsecure");
     settings.setProperty(StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE, "you-should-not");
-    settings.setProperty(StashPlugin.SONARQUBE_URL, "https://sonar");
 
     settings.setProperty(CoreProperties.LOGIN, "him");
     settings.setProperty(CoreProperties.PASSWORD, "notsafe");
@@ -39,7 +38,7 @@ public class StashPluginConfigurationTest {
 
     settings.setProperty("sonar.scanAllFiles", false);
 
-    StashPluginConfiguration SPC = new StashPluginConfiguration(settings);
+    StashPluginConfiguration SPC = new StashPluginConfiguration(settings, null);
 
     assertEquals(true, SPC.hasToNotifyStash());
     assertEquals("take-over-the-world", SPC.getStashProject());
@@ -50,7 +49,6 @@ public class StashPluginConfigurationTest {
     assertEquals("mini.me", SPC.getStashUserSlug());
     assertEquals("unsecure", SPC.getStashPassword());
     assertEquals("you-should-not", SPC.getStashPasswordEnvironmentVariable());
-    assertEquals("https://sonar", SPC.getSonarQubeURL());
 
     assertEquals("him", SPC.getSonarQubeLogin());
     assertEquals("notsafe", SPC.getSonarQubePassword());
