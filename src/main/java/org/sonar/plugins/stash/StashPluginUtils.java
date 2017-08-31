@@ -4,8 +4,6 @@ import com.google.common.base.CharMatcher;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
-import org.sonar.api.batch.fs.InputComponent;
-import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 
 import java.math.RoundingMode;
