@@ -336,8 +336,8 @@ public class StashClient implements AutoCloseable {
         .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
     requestBuilder.setRealm(realm);
     requestBuilder.setFollowRedirect(true);
-    requestBuilder.addHeader("Content-Type", "application/json");
-    requestBuilder.addHeader("Accept", "application/json");
+    requestBuilder.addHeader("Content-Type", JSON.toString());
+    requestBuilder.addHeader("Accept", JSON.toString());
 
     try {
       // No need to be paranoid as a null value will raise a NullPointerException here

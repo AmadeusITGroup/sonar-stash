@@ -28,7 +28,13 @@ public class ContentType {
     if (types.length < CONTENTTYPE_ELEM_NUM) {
       return false;
     }
+    
     return primaryType.equalsIgnoreCase(types[0])
            && subType.equalsIgnoreCase(types[1]);
+  }
+
+  @Override
+  public String toString() {
+    return primaryType + "/" + subType;
   }
 }
