@@ -46,6 +46,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
+
 public class StashClientTest extends StashTest {
   private static final int timeout = 800;
   private static final int errorTimeout = timeout + 10;
@@ -378,6 +380,30 @@ public class StashClientTest extends StashTest {
 
     client.getPullRequestComments(pr, "something");
     wireMock.verify(getRequestedFor(urlPathMatching(".*/pull-requests/1234567890/comments.*")));
+  }
+
+  @Test
+  public void testClientWithoutCredentials() throws Exception {
+    String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(jsonUser)));
+    client = new StashClient("http://127.0.0.1:" + wireMock.port(),
+        new StashCredentials(null, null, null),
+        timeout,
+        "dummyVersion");
+    client.getUser("test");
+    wireMock.verify(getRequestedFor(anyUrl()).withoutHeader("Authorization"));
+  }
+
+  @Test
+  public void testClientWithoutPassword() throws Exception {
+    String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
+    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withBody(jsonUser)));
+    client = new StashClient("http://127.0.0.1:" + wireMock.port(),
+        new StashCredentials("foo", null, "foo"),
+        timeout,
+        "dummyVersion");
+    client.getUser("test");
+    wireMock.verify(getRequestedFor(anyUrl()).withHeader("Authorization", new EqualToPattern("Basic Zm9vOg==")));
   }
 
   private void addErrorResponse(MappingBuilder mapping, int statusCode) {

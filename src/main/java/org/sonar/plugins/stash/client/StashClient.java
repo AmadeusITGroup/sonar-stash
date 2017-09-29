@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash.client;
 
+import java.util.Optional;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -324,17 +325,24 @@ public class StashClient implements AutoCloseable {
     return performRequest(httpClient.preparePut(url), body, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
+  private void addAuth(BoundRequestBuilder requestBuilder) {
+    if (credentials != null && credentials.getLogin() != null) {
+      String password = Optional.ofNullable(credentials.getPassword()).orElse("");
+      Realm realm = new Realm.Builder(credentials.getLogin(), password).setUsePreemptiveAuth(true)
+          .setScheme(Realm.AuthScheme.BASIC).build();
+      requestBuilder.setRealm(realm);
+    }
+  }
+
   private JsonObject performRequest(BoundRequestBuilder requestBuilder,
-                                    JsonObject body,
-                                    int expectedStatusCode,
-                                    String errorMessage)
-  throws StashClientException {
+      JsonObject body,
+      int expectedStatusCode,
+      String errorMessage)
+      throws StashClientException {
     if (body != null) {
       requestBuilder.setBody(body.toJson());
     }
-    Realm realm = new Realm.Builder(credentials.getLogin(), credentials.getPassword())
-        .setUsePreemptiveAuth(true).setScheme(Realm.AuthScheme.BASIC).build();
-    requestBuilder.setRealm(realm);
+    addAuth(requestBuilder);
     requestBuilder.setFollowRedirect(true);
     requestBuilder.addHeader("Content-Type", JSON.toString());
     requestBuilder.addHeader("Accept", JSON.toString());
