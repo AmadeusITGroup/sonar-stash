@@ -73,7 +73,8 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_INCLUDE_EXISTING_ISSUES = "sonar.stash.include.existing.issues";
   public static final String STASH_INCLUDE_VICINITY_RANGE = "sonar.stash.include.vicinity.issues.range";
   public static final String STASH_EXCLUDE_RULES = "sonar.stash.exclude.rules";
-
+  public static final String STASH_CERTIFICATES_ACCEPTANCE = "sonar.stash.accept.any.sslcertificate"; 
+  
   @Override
   public List getExtensions() {
     return Arrays.asList(
@@ -88,6 +89,13 @@ public class StashPlugin extends SonarPlugin {
                           .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT).build(),
+        PropertyDefinition.builder(STASH_CERTIFICATES_ACCEPTANCE)
+						  .name("Stash accept any SSL certificate")
+						  .description("Whether to accept any SSL certificate when using HTTPS. Note this is insecure")
+						  .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+						  .onQualifiers(Qualifiers.PROJECT)
+						  .type(PropertyType.BOOLEAN)
+						  .defaultValue("false").build(),
         PropertyDefinition.builder(STASH_LOGIN)
                           .name("Stash base User")
                           .description("User to push data on Stash instance")
