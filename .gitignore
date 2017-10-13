@@ -3,5 +3,8 @@ target
 .project
 .classpath
 .settings
-stash.iml
+*.iml
 /bin/
+/release.properties
+/pom.xml.releaseBackup
+/dependency-reduced-pom.xml

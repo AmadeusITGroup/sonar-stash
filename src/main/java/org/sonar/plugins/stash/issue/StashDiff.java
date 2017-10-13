@@ -1,10 +1,9 @@
 package org.sonar.plugins.stash.issue;
 
+import org.sonar.plugins.stash.StashPlugin;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.sonar.plugins.stash.StashPlugin;
 
 public class StashDiff {
 
@@ -13,7 +12,7 @@ public class StashDiff {
   private final long source;
   private final long destination;
   private final List<StashComment> comments;
-  
+
   public StashDiff(String type, String path, long source, long destination) {
     this.type = type;
     this.path = path;
@@ -22,10 +21,10 @@ public class StashDiff {
     this.comments = new ArrayList<>();
   }
 
-  public void addComment(StashComment comment){
+  public void addComment(StashComment comment) {
     this.comments.add(comment);
   }
-  
+
   public String getPath() {
     return path;
   }
@@ -33,33 +32,24 @@ public class StashDiff {
   public long getSource() {
     return source;
   }
-  
+
   public long getDestination() {
     return destination;
   }
-  
-  public String getType(){
+
+  public String getType() {
     return type;
   }
-  
-  public List<StashComment> getComments(){
+
+  public List<StashComment> getComments() {
     return comments;
   }
-  
-  public boolean isTypeOfContext(){
-    return StringUtils.equals(StashPlugin.CONTEXT_ISSUE_TYPE, type);
+
+  public boolean isTypeOfContext() {
+    return StashPlugin.CONTEXT_ISSUE_TYPE.equals(type);
   }
-  
-  public boolean containsComment(long commentId){
-    boolean result = false;
-    for (StashComment comment: comments){
-      long cid = comment.getId();
-      if (cid == commentId){
-        result = true;
-        break;
-      }
-    }
-    
-    return result;
+
+  public boolean containsComment(long commentId) {
+    return comments.stream().anyMatch(c -> c.getId() == commentId);
   }
 }

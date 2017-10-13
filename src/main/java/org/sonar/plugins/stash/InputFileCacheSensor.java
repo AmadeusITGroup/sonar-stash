@@ -1,35 +1,35 @@
 package org.sonar.plugins.stash;
 
+import com.google.common.base.Optional;
+import org.sonar.api.BatchComponent;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
-import org.sonar.api.batch.fs.FilePredicate;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.resources.Project;
+import org.sonar.api.resources.Resource;
 
-public class InputFileCacheSensor implements Sensor {
-
+/*
+ * FIXME this should not be necessary, the new plugin API gives us direct access to the InputFile of an issue
+ */
+public class InputFileCacheSensor implements Sensor, BatchComponent {
   private final StashPluginConfiguration stashPluginConfiguration;
-  private final FileSystem fileSystem;
   private final InputFileCache inputFileCache;
+  private final FileSystem fileSystem;
 
-  public InputFileCacheSensor(StashPluginConfiguration stashPluginConfiguration, FileSystem fileSystem,
-      InputFileCache inputFileCache) {
+  public InputFileCacheSensor(StashPluginConfiguration stashPluginConfiguration,
+                              InputFileCache inputFileCache,
+                              FileSystem fileSystem) {
     this.stashPluginConfiguration = stashPluginConfiguration;
-    this.fileSystem = fileSystem;
     this.inputFileCache = inputFileCache;
+    this.fileSystem = fileSystem;
   }
 
   @Override
   public void analyse(Project module, SensorContext context) {
-    for (InputFile inputFile : fileSystem.inputFiles(getAllPredicateFiles())) {
-      inputFileCache.putInputFile(context.getResource(inputFile).getEffectiveKey(), inputFile);
+    for (InputFile inputFile : fileSystem.inputFiles(fileSystem.predicates().all())) {
+      inputFileCache.putInputFile(computeEffectiveKey(context.getResource(inputFile), module), inputFile);
     }
-  }
-
-  @Override
-  public String toString() {
-    return "Stash Plugin InputFile Cache";
   }
 
   @Override
@@ -37,8 +37,14 @@ public class InputFileCacheSensor implements Sensor {
     return stashPluginConfiguration.hasToNotifyStash();
   }
 
-  private FilePredicate getAllPredicateFiles(){
-    return fileSystem.predicates().all();
+  @Override
+  public String toString() {
+    return "Stash Plugin Inputfile Cache";
   }
-  
+
+  public static String computeEffectiveKey(Resource resource, Project module) {
+    return Optional.fromNullable(
+        resource.getEffectiveKey()).or(() ->
+                                           module.getKey() + ":" + resource.getKey());
+  }
 }

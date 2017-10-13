@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.sonar</groupId>
   <artifactId>sonar-stash-plugin</artifactId>
-  <version>1.1.0-SNAPSHOT</version>
+  <version>1.3.0-SNAPSHOT</version>
   <packaging>sonar-plugin</packaging>
   <description>Integration between Atlassian Stash (BitBucket) and SonarQube</description>
   <name>Stash</name>
@@ -37,6 +36,22 @@
     <sonar.version>4.5.4</sonar.version>
     <sonar.pluginName>Stash</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.stash.StashPlugin</sonar.pluginClass>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <test.sonarqube.dist.groupId>fixme.fixme</test.sonarqube.dist.groupId>
+    <test.sonarqube.dist.artifactId>sonarqube-dist</test.sonarqube.dist.artifactId>
+    <test.sonarqube.dist.version>6.0</test.sonarqube.dist.version>
+    <test.sonarqube.dist.outputdir>${project.build.directory}/fixtures/sonarqube</test.sonarqube.dist.outputdir>
+
+    <test.sonarscanner.dist.groupId>fixme.fixme</test.sonarscanner.dist.groupId>
+    <test.sonarscanner.dist.artifactId>sonarscanner-dist</test.sonarscanner.dist.artifactId>
+    <test.sonarscanner.dist.version>2.6.1</test.sonarscanner.dist.version>
+    <test.sonarscanner.dist.outputdir>${project.build.directory}/fixtures/sonarscanner</test.sonarscanner.dist.outputdir>
+    
+    <test.url.binaries.repo>https://sonarsource.bintray.com/Distribution</test.url.binaries.repo>
+    <test.plugin.archive>${project.build.directory}/${project.artifactId}-${project.version}.jar</test.plugin.archive>
+    <test.sources.dir>${project.build.directory}/fixtures/sources</test.sources.dir>
+    <sonar.coverage.exclusions>src/main/java/org/sonar/plugins/stash/StashPlugin.java,src/main/java/org/sonar/plugins/stash/StashPluginConfiguration.java</sonar.coverage.exclusions>
   </properties>
 
   <organization>
@@ -49,31 +64,35 @@
       <groupId>org.codehaus.sonar</groupId>
       <artifactId>sonar-plugin-api</artifactId>
       <version>${sonar.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.3.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpclient</artifactId>
-      <version>4.4</version>
-    </dependency>
-    <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
+      <groupId>com.github.cliftonlabs</groupId>
       <artifactId>json-simple</artifactId>
-      <version>1.1.1</version>
+      <version>2.1.2</version>
     </dependency>
     <dependency>
-      <groupId>com.ning</groupId>
+      <groupId>org.asynchttpclient</groupId>
       <artifactId>async-http-client</artifactId>
-      <version>1.9.28</version>
+      <version>2.0.28</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-transport-native-epoll</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>19.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- unit tests -->
@@ -89,14 +108,44 @@
       <version>1.9.5</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>[1.7.21,)</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock</artifactId>
+      <version>2.6.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <version>1.16.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-project</artifactId>
+      <version>2.0.6</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources/</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.codehaus.sonar</groupId>
         <artifactId>sonar-packaging-maven-plugin</artifactId>
-        <version>1.7</version>
+        <version>1.13</version>
         <extensions>true</extensions>
         <configuration>
           <pluginClass>org.sonar.plugins.stash.StashPlugin</pluginClass>
@@ -107,9 +156,80 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
         <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
+          <source>1.8</source>
+          <target>1.8</target>
           <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <tagNameFormat>@{project.version}</tagNameFormat>
+          <pushChanges>false</pushChanges>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>download-maven-plugin</artifactId>
+        <version>1.3.0</version>
+        <executions>
+          <execution>
+            <id>install-sonarqube</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>${test.url.binaries.repo}/sonarqube/sonarqube-${test.sonarqube.dist.version}.zip</url>
+              <unpack>true</unpack>
+              <outputDirectory>${test.sonarqube.dist.outputdir}</outputDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>install-sonarscanner</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>${test.url.binaries.repo}/sonar-scanner-cli/sonar-scanner-${test.sonarscanner.dist.version}.zip</url>
+              <unpack>true</unpack>
+              <outputDirectory>${test.sonarscanner.dist.outputdir}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.19.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <trimStackTrace>false</trimStackTrace>
+          <systemPropertyVariables>
+            <test.sonarqube.dist.outputdir>${test.sonarqube.dist.outputdir}</test.sonarqube.dist.outputdir>
+            <test.sonarqube.dist.version>${test.sonarqube.dist.version}</test.sonarqube.dist.version>
+            <test.sonarscanner.dist.outputdir>${test.sonarscanner.dist.outputdir}</test.sonarscanner.dist.outputdir>
+            <test.sonarscanner.dist.version>${test.sonarscanner.dist.version}</test.sonarscanner.dist.version>
+            <test.plugin.archive>${test.plugin.archive}</test.plugin.archive>
+            <test.sources.dir>${test.sources.dir}</test.sources.dir>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>
@@ -124,6 +244,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.19.1</version>
             <configuration>
               <properties>
                 <property>
@@ -136,7 +257,7 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.7.2.201409121644</version>
+            <version>0.7.9</version>
             <executions>
               <execution>
                 <id>prepare-agent</id>

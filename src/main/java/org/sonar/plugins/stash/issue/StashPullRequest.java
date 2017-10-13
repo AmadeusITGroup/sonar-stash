@@ -1,38 +1,38 @@
 package org.sonar.plugins.stash.issue;
 
+import org.sonar.plugins.stash.PullRequestRef;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class StashPullRequest {
 
-  private final String project;
-  private final String repository;
-  private final String id;
+  private final PullRequestRef ref;
 
   private long version;
 
   private final ArrayList<StashUser> reviewers;
 
-  public StashPullRequest(String project, String repository, String pullRequestId) {
-    this.project = project;
-    this.repository = repository;
-    this.id = pullRequestId;
+  public int getId() {
+    return ref.pullRequestId();
+  }
+
+  public String getProject() {
+    return ref.project();
+  }
+
+  public String getRepository() {
+    return ref.repository();
+  }
+
+  public StashPullRequest(PullRequestRef pr) {
+    this.ref = pr;
 
     this.reviewers = new ArrayList<>();
   }
 
-  public String getProject() {
-    return project;
-  }
-
-  public String getRepository() {
-    return repository;
-  }
-
-  public String getId() {
-    return id;
+  public PullRequestRef getRef() {
+    return ref;
   }
 
   public long getVersion() {
@@ -50,11 +50,11 @@ public class StashPullRequest {
   public List<StashUser> getReviewers() {
     return reviewers;
   }
-  
+
   public StashUser getReviewer(String user) {
     StashUser result = null;
     for (StashUser stashReviewer : reviewers) {
-      if (StringUtils.equals(user, stashReviewer.getSlug())) {
+      if (user.equals(stashReviewer.getSlug())) {
         result = stashReviewer;
         break;
       }
