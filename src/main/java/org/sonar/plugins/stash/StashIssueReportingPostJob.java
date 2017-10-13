@@ -51,11 +51,11 @@ public class StashIssueReportingPostJob implements PostJob, BatchComponent {
       int stashTimeout = config.getStashTimeout();
 
       StashCredentials stashCredentials = stashRequestFacade.getCredentials();
-
+	  boolean acceptAnyCertificate = config.acceptAnyCertificate();
       try (StashClient stashClient = new StashClient(stashURL,
           stashCredentials,
           stashTimeout,
-          sonarQubeServer.getVersion())) {
+          sonarQubeServer.getVersion(), acceptAnyCertificate)) {
 
         // Down the rabbit hole...
         updateStashWithSonarInfo(project, stashClient, stashCredentials);

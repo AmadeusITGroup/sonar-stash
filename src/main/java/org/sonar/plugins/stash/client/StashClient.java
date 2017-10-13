@@ -47,7 +47,7 @@ public class StashClient implements AutoCloseable {
   private final StashCredentials credentials;
   private final int stashTimeout;
   private AsyncHttpClient httpClient;
-
+  
   private static final String REST_API = "/rest/api/1.0/";
   private static final String USER_API = "{0}" + REST_API + "users/{1}";
   private static final String REPO_API = "{0}" + REST_API + "projects/{1}/repos/{2}/";
@@ -77,11 +77,11 @@ public class StashClient implements AutoCloseable {
 
   private static final ContentType JSON = new ContentType("application", "json", null);
 
-  public StashClient(String url, StashCredentials credentials, int stashTimeout, String sonarQubeVersion) {
+  public StashClient(String url, StashCredentials credentials, int stashTimeout, String sonarQubeVersion, boolean acceptAnyCertificate) {
     this.baseUrl = url;
     this.credentials = credentials;
     this.stashTimeout = stashTimeout;
-    this.httpClient = createHttpClient(sonarQubeVersion);
+    this.httpClient = createHttpClient(sonarQubeVersion, acceptAnyCertificate);
   }
 
   public String getBaseUrl() {
@@ -434,13 +434,14 @@ public class StashClient implements AutoCloseable {
                                 AsyncHttpClientConfigDefaults.defaultUserAgent());
   }
 
-  AsyncHttpClient createHttpClient(String sonarQubeVersion) {
+  AsyncHttpClient createHttpClient(String sonarQubeVersion, boolean acceptAnyCertificate) {
     return new DefaultAsyncHttpClient(
         new DefaultAsyncHttpClientConfig.Builder()
             .setUserAgent(getUserAgent(sonarQubeVersion))
             .setCompressionEnforced(true)
             .setUseProxySelector(true)
             .setUseProxyProperties(true)
+			.setAcceptAnyCertificate(acceptAnyCertificate);
             .build()
     );
   }

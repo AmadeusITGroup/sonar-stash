@@ -70,7 +70,7 @@ public class StashClientTest extends StashTest {
     client = new StashClient("http://127.0.0.1:" + wireMock.port(),
                              new StashCredentials("login@email.com", "password", "login"),
                              timeout,
-                             "dummyVersion");
+                             "dummyVersion", false);
   }
 
   @Test

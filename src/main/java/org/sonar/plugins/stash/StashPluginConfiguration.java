@@ -132,4 +132,9 @@ public class StashPluginConfiguration implements BatchComponent {
     }
     return Optional.of(setting);
   }
+  
+  public boolean acceptAnyCertificate() {
+	    return settings.getBoolean(StashPlugin.STASH_CERTIFICATES_ACCEPTANCE);
+  }
+
 }
