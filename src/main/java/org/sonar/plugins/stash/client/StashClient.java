@@ -441,7 +441,7 @@ public class StashClient implements AutoCloseable {
             .setCompressionEnforced(true)
             .setUseProxySelector(true)
             .setUseProxyProperties(true)
-			.setAcceptAnyCertificate(acceptAnyCertificate);
+			.setAcceptAnyCertificate(acceptAnyCertificate)
             .build()
     );
   }

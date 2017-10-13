@@ -389,7 +389,7 @@ public class StashClientTest extends StashTest {
     client = new StashClient("http://127.0.0.1:" + wireMock.port(),
         new StashCredentials(null, null, null),
         timeout,
-        "dummyVersion");
+        "dummyVersion", false);
     client.getUser("test");
     wireMock.verify(getRequestedFor(anyUrl()).withoutHeader("Authorization"));
   }
@@ -401,7 +401,7 @@ public class StashClientTest extends StashTest {
     client = new StashClient("http://127.0.0.1:" + wireMock.port(),
         new StashCredentials("foo", null, "foo"),
         timeout,
-        "dummyVersion");
+        "dummyVersion", false);
     client.getUser("test");
     wireMock.verify(getRequestedFor(anyUrl()).withHeader("Authorization", new EqualToPattern("Basic Zm9vOg==")));
   }

@@ -92,7 +92,7 @@ public class StashPlugin extends SonarPlugin {
         PropertyDefinition.builder(STASH_CERTIFICATES_ACCEPTANCE)
 						  .name("Stash accept any SSL certificate")
 						  .description("Whether to accept any SSL certificate when using HTTPS. Note this is insecure")
-						  .subCategory(CONFIG_PAGE_SUB_CATEGORY_GENERAL)
+						  .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
 						  .onQualifiers(Qualifiers.PROJECT)
 						  .type(PropertyType.BOOLEAN)
 						  .defaultValue("false").build(),
