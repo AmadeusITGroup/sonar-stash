@@ -10,7 +10,7 @@ public class ContentType {
 
   private String primaryType;
   private String subType;
-  
+
   public static final int CONTENTTYPE_ELEM_NUM = 2;
 
   public ContentType(String primaryType, String subType, Object list) {

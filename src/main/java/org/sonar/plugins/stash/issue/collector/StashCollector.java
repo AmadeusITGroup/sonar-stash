@@ -5,6 +5,7 @@ import org.json.simple.JsonArray;
 import org.json.simple.JsonObject;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
@@ -139,7 +140,7 @@ public final class StashCollector {
         continue;  // Let's process the next item in "objdiff_loop"
       }
 
-      StashDiff initialDiff = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, path, 0, 0);
+      StashDiff initialDiff = new StashDiff(IssueType.CONTEXT, path, 0, 0);
 
       // Let's call this for loop "objlinc_loop"
       for (Object objLineComment : jsonLineComments.toArray()) {
@@ -188,11 +189,11 @@ public final class StashCollector {
         JsonObject jsonSegment = (JsonObject)objSegment;
         // type of the diff in diff view
         // We filter REMOVED type, like useless for SQ analysis
-        String type = (String)jsonSegment.get("type");
+        IssueType type = IssueType.valueOf((String)jsonSegment.get("type"));
         //
         JsonArray jsonLines = (JsonArray)jsonSegment.get("lines");
 
-        if (StashPlugin.REMOVED_ISSUE_TYPE.equals(type) || jsonLines == null) {
+        if (type == IssueType.REMOVED || jsonLines == null) {
 
           continue;  // Let's process the next item in "objsegm_loop"
         }

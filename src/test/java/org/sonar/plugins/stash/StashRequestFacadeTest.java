@@ -15,6 +15,7 @@ import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.internal.DefaultIssue;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
@@ -107,7 +108,7 @@ public class StashRequestFacadeTest extends StashTest {
                                                          .setPullRequestId(STASH_PULLREQUEST_ID)
                                                          .build();
 
-  private static final String STASH_DIFF_TYPE = "StashDiffType";
+  private static final IssueType STASH_DIFF_TYPE = IssueType.CONTEXT;
   private static final String STASH_USER = "SonarQube";
   private static final String STASH_URL = "http://stash/url";
 

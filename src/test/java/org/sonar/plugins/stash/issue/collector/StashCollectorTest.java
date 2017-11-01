@@ -4,6 +4,7 @@ import org.json.simple.JsonObject;
 import org.json.simple.Jsoner;
 import org.junit.Test;
 import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
@@ -156,7 +157,7 @@ public class StashCollectorTest {
     assertEquals(diff1.getSource(), (long)10);
     assertEquals(diff1.getDestination(), (long)20);
     assertEquals(diff1.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff1.getType(), "CONTEXT");
+    assertEquals(diff1.getType(), IssueType.CONTEXT);
     assertEquals(diff1.getComments().size(), 1);
     assertTrue(diff1.containsComment(12345));
     assertFalse(diff1.containsComment(54321));
@@ -186,7 +187,7 @@ public class StashCollectorTest {
     assertEquals(diff2.getSource(), (long)30);
     assertEquals(diff2.getDestination(), (long)40);
     assertEquals(diff2.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff2.getType(), "ADDED");
+    assertEquals(diff2.getType(), IssueType.ADDED);
     assertEquals(diff2.getComments().size(), 0);
     assertFalse(diff2.containsComment(12345));
     assertFalse(diff2.containsComment(54321));
@@ -195,7 +196,7 @@ public class StashCollectorTest {
     assertEquals(diff3.getSource(), (long)40);
     assertEquals(diff3.getDestination(), (long)50);
     assertEquals(diff3.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff3.getType(), "CONTEXT");
+    assertEquals(diff3.getType(), IssueType.CONTEXT);
     assertEquals(diff3.getComments().size(), 1);
     assertFalse(diff3.containsComment(12345));
     assertTrue(diff3.containsComment(54321));
@@ -215,7 +216,7 @@ public class StashCollectorTest {
     assertEquals(diff4.getSource(), (long)60);
     assertEquals(diff4.getDestination(), (long)70);
     assertEquals(diff4.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff4.getType(), "ADDED");
+    assertEquals(diff4.getType(), IssueType.ADDED);
     assertEquals(diff4.getComments().size(), 0);
     assertFalse(diff4.containsComment(12345));
     assertFalse(diff4.containsComment(54321));
@@ -230,28 +231,28 @@ public class StashCollectorTest {
     assertEquals(diff1.getSource(), (long)10);
     assertEquals(diff1.getDestination(), (long)20);
     assertEquals(diff1.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff1.getType(), "CONTEXT");
+    assertEquals(diff1.getType(), IssueType.CONTEXT);
     assertEquals(diff1.getComments().size(), 0);
 
     StashDiff diff2 = report.getDiffs().get(1);
     assertEquals(diff2.getSource(), (long)30);
     assertEquals(diff2.getDestination(), (long)40);
     assertEquals(diff2.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff2.getType(), "ADDED");
+    assertEquals(diff2.getType(), IssueType.ADDED);
     assertEquals(diff2.getComments().size(), 0);
 
     StashDiff diff3 = report.getDiffs().get(2);
     assertEquals(diff3.getSource(), (long)40);
     assertEquals(diff3.getDestination(), (long)50);
     assertEquals(diff3.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff3.getType(), "CONTEXT");
+    assertEquals(diff3.getType(), IssueType.CONTEXT);
     assertEquals(diff3.getComments().size(), 0);
 
     StashDiff diff4 = report.getDiffs().get(3);
     assertEquals(diff4.getSource(), (long)60);
     assertEquals(diff4.getDestination(), (long)70);
     assertEquals(diff4.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff4.getType(), "ADDED");
+    assertEquals(diff4.getType(), IssueType.ADDED);
     assertEquals(diff4.getComments().size(), 0);
   }
 
@@ -306,7 +307,7 @@ public class StashCollectorTest {
     assertEquals(diff5.getSource(), 0);
     assertEquals(diff5.getDestination(), 0);
     assertEquals(diff5.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff5.getType(), "CONTEXT");
+    assertEquals(diff5.getType(), IssueType.CONTEXT);
     assertEquals(diff5.getComments().size(), 2);
     assertFalse(diff5.containsComment(12345));
     assertFalse(diff5.containsComment(54321));
@@ -376,7 +377,7 @@ public class StashCollectorTest {
     assertEquals(diff5.getSource(), 0);
     assertEquals(diff5.getDestination(), 0);
     assertEquals(diff5.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff5.getType(), "CONTEXT");
+    assertEquals(diff5.getType(), IssueType.CONTEXT);
     assertEquals(diff5.getComments().size(), 0);
     assertFalse(diff5.containsComment(12345));
     assertFalse(diff5.containsComment(54321));
@@ -402,7 +403,7 @@ public class StashCollectorTest {
     assertEquals(diff1.getSource(), (long)10);
     assertEquals(diff1.getDestination(), (long)20);
     assertEquals(diff1.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff1.getType(), "CONTEXT");
+    assertEquals(diff1.getType(), IssueType.CONTEXT);
     assertTrue(diff1.containsComment(12345));
     assertFalse(diff1.containsComment(54321));
 
@@ -410,7 +411,7 @@ public class StashCollectorTest {
     assertEquals(diff2.getSource(), (long)20);
     assertEquals(diff2.getDestination(), (long)30);
     assertEquals(diff2.getPath(), "stash-plugin/Test1.java");
-    assertEquals(diff2.getType(), "ADDED");
+    assertEquals(diff2.getType(), IssueType.ADDED);
     assertFalse(diff2.containsComment(12345));
     assertFalse(diff2.containsComment(54321));
   }
@@ -424,13 +425,13 @@ public class StashCollectorTest {
     assertEquals(diff1.getSource(), (long)10);
     assertEquals(diff1.getDestination(), (long)20);
     assertEquals(diff1.getPath(), "stash-plugin/Test2.java");
-    assertEquals(diff1.getType(), "CONTEXT");
+    assertEquals(diff1.getType(), IssueType.CONTEXT);
 
     StashDiff diff2 = report.getDiffs().get(1);
     assertEquals(diff2.getSource(), (long)30);
     assertEquals(diff2.getDestination(), (long)40);
     assertEquals(diff2.getPath(), "stash-plugin/Test2.java");
-    assertEquals(diff2.getType(), "ADDED");
+    assertEquals(diff2.getType(), IssueType.ADDED);
   }
 
   @Test

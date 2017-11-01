@@ -6,6 +6,7 @@ import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Realm;
+import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
 import org.asynchttpclient.config.AsyncHttpClientConfigDefaults;
 import org.json.simple.DeserializationException;
@@ -14,10 +15,12 @@ import org.json.simple.JsonObject;
 import org.json.simple.Jsoner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.StashPluginUtils;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -42,6 +45,8 @@ import java.util.concurrent.TimeoutException;
 
 public class StashClient implements AutoCloseable {
   private static final Logger LOGGER = LoggerFactory.getLogger(StashClient.class);
+  private static final String MDC_URL_KEY = "url";
+  private static final String MDC_METHOD_KEY = "method";
 
   private final String baseUrl;
   private final StashCredentials credentials;
@@ -174,7 +179,7 @@ public class StashClient implements AutoCloseable {
                                                    String message,
                                                    String path,
                                                    long line,
-                                                   String type)
+                                                   IssueType type)
   throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS,
                                           baseUrl,
@@ -189,7 +194,7 @@ public class StashClient implements AutoCloseable {
     }
 
     String fileType = "TO";
-    if (StashPlugin.CONTEXT_ISSUE_TYPE.equals(type)) {
+    if (type == IssueType.CONTEXT) {
       fileType = "FROM";
     }
     anchor.put("fileType", fileType);
@@ -339,6 +344,7 @@ public class StashClient implements AutoCloseable {
       int expectedStatusCode,
       String errorMessage)
       throws StashClientException {
+
     if (body != null) {
       requestBuilder.setBody(body.toJson());
     }
@@ -347,14 +353,20 @@ public class StashClient implements AutoCloseable {
     requestBuilder.addHeader("Content-Type", JSON.toString());
     requestBuilder.addHeader("Accept", JSON.toString());
 
-    try {
-      // No need to be paranoid as a null value will raise a NullPointerException here
-      Response response = requestBuilder.execute().get(stashTimeout, TimeUnit.MILLISECONDS);
+    Request request = requestBuilder.build();
+    MDC.put(MDC_URL_KEY, request.getUrl());
+    MDC.put(MDC_METHOD_KEY, request.getMethod());
 
+    try {
+      Response response = httpClient.executeRequest(request).get(stashTimeout, TimeUnit.MILLISECONDS);
       validateResponse(response, expectedStatusCode, errorMessage);
       return extractResponse(response);
+
     } catch (ExecutionException | TimeoutException | InterruptedException e) {
       throw new StashClientException(e);
+    } finally {
+      MDC.remove(MDC_URL_KEY);
+      MDC.remove(MDC_METHOD_KEY);
     }
   }
 

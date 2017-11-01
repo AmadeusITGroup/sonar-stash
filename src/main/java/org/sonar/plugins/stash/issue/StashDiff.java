@@ -4,16 +4,17 @@ import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 public class StashDiff {
 
-  private final String type;
+  private final IssueType type;
   private final String path;
   private final long source;
   private final long destination;
   private final List<StashComment> comments;
 
-  public StashDiff(String type, String path, long source, long destination) {
+  public StashDiff(IssueType type, String path, long source, long destination) {
     this.type = type;
     this.path = path;
     this.source = source;
@@ -37,16 +38,12 @@ public class StashDiff {
     return destination;
   }
 
-  public String getType() {
+  public IssueType getType() {
     return type;
   }
 
   public List<StashComment> getComments() {
     return comments;
-  }
-
-  public boolean isTypeOfContext() {
-    return StashPlugin.CONTEXT_ISSUE_TYPE.equals(type);
   }
 
   public boolean containsComment(long commentId) {

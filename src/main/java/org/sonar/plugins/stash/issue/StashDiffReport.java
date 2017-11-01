@@ -6,6 +6,7 @@ import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 /**
  * This class is a representation of the Stash Diff view.
@@ -42,13 +43,13 @@ public class StashDiffReport {
     return Range.closed(diff.getSource() - range, diff.getDestination() + range).contains(destination);
   }
 
-  public String getType(String path, long destination, int vicinityRange) {
+  public IssueType getType(String path, long destination, int vicinityRange) {
     for (StashDiff diff : diffs) {
       if (Objects.equals(diff.getPath(), path)) {
         // Line 0 never belongs to Stash Diff view.
         // It is a global comment with a type set to CONTEXT.
         if (destination == 0) {
-          return StashPlugin.CONTEXT_ISSUE_TYPE;
+          return IssueType.CONTEXT;
         } else if (destination == diff.getDestination() || includeVicinityIssuesForDiff(diff,
             destination, vicinityRange)) {
           return diff.getType();
@@ -68,7 +69,7 @@ public class StashDiffReport {
     for (StashDiff diff : diffs) {
       if (Objects.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
 
-        if (diff.isTypeOfContext()) {
+        if (diff.getType() == IssueType.CONTEXT) {
           result = diff.getSource();
         } else {
           result = diff.getDestination();

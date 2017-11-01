@@ -16,6 +16,7 @@ import org.sonar.api.issue.Issue;
 import org.sonar.api.issue.ProjectIssues;
 import org.sonar.api.resources.Project;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
@@ -212,7 +213,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     }
 
     // check if issue belongs to the Stash diff view
-    String type = diffReport.getType(path, issueLine, config.issueVicinityRange());
+    IssueType type = diffReport.getType(path, issueLine, config.issueVicinityRange());
     if (type == null) {
       LOGGER.info(
           "Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",

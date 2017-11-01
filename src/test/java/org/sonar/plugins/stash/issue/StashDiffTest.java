@@ -3,8 +3,11 @@ package org.sonar.plugins.stash.issue;
 import org.junit.Before;
 import org.junit.Test;
 import org.sonar.plugins.stash.StashPlugin;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -23,19 +26,19 @@ public class StashDiffTest {
     StashComment comment2 = mock(StashComment.class);
     when(comment2.getId()).thenReturn((long)54321);
 
-    diff1 = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, "path/to/diff1", (long)10, (long)20);
+    diff1 = new StashDiff(IssueType.CONTEXT, "path/to/diff1", (long)10, (long)20);
     diff1.addComment(comment1);
 
-    diff2 = new StashDiff(StashPlugin.ADDED_ISSUE_TYPE, "path/to/diff2", (long)20, (long)30);
+    diff2 = new StashDiff(IssueType.ADDED, "path/to/diff2", (long)20, (long)30);
     diff2.addComment(comment2);
 
-    diff3 = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, "path/to/diff3", (long)30, (long)40);
+    diff3 = new StashDiff(IssueType.CONTEXT, "path/to/diff3", (long)30, (long)40);
   }
 
   @Test
   public void testIsTypeOfContext() {
-    assertTrue(diff1.isTypeOfContext());
-    assertFalse(diff2.isTypeOfContext());
+    assertEquals(diff1.getType(), IssueType.CONTEXT);
+    assertNotEquals(diff2.getType(), IssueType.CONTEXT);
   }
 
   @Test

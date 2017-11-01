@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 public class StashCommentReport {
 
@@ -50,7 +51,7 @@ public class StashCommentReport {
   public StashCommentReport applyDiffReport(StashDiffReport diffReport) {
     for (StashComment comment : comments) {
       StashDiff diff = diffReport.getDiffByComment(comment.getId());
-      if ((diff != null) && diff.isTypeOfContext()) {
+      if ((diff != null) && diff.getType() == IssueType.CONTEXT) {
 
         // By default comment line, with type == CONTEXT, is set to FROM value.
         // Set comment line to TO value to be compared with SonarQube issue.

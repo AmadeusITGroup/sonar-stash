@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.StashTest;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.issue.StashComment;
@@ -242,7 +243,7 @@ public class StashClientTest extends StashTest {
                               + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}";
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_CREATED).withBody(stashJsonComment)));
 
-    StashComment comment = client.postCommentLineOnPullRequest(pr, "message", "path", 5, "type");
+    StashComment comment = client.postCommentLineOnPullRequest(pr, "message", "path", 5, IssueType.CONTEXT);
     assertEquals(1234, comment.getId());
   }
 
@@ -251,7 +252,7 @@ public class StashClientTest extends StashTest {
     addErrorResponse(any(anyUrl()), HTTP_FORBIDDEN);
 
     try {
-      client.postCommentLineOnPullRequest(pr, "message", "path", 5, "type");
+      client.postCommentLineOnPullRequest(pr, "message", "path", 5, IssueType.CONTEXT);
       Assert.fail("Wrong HTTP result should raised StashClientException");
     } catch (StashClientException e) {
       Assert.assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
@@ -262,7 +263,7 @@ public class StashClientTest extends StashTest {
   @Test(expected = StashClientException.class)
   public void testPostCommentLineOnPullRequestWithException() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HTTP_CREATED).withFixedDelay(errorTimeout)));
-    client.postCommentLineOnPullRequest(pr, "message", "path", 5, "type");
+    client.postCommentLineOnPullRequest(pr, "message", "path", 5, IssueType.CONTEXT);
   }
 
   @Test

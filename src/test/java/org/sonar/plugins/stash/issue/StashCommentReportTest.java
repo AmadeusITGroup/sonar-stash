@@ -3,6 +3,7 @@ package org.sonar.plugins.stash.issue;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -131,7 +132,7 @@ public class StashCommentReportTest {
   @Test
   public void applyDiffReportWithCONTEXT() {
     StashDiff diff = mock(StashDiff.class);
-    when(diff.isTypeOfContext()).thenReturn(true);
+    when(diff.getType()).thenReturn(IssueType.CONTEXT);
     when(diff.getDestination()).thenReturn((long)10);
 
     StashDiffReport diffReport = mock(StashDiffReport.class);
@@ -152,7 +153,7 @@ public class StashCommentReportTest {
   @Test
   public void applyDiffReportWithADDED() {
     StashDiff diff = mock(StashDiff.class);
-    when(diff.isTypeOfContext()).thenReturn(false);
+    when(diff.getType()).thenReturn(IssueType.ADDED);
     when(diff.getDestination()).thenReturn((long)10);
 
     StashDiffReport diffReport = mock(StashDiffReport.class);

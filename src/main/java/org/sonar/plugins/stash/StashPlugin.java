@@ -49,9 +49,11 @@ public class StashPlugin extends SonarPlugin {
   private static final List<String> SEVERITY_LIST = Severity.ALL;
   private static final List<String> SEVERITY_LIST_WITH_NONE = Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
 
-  public static final String CONTEXT_ISSUE_TYPE = "CONTEXT";
-  public static final String REMOVED_ISSUE_TYPE = "REMOVED";
-  public static final String ADDED_ISSUE_TYPE = "ADDED";
+  public enum IssueType {
+    CONTEXT,
+    REMOVED,
+    ADDED,
+  }
 
   public static final String STASH_NOTIFICATION = "sonar.stash.notification";
   public static final String STASH_PROJECT = "sonar.stash.project";

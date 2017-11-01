@@ -1,10 +1,12 @@
 package org.sonar.plugins.stash.issue;
 
+import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
 import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.List;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -26,13 +28,13 @@ public class StashDiffReportTest {
     StashComment comment2 = mock(StashComment.class);
     when(comment2.getId()).thenReturn((long)54321);
 
-    diff1 = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, "path/to/diff1", (long)10, (long)20);
+    diff1 = new StashDiff(IssueType.CONTEXT, "path/to/diff1", (long)10, (long)20);
     diff1.addComment(comment1);
 
-    diff2 = new StashDiff(StashPlugin.ADDED_ISSUE_TYPE, "path/to/diff2", (long)20, (long)30);
+    diff2 = new StashDiff(IssueType.ADDED, "path/to/diff2", (long)20, (long)30);
     diff2.addComment(comment2);
 
-    diff3 = new StashDiff(StashPlugin.CONTEXT_ISSUE_TYPE, "path/to/diff3", (long)30, (long)40);
+    diff3 = new StashDiff(IssueType.CONTEXT, "path/to/diff3", (long)30, (long)40);
 
     report1.add(diff1);
     report1.add(diff2);
@@ -49,7 +51,7 @@ public class StashDiffReportTest {
 
     StashDiff result1 = report.getDiffs().get(0);
     assertEquals(result1.getPath(), "path/to/diff1");
-    assertEquals(result1.getType(), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(result1.getType(), IssueType.CONTEXT);
     assertEquals(result1.getSource(), 10);
     assertEquals(result1.getDestination(), 20);
 
@@ -58,7 +60,7 @@ public class StashDiffReportTest {
 
     StashDiff result2 = report.getDiffs().get(1);
     assertEquals(result2.getPath(), "path/to/diff2");
-    assertEquals(result2.getType(), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(result2.getType(), IssueType.ADDED);
     assertEquals(result2.getSource(), 20);
     assertEquals(result2.getDestination(), 30);
   }
@@ -76,8 +78,8 @@ public class StashDiffReportTest {
 
   @Test
   public void testGetType() {
-    assertEquals(report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE), StashPlugin.CONTEXT_ISSUE_TYPE);
-    assertEquals(report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE), StashPlugin.ADDED_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE), IssueType.CONTEXT);
+    assertEquals(report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE), IssueType.ADDED);
 
     assertEquals(report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE), null);
     assertEquals(report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE), null);
@@ -86,7 +88,7 @@ public class StashDiffReportTest {
 
   @Test
   public void testGetTypeWithNoDestination() {
-    assertEquals(report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE), IssueType.CONTEXT);
     assertEquals(report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE), null);
   }
 
@@ -103,7 +105,7 @@ public class StashDiffReportTest {
   public void testGetDiffByComment() {
     StashDiff diff1 = report1.getDiffByComment(12345);
     assertEquals(diff1.getPath(), "path/to/diff1");
-    assertEquals(diff1.getType(), StashPlugin.CONTEXT_ISSUE_TYPE);
+    assertEquals(diff1.getType(), IssueType.CONTEXT);
     assertEquals(diff1.getSource(), 10);
     assertEquals(diff1.getDestination(), 20);
 
