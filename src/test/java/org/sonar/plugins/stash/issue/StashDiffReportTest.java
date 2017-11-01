@@ -81,8 +81,8 @@ public class StashDiffReportTest {
     assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE));
     assertEquals(IssueType.ADDED, report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE));
 
-    assertEquals(null, report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE));
-    assertEquals(null, report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE));
     assertEquals(null, report1.getType("path/to/diff4", 60, StashDiffReport.VICINITY_RANGE_NONE));
   }
 

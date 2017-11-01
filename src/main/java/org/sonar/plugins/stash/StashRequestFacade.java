@@ -193,7 +193,6 @@ public class StashRequestFacade implements IssuePathResolver {
     String issueKey = issue.key();
     String path = getIssuePath(issue);
     StashCommentReport comments = commentsByFile.get(path);
-    String commentContent = getMarkdownPrinter().printIssueMarkdown(issue);
     Integer issueLine = issue.line();
     if (issueLine == null) {
       issueLine = 0;
@@ -201,14 +200,9 @@ public class StashRequestFacade implements IssuePathResolver {
     // Surprisingly this syntax does not trigger the squid:NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE rule
     //    but it does if you transform that into a ternary operator at the assignment level :/
 
-    // if comment not already pushed to Stash
-    if (comments != null && comments.contains(commentContent, path, issueLine)) {
-      LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issueKey, path, issueLine);
-      return;
-    }
+    IssueType type = diffReport.getType(path, issueLine, config.issueVicinityRange());
 
     // check if issue belongs to the Stash diff view
-    IssueType type = diffReport.getType(path, issueLine, config.issueVicinityRange());
     if (type == null) {
       LOGGER.info(
           "Comment \"{}\" cannot be pushed to Stash like it does not belong to diff view - {} (line: {})",
@@ -216,13 +210,20 @@ public class StashRequestFacade implements IssuePathResolver {
       return;
     }
 
-    long line = diffReport.getLine(path, issueLine);
+    long diffLine = diffReport.getLine(path, issueLine);
+    String commentContent = getMarkdownPrinter().printIssueMarkdown(issue, diffLine == 0);
+
+    // if comment not already pushed to Stash
+    if (comments != null && comments.contains(commentContent, path, diffLine)) {
+      LOGGER.debug("Comment \"{}\" already pushed on file {} ({})", issueKey, path, diffLine);
+      return;
+    }
 
     StashComment comment = stashClient
-        .postCommentLineOnPullRequest(pr, commentContent, path, line, type);
+        .postCommentLineOnPullRequest(pr, commentContent, path, diffLine, type);
 
     LOGGER
-        .debug("Comment \"{}\" has been created ({}) on file {} ({})", issueKey, type, path, line);
+        .debug("Comment \"{}\" has been created ({}) on file {} ({})", issueKey, type, path, diffLine);
 
     // Create task linked to the comment if configured
 
