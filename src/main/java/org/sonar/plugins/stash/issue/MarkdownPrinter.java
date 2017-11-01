@@ -5,6 +5,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
@@ -14,14 +18,13 @@ import org.sonar.plugins.stash.PullRequestRef;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.sonar.plugins.stash.CoverageCompat.isCoverageEvolution;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
 import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 
 public final class MarkdownPrinter {
 
-  static final String NEW_LINE = "\n";
-  static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
+  private static final String NEW_LINE = "\n";
+  private static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
 
   private String stashURL;
   private PullRequestRef pr;
@@ -58,36 +61,9 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  private List<String> printIssueMarkdown(Collection<PostJobIssue> issues) {
-    return issues.stream().map(this::printIssueMarkdown).collect(Collectors.toList());
-  }
-
-  private String printIssueMarkdown(IssueMetaInformation issue) {
-    return printIssueMarkdown(issue, Optional.empty());
-  }
-
   public String printIssueMarkdown(PostJobIssue issue) {
-    String message = issue.message();
-
-    if (message != null) {
-      String file = issuePathResolver.getIssuePath(issue);
-      if (file != null) {
-        String fileLink = link("`" + file + "`",
-            stashURL + "/projects/" + pr.project() +
-                "/repos/" + pr.repository() +
-                "/pull-requests/" + pr.pullRequestId() +
-                "/diff#" + file);
-        message = message.replace(file, fileLink);
-      }
-    }
-    return printIssueMarkdown(IssueMetaInformation.from(issue), Optional.ofNullable(message));
-  }
-
-  private String printIssueMarkdown(IssueMetaInformation issue, Optional<String> preparedMessage) {
     StringBuilder sb = new StringBuilder();
-    String message;
-
-    message = preparedMessage.orElseGet(issue::message);
+    String message = issue.message();
 
     if (message == null) {
       return "No message";
@@ -96,8 +72,8 @@ public final class MarkdownPrinter {
     sb.append(MarkdownPrinter.printSeverityMarkdown(issue.severity()))
         .append(message)
         .append(" [")
-        .append(link(issue.rule().toString(),
-            sonarQubeURL + "/" + CODING_RULES_RULE_KEY + issue.rule()))
+        .append(link(issue.ruleKey().toString(),
+            sonarQubeURL + "/" + CODING_RULES_RULE_KEY + issue.ruleKey()))
         .append("]");
 
     return sb.toString();
@@ -106,20 +82,6 @@ public final class MarkdownPrinter {
   public String printReportMarkdown(Collection<PostJobIssue> allIssues) {
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
-
-    List<PostJobIssue> coverageIssues = new ArrayList<>();
-    List<PostJobIssue> generalIssues = new ArrayList<>();
-    List<PostJobIssue> globalCoverageIssues = new ArrayList<>();
-
-    for (PostJobIssue issue : allIssues) {
-      if (isProjectWide(issue)) {
-        globalCoverageIssues.add(issue);
-      } else if (isCoverageEvolution(issue)) {
-        coverageIssues.add(issue);
-      } else {
-        generalIssues.add(issue);
-      }
-    }
 
     if (allIssues.isEmpty()) {
 
@@ -142,24 +104,15 @@ public final class MarkdownPrinter {
         sb.append(printIssueNumberBySeverityMarkdown(allIssues, severity));
       }
 
-      List<String> uniqueSortedInformation = generalIssues.stream()
-              .map(IssueMetaInformation::from)
-              .distinct()
-              .sorted(Comparator.comparing(IssueMetaInformation::severity).reversed())
+      List<String> uniqueSortedInformation = allIssues.stream()
+              .filter(distinctByKey(PostJobIssue::ruleKey))
+              .sorted(Comparator.comparing(PostJobIssue::severity).reversed())
               .map(this::printIssueMarkdown)
               .collect(Collectors.toList());
       sb.append(
           formatTableList("Issues list", uniqueSortedInformation)
       );
     }
-
-    sb.append(
-        formatTableList("Project-wide coverage", printIssueMarkdown(globalCoverageIssues))
-    );
-
-    sb.append(
-        formatTableList("Coverage", printIssueMarkdown(coverageIssues))
-    );
 
     return sb.toString();
   }
@@ -190,5 +143,10 @@ public final class MarkdownPrinter {
 
   private static String link(String title, String target) {
     return "[" + title + "](" + target + ")";
+  }
+
+  private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
+    Set<Object> seen = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    return t -> seen.add(keyExtractor.apply(t));
   }
 }

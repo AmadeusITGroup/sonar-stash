@@ -11,7 +11,6 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
-import org.sonar.plugins.stash.CoverageCompat;
 import org.sonar.plugins.stash.DefaultIssue;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
@@ -19,7 +18,6 @@ import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 public class MarkdownPrinterTest {
 
   PostJobIssue issue;
-  DefaultIssue coverageIssue;
 
   List<PostJobIssue> report = new ArrayList<>();
 
@@ -61,13 +59,6 @@ public class MarkdownPrinterTest {
     report.add(issueMajor);
 
     issue = issueBlocker;
-    coverageIssue = new DefaultIssue().setKey("key4")
-        .setSeverity(Severity.MAJOR)
-        .setRuleKey(RuleKey.of(CoverageCompat.coverageEvolutionRepository("java"), "bla"))
-        .setInputComponent(new DefaultInputFile("cov", "cov"))
-        .setMessage("some text");
-
-    report.add(coverageIssue);
 
     issueThreshold = 100;
     ipr = new DummyIssuePathResolver();
@@ -91,7 +82,7 @@ public class MarkdownPrinterTest {
     );
 
     assertEquals(
-        "| MAJOR | 2 |\n",
+        "| MAJOR | 1 |\n",
         MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.MAJOR)
     );
 
@@ -118,117 +109,7 @@ public class MarkdownPrinterTest {
   }
 
   @Test
-  public void testPrintIssueNumberBySeverityMarkdownWithNoSonarQubeIssues() {
-    List<PostJobIssue> report = new ArrayList<>();
-    report.add(coverageIssue);
-
-    assertEquals("| BLOCKER | 0 |\n",
-        MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.BLOCKER));
-    assertEquals("| MAJOR | 1 |\n",
-        MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.MAJOR));
-    assertEquals("| INFO | 0 |\n",
-        MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.INFO));
-  }
-
-  @Test
-  public void testPrintIssueNumberBySeverityMarkdownWithNoCoverageIssues() {
-    report.remove(coverageIssue);
-
-    assertEquals("| BLOCKER | 1 |\n",
-        MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.BLOCKER));
-    assertEquals("| MAJOR | 1 |\n",
-        MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.MAJOR));
-    assertEquals("| INFO | 0 |\n",
-        MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.INFO));
-  }
-
-  @Test
   public void testPrintReportMarkdown() {
-    String issueReportMarkdown = printer.printReportMarkdown(report);
-    String reportString = "## SonarQube analysis Overview\n"
-        + "| Total New Issues | 4 |\n"
-        + "|-----------------|------|\n"
-        + "| BLOCKER | 1 |\n"
-        + "| CRITICAL | 1 |\n"
-        + "| MAJOR | 2 |\n"
-        + "| MINOR | 0 |\n"
-        + "| INFO | 0 |\n\n\n"
-        + "| Issues list |\n"
-        + "|-------------|\n"
-        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
-        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n"
-        + "| Coverage |\n"
-        + "|----------|\n"
-        + "| *MAJOR* - some text [[coverageEvolution-java:bla](sonarqube/URL/coding_rules#rule_key=coverageEvolution-java:bla)] |"
-        + "\n";
-
-    assertEquals(reportString, issueReportMarkdown);
-  }
-
-  @Test
-  public void testPrintReportMarkdownWithIssueLimitation() {
-    printer = new MarkdownPrinter(ipr, STASH_URL, pr, 3, SONAR_URL);
-    String issueReportMarkdown = printer.printReportMarkdown(report);
-    String reportString = "## SonarQube analysis Overview\n"
-        + "### Too many issues detected (4/3): Issues cannot be displayed in Diff view.\n\n"
-        + "| Total New Issues | 4 |\n"
-        + "|-----------------|------|\n"
-        + "| BLOCKER | 1 |\n"
-        + "| CRITICAL | 1 |\n"
-        + "| MAJOR | 2 |\n"
-        + "| MINOR | 0 |\n"
-        + "| INFO | 0 |\n\n\n"
-        + "| Issues list |\n"
-        + "|-------------|\n"
-        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
-        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n\n\n"
-        + "| Coverage |\n"
-        + "|----------|\n"
-        + "| *MAJOR* - some text [[coverageEvolution-java:bla](sonarqube/URL/coding_rules#rule_key=coverageEvolution-java:bla)] |"
-        + "\n";
-
-    assertEquals(reportString, issueReportMarkdown);
-  }
-
-  @Test
-  public void testPrintEmptyReportMarkdown() {
-    report = new ArrayList<>();
-
-    String issueReportMarkdown = printer.printReportMarkdown(report);
-    String reportString = "## SonarQube analysis Overview\n"
-        + "### No new issues detected!\n\n";
-
-    assertEquals(reportString, issueReportMarkdown);
-  }
-
-  @Test
-  public void testPrintReportMarkdownWithEmptySonarQubeReportAndWithLoweredIssues() {
-    report = new ArrayList<>();
-    report.add(coverageIssue);
-
-    String issueReportMarkdown = printer.printReportMarkdown(report);
-    String reportString = "## SonarQube analysis Overview\n"
-        + "| Total New Issues | 1 |\n"
-        + "|-----------------|------|\n"
-        + "| BLOCKER | 0 |\n"
-        + "| CRITICAL | 0 |\n"
-        + "| MAJOR | 1 |\n"
-        + "| MINOR | 0 |\n"
-        + "| INFO | 0 |\n\n\n"
-        + "| Coverage |\n"
-        + "|----------|\n"
-        + "| *MAJOR* - some text [[coverageEvolution-java:bla](sonarqube/URL/coding_rules#rule_key=coverageEvolution-java:bla)] |"
-        + "\n";
-
-    assertEquals(reportString, issueReportMarkdown);
-  }
-
-  @Test
-  public void testPrintReportMarkdownWithEmptyCoverageReport() {
-    report.remove(coverageIssue);
-
     String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "| Total New Issues | 3 |\n"
@@ -242,7 +123,42 @@ public class MarkdownPrinterTest {
         + "|-------------|\n"
         + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n";
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |"
+        + "\n";
+
+    assertEquals(reportString, issueReportMarkdown);
+  }
+
+  @Test
+  public void testPrintReportMarkdownWithIssueLimitation() {
+    printer = new MarkdownPrinter(ipr, STASH_URL, pr, 3, SONAR_URL);
+    String issueReportMarkdown = printer.printReportMarkdown(report);
+    String reportString = "## SonarQube analysis Overview\n"
+        + "### Too many issues detected (3/3): Issues cannot be displayed in Diff view.\n\n"
+        + "| Total New Issues | 3 |\n"
+        + "|-----------------|------|\n"
+        + "| BLOCKER | 1 |\n"
+        + "| CRITICAL | 1 |\n"
+        + "| MAJOR | 1 |\n"
+        + "| MINOR | 0 |\n"
+        + "| INFO | 0 |\n\n\n"
+        + "| Issues list |\n"
+        + "|-------------|\n"
+        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
+        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |"
+        + "\n";
+
+    assertEquals(reportString, issueReportMarkdown);
+  }
+
+  @Test
+  public void testPrintEmptyReportMarkdown() {
+    report = new ArrayList<>();
+
+    String issueReportMarkdown = printer.printReportMarkdown(report);
+    String reportString = "## SonarQube analysis Overview\n"
+        + "### No new issues detected!\n\n";
 
     assertEquals(reportString, issueReportMarkdown);
   }
