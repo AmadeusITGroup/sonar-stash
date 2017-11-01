@@ -190,7 +190,7 @@ public class StashClient implements AutoCloseable {
     JsonObject anchor = new JsonObject();
     if (line != 0L) {
       anchor.put("line", line);
-      anchor.put("lineType", type);
+      anchor.put("lineType", type.name());
     }
 
     String fileType = "TO";
