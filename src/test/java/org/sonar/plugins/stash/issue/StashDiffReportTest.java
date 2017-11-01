@@ -50,83 +50,83 @@ public class StashDiffReportTest {
     assertEquals(report.getDiffs().size(), 1);
 
     StashDiff result1 = report.getDiffs().get(0);
-    assertEquals(result1.getPath(), "path/to/diff1");
-    assertEquals(result1.getType(), IssueType.CONTEXT);
-    assertEquals(result1.getSource(), 10);
-    assertEquals(result1.getDestination(), 20);
+    assertEquals("path/to/diff1", result1.getPath());
+    assertEquals(IssueType.CONTEXT, result1.getType());
+    assertEquals(10, result1.getSource());
+    assertEquals(20, result1.getDestination());
 
     report.add(diff2);
-    assertEquals(report.getDiffs().size(), 2);
+    assertEquals(2, report.getDiffs().size());
 
     StashDiff result2 = report.getDiffs().get(1);
-    assertEquals(result2.getPath(), "path/to/diff2");
-    assertEquals(result2.getType(), IssueType.ADDED);
-    assertEquals(result2.getSource(), 20);
-    assertEquals(result2.getDestination(), 30);
+    assertEquals("path/to/diff2", result2.getPath());
+    assertEquals(IssueType.ADDED, result2.getType());
+    assertEquals(20, result2.getSource());
+    assertEquals(30, result2.getDestination());
   }
 
   @Test
   public void testAddReport() {
-    assertEquals(report1.getDiffs().size(), 3);
+    assertEquals(3, report1.getDiffs().size());
 
     StashDiffReport report = new StashDiffReport();
-    assertEquals(report.getDiffs().size(), 0);
+    assertEquals(0, report.getDiffs().size());
 
     report.add(report1);
-    assertEquals(report.getDiffs().size(), 3);
+    assertEquals(3, report.getDiffs().size());
   }
 
   @Test
   public void testGetType() {
-    assertEquals(report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE), IssueType.CONTEXT);
-    assertEquals(report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE), IssueType.ADDED);
+    assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(IssueType.ADDED, report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE));
 
-    assertEquals(report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE), null);
-    assertEquals(report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE), null);
-    assertEquals(report1.getType("path/to/diff4", 60, StashDiffReport.VICINITY_RANGE_NONE), null);
+    assertEquals(null, report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(null, report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(null, report1.getType("path/to/diff4", 60, StashDiffReport.VICINITY_RANGE_NONE));
   }
 
   @Test
   public void testGetTypeWithNoDestination() {
-    assertEquals(report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE), IssueType.CONTEXT);
-    assertEquals(report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE), null);
+    assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(null, report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE));
   }
 
   @Test
   public void testGetLine() {
-    assertEquals(report1.getLine("path/to/diff1", 20), 10);
-    assertEquals(report1.getLine("path/to/diff2", 30), 30);
-    assertEquals(report1.getLine("path/to/diff3", 40), 30);
+    assertEquals(10, report1.getLine("path/to/diff1", 20));
+    assertEquals(30, report1.getLine("path/to/diff2", 30));
+    assertEquals(30, report1.getLine("path/to/diff3", 40));
 
-    assertEquals(report1.getLine("path/to/diff1", 50), 0);
+    assertEquals(0, report1.getLine("path/to/diff1", 50));
   }
 
   @Test
   public void testGetDiffByComment() {
     StashDiff diff1 = report1.getDiffByComment(12345);
-    assertEquals(diff1.getPath(), "path/to/diff1");
-    assertEquals(diff1.getType(), IssueType.CONTEXT);
-    assertEquals(diff1.getSource(), 10);
-    assertEquals(diff1.getDestination(), 20);
+    assertEquals("path/to/diff1", diff1.getPath());
+    assertEquals(IssueType.CONTEXT, diff1.getType());
+    assertEquals(10, diff1.getSource());
+    assertEquals(20, diff1.getDestination());
 
     StashDiff diff2 = report1.getDiffByComment(123456);
-    assertEquals(diff2, null);
+    assertEquals(null, diff2);
   }
 
   @Test
   public void testGetComments() {
     List<StashComment> comments = report1.getComments();
 
-    assertEquals(comments.size(), 2);
-    assertEquals(comments.get(0).getId(), 12345);
-    assertEquals(comments.get(1).getId(), 54321);
+    assertEquals(2, comments.size());
+    assertEquals(12345, comments.get(0).getId());
+    assertEquals(54321, comments.get(1).getId());
   }
 
   @Test
   public void testGetCommentsWithoutAnyIssues() {
     StashDiffReport report = new StashDiffReport();
     List<StashComment> comments = report.getComments();
-    assertEquals(comments.size(), 0);
+    assertEquals(0, comments.size());
   }
 
   @Test
@@ -142,9 +142,9 @@ public class StashDiffReportTest {
 
     List<StashComment> comments = report1.getComments();
 
-    assertEquals(comments.size(), 2);
-    assertEquals(comments.get(0).getId(), 12345);
-    assertEquals(comments.get(1).getId(), 54321);
+    assertEquals(2, comments.size());
+    assertEquals(12345, comments.get(0).getId());
+    assertEquals(54321, comments.get(1).getId());
   }
 
 }
