@@ -65,30 +65,26 @@ public class StashDiffReport {
    * If type == "ADDED", return the destination line of the diff.
    */
   public long getLine(String path, long destination) {
-    long result = 0;
     for (StashDiff diff : diffs) {
       if (Objects.equals(diff.getPath(), path) && (diff.getDestination() == destination)) {
 
         if (diff.getType() == IssueType.CONTEXT) {
-          result = diff.getSource();
+          return diff.getSource();
         } else {
-          result = diff.getDestination();
+          return diff.getDestination();
         }
-        break;
       }
     }
-    return result;
+    return 0;
   }
 
   public StashDiff getDiffByComment(long commentId) {
-    StashDiff result = null;
     for (StashDiff diff : diffs) {
       if (diff.containsComment(commentId)) {
-        result = diff;
-        break;
+        return diff;
       }
     }
-    return result;
+    return null;
   }
 
   /**
