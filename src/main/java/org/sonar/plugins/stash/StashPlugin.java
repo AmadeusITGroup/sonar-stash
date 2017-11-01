@@ -1,15 +1,14 @@
 package org.sonar.plugins.stash;
 
 import com.google.common.collect.Lists;
+import org.sonar.api.Plugin;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.api.PropertyType;
-import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
 import org.sonar.api.rule.Severity;
 
-import java.util.Arrays;
 import java.util.List;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 
@@ -32,7 +31,7 @@ import org.sonar.plugins.stash.issue.StashDiffReport;
                           description = "Stash pull-request Id",
                           global = false)})
 
-public class StashPlugin extends SonarPlugin {
+public class StashPlugin implements Plugin {
 
   private static final String DEFAULT_STASH_TIMEOUT_VALUE = "10000";
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
@@ -47,7 +46,8 @@ public class StashPlugin extends SonarPlugin {
 
   // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
   private static final List<String> SEVERITY_LIST = Severity.ALL;
-  private static final List<String> SEVERITY_LIST_WITH_NONE = Lists.asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
+  private static final List<String> SEVERITY_LIST_WITH_NONE = Lists
+      .asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
 
   public enum IssueType {
     CONTEXT,
@@ -77,14 +77,12 @@ public class StashPlugin extends SonarPlugin {
   public static final String STASH_EXCLUDE_RULES = "sonar.stash.exclude.rules";
 
   @Override
-  public List getExtensions() {
-    return Arrays.asList(
+  public void define(Context context) {
+    context.addExtensions(
         StashIssueReportingPostJob.class,
         StashPluginConfiguration.class,
-        InputFileCache.class,
-        StashProjectBuilder.class,
         StashRequestFacade.class,
-        InputFileCacheSensor.class,
+        StashProjectBuilder.class,
         PropertyDefinition.builder(STASH_URL)
                           .name("Stash base URL")
                           .description("HTTP URL of Stash instance, such as http://yourhost.yourdomain/stash")

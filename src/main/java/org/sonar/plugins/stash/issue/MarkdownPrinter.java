@@ -1,20 +1,18 @@
 package org.sonar.plugins.stash.issue;
 
-import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.resources.Project;
-import org.sonar.api.rule.Severity;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.plugins.stash.IssuePathResolver;
 import org.sonar.plugins.stash.PullRequestRef;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.sonar.plugins.stash.SeverityComparator;
 
 import static org.sonar.plugins.stash.CoverageCompat.isCoverageEvolution;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
@@ -24,34 +22,34 @@ public final class MarkdownPrinter {
 
   static final String NEW_LINE = "\n";
   static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
-  static final List<String> orderedSeverities = Lists.reverse(Severity.ALL);
-
-  private MarkdownPrinter() {
-  }
 
   private String stashURL;
   private PullRequestRef pr;
-  private IssuePathResolver issuePathResolver;
   private int issueThreshold;
   private String sonarQubeURL;
+  private IssuePathResolver issuePathResolver;
 
-  public MarkdownPrinter(String stashURL, PullRequestRef pr, IssuePathResolver issuePathResolver,
-      int issueThreshold, String sonarQubeURL) {
+  private Severity[] orderedSeverities;
+
+  public MarkdownPrinter(IssuePathResolver issuePathResolver, String stashURL, PullRequestRef pr, int issueThreshold, String sonarQubeURL) {
+    this.issuePathResolver = issuePathResolver;
     this.stashURL = stashURL;
     this.pr = pr;
-    this.issuePathResolver = issuePathResolver;
     this.issueThreshold = issueThreshold;
     this.sonarQubeURL = sonarQubeURL;
+
+    orderedSeverities = Severity.values();
+    Arrays.sort(orderedSeverities, Comparator.reverseOrder());
   }
 
-  public static String printSeverityMarkdown(String severity) {
+  public static String printSeverityMarkdown(org.sonar.api.batch.rule.Severity severity) {
     StringBuilder sb = new StringBuilder();
-    sb.append("*").append(StringUtils.upperCase(severity)).append("*").append(" - ");
+    sb.append("*").append(severity.name().toUpperCase()).append("*").append(" - ");
 
     return sb.toString();
   }
 
-  public static String printIssueNumberBySeverityMarkdown(List<Issue> report, String severity) {
+  public static String printIssueNumberBySeverityMarkdown(Collection<PostJobIssue> report, Severity severity) {
     StringBuilder sb = new StringBuilder();
     long issueNumber = countIssuesBySeverity(report, severity);
     sb.append("| ").append(severity).append(" | ").append(issueNumber).append(" |")
@@ -60,7 +58,7 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  private List<String> printIssueMarkdown(List<Issue> issues) {
+  private List<String> printIssueMarkdown(Collection<PostJobIssue> issues) {
     return issues.stream().map(this::printIssueMarkdown).collect(Collectors.toList());
   }
 
@@ -68,7 +66,7 @@ public final class MarkdownPrinter {
     return printIssueMarkdown(issue, Optional.empty());
   }
 
-  public String printIssueMarkdown(Issue issue) {
+  public String printIssueMarkdown(PostJobIssue issue) {
     String message = issue.message();
 
     if (message != null) {
@@ -105,16 +103,16 @@ public final class MarkdownPrinter {
     return sb.toString();
   }
 
-  public String printReportMarkdown(List<Issue> allIssues, Project project) {
+  public String printReportMarkdown(Collection<PostJobIssue> allIssues) {
     StringBuilder sb = new StringBuilder("## SonarQube analysis Overview");
     sb.append(NEW_LINE);
 
-    List<Issue> coverageIssues = new ArrayList<>();
-    List<Issue> generalIssues = new ArrayList<>();
-    List<Issue> globalCoverageIssues = new ArrayList<>();
+    List<PostJobIssue> coverageIssues = new ArrayList<>();
+    List<PostJobIssue> generalIssues = new ArrayList<>();
+    List<PostJobIssue> globalCoverageIssues = new ArrayList<>();
 
-    for (Issue issue : allIssues) {
-      if (isProjectWide(issue, project)) {
+    for (PostJobIssue issue : allIssues) {
+      if (isProjectWide(issue)) {
         globalCoverageIssues.add(issue);
       } else if (isCoverageEvolution(issue)) {
         coverageIssues.add(issue);
@@ -140,14 +138,14 @@ public final class MarkdownPrinter {
 
       sb.append("| Total New Issues | ").append(issueNumber).append(" |").append(NEW_LINE);
       sb.append("|-----------------|------|").append(NEW_LINE);
-      for (String severity : orderedSeverities) {
+      for (Severity severity : orderedSeverities) {
         sb.append(printIssueNumberBySeverityMarkdown(allIssues, severity));
       }
 
       List<String> uniqueSortedInformation = generalIssues.stream()
               .map(IssueMetaInformation::from)
               .distinct()
-              .sorted(Comparator.comparing(IssueMetaInformation::severity, new SeverityComparator().reversed()))
+              .sorted(Comparator.comparing(IssueMetaInformation::severity).reversed())
               .map(this::printIssueMarkdown)
               .collect(Collectors.toList());
       sb.append(

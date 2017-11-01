@@ -1,20 +1,19 @@
 package org.sonar.plugins.stash;
 
-import java.util.Optional;
 import java.io.File;
-import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Optional;
+import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.BatchComponent;
+import org.sonar.api.batch.BatchSide;
+import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
-import org.sonar.api.issue.Issue;
-import org.sonar.api.issue.ProjectIssues;
-import org.sonar.api.resources.Project;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
@@ -30,7 +29,8 @@ import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
-public class StashRequestFacade implements BatchComponent, IssuePathResolver {
+@BatchSide
+public class StashRequestFacade implements IssuePathResolver {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
@@ -38,39 +38,34 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   private static final String STACK_TRACE = "Exception stack trace";
 
   private StashPluginConfiguration config;
+
   private File projectBaseDir;
-  private final InputFileCache inputFileCache;
 
   public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration,
-      InputFileCache inputFileCache,
       StashProjectBuilder projectBuilder) {
     this.config = stashPluginConfiguration;
-    this.inputFileCache = inputFileCache;
     this.projectBaseDir = projectBuilder.getProjectBaseDir();
   }
 
-  public List<Issue> extractIssueReport(ProjectIssues projectIssues, Project project) {
+  public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues) {
     return SonarQubeCollector.extractIssueReport(
-        projectIssues, this,
-        config.includeExistingIssues(), config.excludedRules(), project
+        issues, this, config.includeExistingIssues(), config.excludedRules()
     );
   }
 
   private MarkdownPrinter getMarkdownPrinter() throws StashConfigurationException {
-    return new MarkdownPrinter(getStashURL(), getPullRequest(), this, getIssueThreshold(),
-        config.getSonarQubeURL());
+    return new MarkdownPrinter(this, config.getStashURL(), getPullRequest(), getIssueThreshold(), config.getSonarQubeURL());
   }
 
   /**
    * Post SQ analysis overview on Stash
    */
   public void postAnalysisOverview(PullRequestRef pr,
-      List<Issue> issueReport,
-      StashClient stashClient,
-      Project project) {
+      Collection<PostJobIssue> issueReport,
+      StashClient stashClient) {
 
     try {
-      String report = getMarkdownPrinter().printReportMarkdown(issueReport, project);
+      String report = getMarkdownPrinter().printReportMarkdown(issueReport);
       stashClient.postCommentOnPullRequest(pr, report);
 
       LOGGER.info("SonarQube analysis overview has been reported to Stash.");
@@ -146,7 +141,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
    * Push SonarQube report into the pull-request as comments.
    */
   public void postSonarQubeReport(PullRequestRef pr,
-      List<Issue> issueReport,
+      Iterable<PostJobIssue> issueReport,
       StashDiffReport diffReport,
       StashClient stashClient) {
     try {
@@ -163,13 +158,13 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
   /**
    * Post one comment by found issue on Stash.
    */
-  void postCommentPerIssue(PullRequestRef pr, Collection<Issue> issues,
+  void postCommentPerIssue(PullRequestRef pr, Iterable<PostJobIssue> issues,
       StashDiffReport diffReport, StashClient stashClient)
       throws StashClientException, StashConfigurationException {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
-    for (Issue issue : issues) {
+    for (PostJobIssue issue : issues) {
       String path = getIssuePath(issue);
       if (commentsByFile.get(path) == null) {
         StashCommentReport comments = stashClient.getPullRequestComments(pr, path);
@@ -182,17 +177,17 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
       }
     }
 
-    for (Issue issue : issues) {
+    for (PostJobIssue issue : issues) {
       postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, config.getTaskIssueSeverityThreshold());
     }
   }
 
   private void postIssueComment(PullRequestRef pr,
-                                Issue issue,
+                                PostJobIssue issue,
                                 Map<String, StashCommentReport> commentsByFile,
                                 StashDiffReport diffReport,
                                 StashClient stashClient,
-                                Optional<String> taskSeverityThreshold
+                                Optional<Severity> taskSeverityThreshold
   ) throws StashClientException, StashConfigurationException {
     
     String issueKey = issue.key();
@@ -233,7 +228,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
 
     if (
         taskSeverityThreshold.isPresent()
-        && new SeverityComparator().compare(issue.severity(), taskSeverityThreshold.get()) >= 0
+        && issue.severity().compareTo(taskSeverityThreshold.get()) >= 0
         ) {
 
       stashClient.postTaskOnComment(issue.message(), comment.getId());
@@ -296,7 +291,7 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     if (result.endsWith("/")) {
       LOGGER.warn("Stripping trailing slash from {}, as it leads to invalid URLs",
           StashPlugin.STASH_URL);
-      result = StringUtils.removeEnd(result, "/");
+      result = StashPluginUtils.removeEnd(result, "/");
     }
 
     return result;
@@ -436,17 +431,18 @@ public class StashRequestFacade implements BatchComponent, IssuePathResolver {
     }
   }
 
-  // this lives here, as we need access to both the InputFileCache and the StashRequestFacade
   @Override
-  public String getIssuePath(Issue issue) {
-    InputFile inputFile = inputFileCache.getInputFile(issue.componentKey());
-    if (inputFile == null) {
+  public String getIssuePath(PostJobIssue issue) {
+    InputComponent ip = issue.inputComponent();
+    if (ip == null || !ip.isFile()) {
       return null;
     }
+    InputFile inputFile = (InputFile) ip;
 
     File baseDir = config
         .getRepositoryRoot()
         .orElse(projectBaseDir);
+
 
     return new PathResolver().relativePath(baseDir, inputFile.file());
   }

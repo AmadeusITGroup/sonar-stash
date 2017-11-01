@@ -3,6 +3,7 @@ package org.sonar.plugins.stash;
 import java.util.Optional;
 import org.junit.Test;
 import org.sonar.api.CoreProperties;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 
 import static org.junit.Assert.assertEquals;
@@ -32,11 +33,9 @@ public class StashPluginConfigurationTest {
     settings.setProperty(StashPlugin.STASH_TIMEOUT, 42);
     settings.setProperty(StashPlugin.STASH_REVIEWER_APPROVAL, true);
     settings.setProperty(StashPlugin.STASH_RESET_COMMENTS, false);
-    settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "Minor");
+    settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "MINOR");
     settings.setProperty(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW, true);
     //Optional getRepositoryRoot() ???
-
-    settings.setProperty("sonar.scanAllFiles", false);
 
     StashPluginConfiguration SPC = new StashPluginConfiguration(settings, null);
 
@@ -56,11 +55,9 @@ public class StashPluginConfigurationTest {
     assertEquals(42, SPC.getStashTimeout());
     assertEquals(true, SPC.canApprovePullRequest());
     assertEquals(false, SPC.resetComments());
-    assertEquals(Optional.of("Minor"), SPC.getTaskIssueSeverityThreshold());
+    assertEquals(Optional.of(Severity.MINOR), SPC.getTaskIssueSeverityThreshold());
     assertEquals(true, SPC.includeAnalysisOverview());
     //assertEquals(, SPC.getRepositoryRoot());
-
-    assertEquals(false, SPC.scanAllFiles());
 
     settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "NONE");
     assertEquals(Optional.empty(), SPC.getTaskIssueSeverityThreshold());

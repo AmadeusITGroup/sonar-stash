@@ -44,6 +44,7 @@ public class SonarScanner {
     addCliProperty(command, "sonar.projectKey", projectKey);
     addCliProperty(command, "sonar.projectName", projectName);
     addCliProperty(command, "sonar.projectVersion", projectVersion);
+    addCliProperty(command, "sonar.analysis.mode", "issues");
 
     if (properties != null) {
       for (String p : properties.stringPropertyNames()) {

@@ -3,9 +3,10 @@ package org.sonar.plugins.stash;
 import com.google.common.collect.Sets;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.sonar.api.BatchComponent;
 import org.sonar.api.CoreProperties;
+import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 
 import java.io.File;
@@ -13,8 +14,9 @@ import java.util.Optional;
 import org.sonar.api.platform.Server;
 import org.sonar.api.rule.RuleKey;
 
+@BatchSide
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
-public class StashPluginConfiguration implements BatchComponent {
+public class StashPluginConfiguration {
 
   private Settings settings;
   private Server server;
@@ -88,11 +90,11 @@ public class StashPluginConfiguration implements BatchComponent {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
   }
 
-  public Optional<String> getTaskIssueSeverityThreshold() {
+  public Optional<Severity> getTaskIssueSeverityThreshold() {
     return getOptionalSeveritySetting(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD);
   }
 
-  public Optional<String> getApprovalSeverityThreshold() {
+  public Optional<Severity> getApprovalSeverityThreshold() {
     return getOptionalSeveritySetting(StashPlugin.STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD);
   }
 
@@ -102,10 +104,6 @@ public class StashPluginConfiguration implements BatchComponent {
 
   public Optional<File> getRepositoryRoot() {
     return Optional.ofNullable(settings.getString(StashPlugin.STASH_REPOSITORY_ROOT)).map(File::new);
-  }
-
-  public boolean scanAllFiles() {
-    return settings.getBoolean("sonar.scanAllFiles");
   }
 
   public boolean includeExistingIssues() {
@@ -125,11 +123,11 @@ public class StashPluginConfiguration implements BatchComponent {
         .collect(Collectors.toSet());
   }
 
-  private Optional<String> getOptionalSeveritySetting(String key) {
+  private Optional<Severity> getOptionalSeveritySetting(String key) {
     String setting = settings.getString(key);
     if (StashPlugin.SEVERITY_NONE.equals(setting)) {
       return Optional.empty();
     }
-    return Optional.of(setting);
+    return Optional.of(Severity.valueOf(setting));
   }
 }

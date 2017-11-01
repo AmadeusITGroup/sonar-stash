@@ -1,15 +1,17 @@
 package org.sonar.plugins.stash;
 
+import com.google.common.base.CharMatcher;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Properties;
-import org.sonar.api.issue.Issue;
+import org.sonar.api.batch.fs.InputComponent;
+import org.sonar.api.batch.fs.InputModule;
+import org.sonar.api.batch.postjob.issue.PostJobIssue;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.List;
-import java.util.Objects;
-import org.sonar.api.resources.Project;
+import org.sonar.api.batch.rule.Severity;
 
 public final class StashPluginUtils {
 
@@ -34,13 +36,20 @@ public final class StashPluginUtils {
     return (left > right) && !formatPercentage(left).equals(formatPercentage(right));
   }
 
-  public static long countIssuesBySeverity(List<Issue> issues, final String severity) {
+  public static long countIssuesBySeverity(Collection<PostJobIssue> issues, final Severity severity) {
     return issues.stream().filter(i -> severity.equals(i.severity())).count();
   }
 
-  public static boolean isProjectWide(Issue issue, Project project) {
-    String k = issue.componentKey();
-    return (k != null && Objects.equals(k, project.getKey()));
+  public static boolean isProjectWide(PostJobIssue issue) {
+    InputComponent ic = issue.inputComponent();
+    if (!(ic instanceof InputModule)) {
+      return false;
+    }
+    InputModule im = (InputModule) ic;
+    if (im.key() == null) {
+      return false;
+    }
+    return CharMatcher.is(':').countIn(im.key()) == 0;
   }
 
   public static PluginInfo getPluginInfo() {
@@ -55,5 +64,12 @@ public final class StashPluginUtils {
         props.getProperty("project.name"),
         props.getProperty("project.version")
     );
+  }
+
+  public static String removeEnd(String s, String suffix) {
+    if (s.endsWith(suffix)) {
+      return removeEnd(s.substring(0, s.length() - suffix.length()), suffix);
+    }
+    return s;
   }
 }

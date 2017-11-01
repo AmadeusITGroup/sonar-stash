@@ -80,15 +80,9 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 To activate the plugin, just add the following options to the SonarQube launcher (for instance with sonar-runner):
 
-Before SonarQube 5.2:
-```
-sonar-runner -Dsonar.analysis.mode=incremental \
-	-Dsonar.stash.notification -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> \
-	-Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
-```
 For SonarQube 5.2+:
 ```
-sonar-runner -Dsonar.analysis.mode=preview \
+sonar-runner -Dsonar.analysis.mode=issues \
 	-Dsonar.stash.notification=true -Dsonar.stash.project=<PROJECT> -Dsonar.stash.repository=<REPO> \
 	-Dsonar.stash.pullrequest.id=<PR_ID> -Dsonar.stash.password=<STASH_PASSWORD>...
 ```
