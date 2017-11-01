@@ -32,9 +32,7 @@ public class StashDiffReport {
   }
 
   public void add(StashDiffReport report) {
-    for (StashDiff diff : report.getDiffs()) {
-      diffs.add(diff);
-    }
+    diffs.addAll(report.getDiffs());
   }
 
   private static boolean includeVicinityIssuesForDiff(StashDiff diff, long destination, int range) {
