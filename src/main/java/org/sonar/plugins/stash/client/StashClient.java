@@ -1,6 +1,8 @@
 package org.sonar.plugins.stash.client;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
@@ -19,7 +21,6 @@ import org.slf4j.MDC;
 import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.StashPluginUtils;
 import org.sonar.plugins.stash.exceptions.StashClientException;
@@ -64,7 +65,7 @@ public class StashClient implements AutoCloseable {
   private static final String API_ONE_PR_ALL_COMMENTS = API_ONE_PR + "/comments";
   private static final String API_ONE_PR_DIFF = API_ONE_PR + "/diff?withComments=true";
   private static final String API_ONE_PR_APPROVAL = API_ONE_PR + "/approve";
-  private static final String API_ONE_PR_COMMENT_PATH = API_ONE_PR + "/comments?path={4}&start={5,number,#}";
+  private static final String API_ONE_PR_COMMENT_PATH = API_ONE_PR + "/comments?path={4}";
 
   private static final String API_ONE_PR_ONE_COMMENT = API_ONE_PR_ALL_COMMENTS + "/{4}?version={5}";
 
@@ -111,31 +112,29 @@ public class StashClient implements AutoCloseable {
     postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
 
+  public Collection<StashComment> getPullRequestOverviewComments(PullRequestRef pr) throws StashClientException {
+    return getPaged(
+        MessageFormat.format(API_ONE_PR + "/activities", baseUrl, pr.project(), pr.repository(), pr.pullRequestId()),
+        "Error!"
+    ).stream().map(StashCollector::extractCommentFromActivity).flatMap(StashPluginUtils::removeEmpty).collect(Collectors.toList());
+  }
+
   public StashCommentReport getPullRequestComments(PullRequestRef pr, String path)
   throws StashClientException {
     StashCommentReport result = new StashCommentReport();
 
-    long start = 0;
-    boolean isLastPage = false;
+    String url = MessageFormat.format(API_ONE_PR_COMMENT_PATH,
+        baseUrl,
+        pr.project(),
+        pr.repository(),
+        pr.pullRequestId(),
+        path
+    );
 
-    while (!isLastPage) {
+    for (JsonObject jsonComment: getPaged(url,
+        MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()))) {
       try {
-        String request = MessageFormat.format(API_ONE_PR_COMMENT_PATH,
-                                              baseUrl,
-                                              pr.project(),
-                                              pr.repository(),
-                                              pr.pullRequestId(),
-                                              path,
-                                              start);
-        JsonObject jsonComments = get(request,
-                                      MessageFormat.format(COMMENT_GET_ERROR_MESSAGE,
-                                                           pr.repository(),
-                                                           pr.pullRequestId()));
-        result.add(StashCollector.extractComments(jsonComments));
-
-        // Stash pagination: check if you get all comments linked to the pull-request
-        isLastPage = StashCollector.isLastPage(jsonComments);
-        start = StashCollector.getNextPageStart(jsonComments);
+        result.add(StashCollector.extractComment(jsonComment));
       } catch (StashReportExtractionException e) {
         throw new StashClientException(e);
       }
@@ -310,6 +309,10 @@ public class StashClient implements AutoCloseable {
     return performRequest(httpClient.prepareGet(url), null, HttpURLConnection.HTTP_OK, errorMessage);
   }
 
+  private Collection<JsonObject> getPaged(String url, String errorMessage) throws StashClientException {
+    return performPagedRequest(httpClient.prepareGet(url), null, HttpURLConnection.HTTP_OK, errorMessage);
+  }
+
   private JsonObject post(String url, JsonObject body, String errorMessage) throws StashClientException {
     return performRequest(httpClient.preparePost(url), body, HttpURLConnection.HTTP_OK, errorMessage);
   }
@@ -455,5 +458,34 @@ public class StashClient implements AutoCloseable {
             .setUseProxyProperties(true)
             .build()
     );
+  }
+
+  private Collection<JsonObject> performPagedRequest(BoundRequestBuilder requestBuilder,
+      JsonObject body,
+      int expectedStatusCode,
+      String errorMessage) throws StashClientException {
+
+    Collection<JsonObject> result = new ArrayList<>();
+
+    boolean doneLastPage = false;
+    int nextPageStart = 0;
+    // FIXME size/limit support
+
+    while (!doneLastPage) {
+      if (nextPageStart > 0) {
+        requestBuilder.addQueryParam("start", String.valueOf(nextPageStart));
+      }
+
+      JsonObject res = performRequest(requestBuilder, body, expectedStatusCode, errorMessage);
+      JsonArray values = ((JsonArray) res.get("values"));
+      if (values == null) {
+        throw new StashClientException("Paged response did not include values");
+      }
+      values.asCollection(result);
+      doneLastPage = res.getBooleanOrDefault("isLastPage", true);
+      nextPageStart = res.getIntegerOrDefault("nextPageStart", -1);
+    }
+
+    return result;
   }
 }

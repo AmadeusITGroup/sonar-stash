@@ -246,6 +246,7 @@ public class StashRequestFacadeTest extends StashTest {
     comments.add(comment3);
 
     when(diffReport.getComments()).thenReturn(comments);
+    when(stashClient.getPullRequestOverviewComments(pr)).thenReturn(comments);
 
     stashCommentsReport1 = mock(StashCommentReport.class);
     when(stashCommentsReport1.getComments()).thenReturn(comments);
@@ -713,6 +714,7 @@ public class StashRequestFacadeTest extends StashTest {
     comments.add(comment);
 
     when(diffReport.getComments()).thenReturn(comments);
+    when(stashClient.getPullRequestOverviewComments(eq(pr))).thenReturn(comments);
 
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 
@@ -721,7 +723,8 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testResetCommentsWithoutAnyComments() throws Exception {
-    when(diffReport.getComments()).thenReturn(new ArrayList<StashComment>());
+    when(diffReport.getComments()).thenReturn(new ArrayList<>());
+    when(stashClient.getPullRequestOverviewComments(eq(pr))).thenReturn(new ArrayList<>());
 
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 

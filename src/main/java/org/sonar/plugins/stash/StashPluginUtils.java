@@ -3,7 +3,9 @@ package org.sonar.plugins.stash;
 import com.google.common.base.CharMatcher;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputModule;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
@@ -71,5 +73,9 @@ public final class StashPluginUtils {
       return removeEnd(s.substring(0, s.length() - suffix.length()), suffix);
     }
     return s;
+  }
+
+  public static <T> Stream<T> removeEmpty(Optional<T> v) {
+    return v.map(Stream::of).orElse(Stream.empty());
   }
 }

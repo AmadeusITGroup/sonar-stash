@@ -150,8 +150,7 @@ public class StashClientTest extends StashTest {
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}], \"isLastPage\": true}";
 
     wireMock.stubFor(get(
-        urlPathEqualTo("/rest/api/1.0/projects/Project/repos/Repository/pull-requests/1/comments"))
-                         .withQueryParam("start", equalTo(String.valueOf(0))).willReturn(
+        urlPathEqualTo("/rest/api/1.0/projects/Project/repos/Repository/pull-requests/1/comments")).willReturn(
             aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment1)
         ));
 
@@ -177,7 +176,7 @@ public class StashClientTest extends StashTest {
         "{\"values\": [{\"id\":4321, \"text\":\"message2\", \"anchor\": {\"path\":\"path\", \"line\":10},"
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}], \"isLastPage\": true}";
 
-    wireMock.stubFor(get(anyUrl()).withQueryParam("start", equalTo(String.valueOf(0))).willReturn(
+    wireMock.stubFor(get(anyUrl()).willReturn(
         aJsonResponse().withStatus(HttpURLConnection.HTTP_OK).withBody(stashJsonComment1)));
 
     wireMock.stubFor(get(anyUrl()).withQueryParam("start", equalTo(String.valueOf(1))).willReturn(
@@ -371,7 +370,7 @@ public class StashClientTest extends StashTest {
     // See https://github.com/AmadeusITGroup/sonar-stash/issues/98
     int hugePullRequestId = 1234567890;
 
-    wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse()));
+    wireMock.stubFor(any(anyUrl()).willReturn(aPagedJsonResponse()));
 
     PullRequestRef pr = PullRequestRef.builder()
                                       .setProject("Project")
@@ -424,7 +423,15 @@ public class StashClientTest extends StashTest {
   }
 
   public static ResponseDefinitionBuilder aJsonResponse() {
-    return aResponse().withHeader("Content-Type", "application/json").withBody("{}");
+    return aJsonResponse("{}");
+  }
+
+  private ResponseDefinitionBuilder aPagedJsonResponse() {
+    return aJsonResponse("{\"values\":[]}");
+  }
+
+  public static ResponseDefinitionBuilder aJsonResponse(String body) {
+    return aResponse().withHeader("Content-Type", "application/json").withBody(body);
   }
 
   public static ResponseDefinitionBuilder aXMLResponse() {
