@@ -78,6 +78,10 @@ public class StashPluginConfiguration {
     return settings.getInt(StashPlugin.STASH_ISSUE_THRESHOLD);
   }
 
+  public Severity getIssueSeverityThreshold() {
+    return Severity.valueOf(settings.getString(StashPlugin.STASH_ISSUE_SEVERITY_THRESHOLD));
+  }
+
   public int getStashTimeout() {
     return settings.getInt(StashPlugin.STASH_TIMEOUT);
   }

@@ -30,6 +30,7 @@ public class StashPluginConfigurationTest {
     settings.setProperty(CoreProperties.LOGIN, "him");
     settings.setProperty(CoreProperties.PASSWORD, "notsafe");
     settings.setProperty(StashPlugin.STASH_ISSUE_THRESHOLD, 42000);
+    settings.setProperty(StashPlugin.STASH_ISSUE_SEVERITY_THRESHOLD, "MINOR");
     settings.setProperty(StashPlugin.STASH_TIMEOUT, 42);
     settings.setProperty(StashPlugin.STASH_REVIEWER_APPROVAL, true);
     settings.setProperty(StashPlugin.STASH_RESET_COMMENTS, false);
@@ -52,6 +53,7 @@ public class StashPluginConfigurationTest {
     assertEquals("him", SPC.getSonarQubeLogin());
     assertEquals("notsafe", SPC.getSonarQubePassword());
     assertEquals(42000, SPC.getIssueThreshold());
+    assertEquals(Severity.MINOR, SPC.getIssueSeverityThreshold());
     assertEquals(42, SPC.getStashTimeout());
     assertEquals(true, SPC.canApprovePullRequest());
     assertEquals(false, SPC.resetComments());

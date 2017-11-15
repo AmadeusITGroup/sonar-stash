@@ -54,6 +54,9 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
 
+**Stash issue severity threshold** (sonar.stash.issue.severity.threshold): To push issues of specified or higher severity to Stash. By default, all issues are
+pushed (threshold: INFO).
+
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
 
 **Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change. By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
