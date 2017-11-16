@@ -127,11 +127,13 @@ public class StashPlugin implements Plugin {
                           .defaultValue(DEFAULT_STASH_THRESHOLD_VALUE).build(),
         PropertyDefinition.builder(STASH_ISSUE_SEVERITY_THRESHOLD)
                           .name("Stash issue severity Threshold")
-                          .description("Only push issues with the same or higher severity to Stash server")
+                          .description("Defines minimum issue severity to create diff-view comments for."
+                                  + " Overview comment will still contain all severities."
+                                  + " By default, all issues are pushed to Stash.")
                           .type(PropertyType.SINGLE_SELECT_LIST)
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
-                          .defaultValue(Severity.INFO)
+                          .defaultValue(SEVERITY_LIST.get(0))
                           .options(SEVERITY_LIST).build(),
         PropertyDefinition.builder(STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD)
                           .name("Threshold tie the approval to the severity of the found issues")

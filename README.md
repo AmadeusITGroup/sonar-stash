@@ -54,8 +54,7 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash issue threshold** (sonar.stash.issue.threshold): To limit the number of issue pushed to Stash.
 
-**Stash issue severity threshold** (sonar.stash.issue.severity.threshold): To push issues of specified or higher severity to Stash. By default, all issues are
-pushed (threshold: INFO).
+**Stash issue severity threshold** (sonar.stash.issue.severity.threshold): Defines minimum issue severity to create diff-view comments for. Overview comment will still contain all severities. By default, all issues are pushed to Stash.
 
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
 

@@ -125,6 +125,7 @@ public class StashRequestFacadeTest extends StashTest {
 
     config = mock(StashPluginConfiguration.class);
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.empty());
+    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
     when(config.getStashURL()).thenReturn(STASH_URL);
     when(config.getStashProject()).thenReturn(STASH_PROJECT);
@@ -368,7 +369,6 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostCommentPerIssue() throws Exception {
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(true);
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
@@ -394,7 +394,6 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostCommentPerIssueWithNoStashCommentAlreadyPushed() throws Exception {
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(true);
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(true);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(true);
@@ -446,7 +445,6 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostSonarQubeReport() throws StashClientException, StashConfigurationException {
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     verify(myFacade, times(1)).postCommentPerIssue(eq(pr),
                                                    anyCollectionOf(PostJobIssue.class),
@@ -474,7 +472,6 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testPostTaskOnComment() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.INFO));
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -502,7 +499,6 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testPostTaskOnCommentWithRestrictedLevel() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.MAJOR));
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -530,7 +526,6 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testPostTaskOnCommentWithNotPresentLevel() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.BLOCKER));
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -558,7 +553,6 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testPostTaskOnCommentWithSeverityNone() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.empty());
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
 
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
@@ -585,7 +579,6 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostSonarQubeReportWithNoType() throws Exception {
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(false);
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
@@ -636,7 +629,6 @@ public class StashRequestFacadeTest extends StashTest {
 
   @Test
   public void testPostSonarQubeReportWithExceptions() throws Exception {
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(false);
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
@@ -903,7 +895,6 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testPostCommentPerIssueWithIncludeVicinityIssues() throws Exception {
     when(config.issueVicinityRange()).thenReturn(10);
-    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(false);
     when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
     when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
