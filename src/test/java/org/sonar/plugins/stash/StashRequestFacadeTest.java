@@ -125,6 +125,7 @@ public class StashRequestFacadeTest extends StashTest {
 
     config = mock(StashPluginConfiguration.class);
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.empty());
+    when(config.getIssueSeverityThreshold()).thenReturn(Severity.INFO);
     when(config.getSonarQubeURL()).thenReturn(SONARQUBE_URL);
     when(config.getStashURL()).thenReturn(STASH_URL);
     when(config.getStashProject()).thenReturn(STASH_PROJECT);
@@ -412,6 +413,32 @@ public class StashRequestFacadeTest extends StashTest {
     verify(stashClient, times(0)).postCommentLineOnPullRequest(pr,
                                                                stashCommentMessage3,
                                                                FILE_PATH_2,
+                                                               1,
+                                                               STASH_DIFF_TYPE);
+  }
+
+  @Test
+  public void testPostCommentPerIssueIgnoresLowerSeverityIssues() throws Exception {
+    when(config.getIssueSeverityThreshold()).thenReturn(Severity.MAJOR);
+    when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(true);
+    when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
+    when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
+
+    myFacade.postCommentPerIssue(pr, report, diffReport, stashClient);
+
+    verify(stashClient, times(0)).postCommentLineOnPullRequest(pr,
+                                                               stashCommentMessage1,
+                                                               FILE_PATH_1,
+                                                               1,
+                                                               STASH_DIFF_TYPE);
+    verify(stashClient, times(1)).postCommentLineOnPullRequest(pr,
+                                                               stashCommentMessage2,
+                                                               "path/to/file1",
+                                                               2,
+                                                               STASH_DIFF_TYPE);
+    verify(stashClient, times(0)).postCommentLineOnPullRequest(pr,
+                                                               stashCommentMessage3,
+                                                               "path/to/file2",
                                                                1,
                                                                STASH_DIFF_TYPE);
   }

@@ -177,8 +177,11 @@ public class StashRequestFacade implements IssuePathResolver {
       }
     }
 
+    Severity issueSeverityThreshold = config.getIssueSeverityThreshold();
     for (PostJobIssue issue : issues) {
-      postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, config.getTaskIssueSeverityThreshold());
+      if (issue.severity().compareTo(issueSeverityThreshold) >= 0) {
+        postIssueComment(pr, issue, commentsByFile, diffReport, stashClient, config.getTaskIssueSeverityThreshold());
+      }
     }
   }
 
