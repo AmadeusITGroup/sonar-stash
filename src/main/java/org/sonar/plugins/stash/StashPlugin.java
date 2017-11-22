@@ -1,13 +1,15 @@
 package org.sonar.plugins.stash;
 
 import com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import org.sonar.api.Plugin;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.api.PropertyType;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.resources.Qualifiers;
-import org.sonar.api.rule.Severity;
 
 import java.util.List;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -44,8 +46,8 @@ public class StashPlugin implements Plugin {
 
   public static final String SEVERITY_NONE = "NONE";
 
-  // INFO, MINOR, MAJOR, CRITICAL, BLOCKER
-  private static final List<String> SEVERITY_LIST = Severity.ALL;
+  private static final List<String> SEVERITY_LIST = Arrays.stream(Severity.values())
+      .map(Severity::name).collect(Collectors.toList());
   private static final List<String> SEVERITY_LIST_WITH_NONE = Lists
       .asList(SEVERITY_NONE, SEVERITY_LIST.toArray(new String[]{}));
 
