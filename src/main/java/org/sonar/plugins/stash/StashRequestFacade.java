@@ -394,13 +394,13 @@ public class StashRequestFacade implements IssuePathResolver {
    * Reset all comments linked to a pull-request.
    */
   public void resetComments(PullRequestRef pr,
-      StashDiffReport diffReport,
+      Collection<StashComment> comments,
       StashUser sonarUser,
       StashClient stashClient) {
     try {
       // FIXME delete tasks on file-wide comments
       // resetComments(diffReport.getComments(), pr, sonarUser, stashClient);
-      resetComments(stashClient.getPullRequestOverviewComments(pr), pr, sonarUser, stashClient);
+      resetComments(comments, pr, sonarUser, stashClient);
 
       LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset",
           sonarUser.getName());

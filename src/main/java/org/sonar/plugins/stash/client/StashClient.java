@@ -18,6 +18,7 @@ import org.json.simple.Jsoner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.sonar.api.batch.rule.Severity;
 import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PullRequestRef;
@@ -66,6 +67,7 @@ public class StashClient implements AutoCloseable {
   private static final String API_ONE_PR_DIFF = API_ONE_PR + "/diff?withComments=true";
   private static final String API_ONE_PR_APPROVAL = API_ONE_PR + "/approve";
   private static final String API_ONE_PR_COMMENT_PATH = API_ONE_PR + "/comments?path={4}";
+  private static final String API_ONE_PR_ACTIVITIES = API_ONE_PR + "/activities";
 
   private static final String API_ONE_PR_ONE_COMMENT = API_ONE_PR_ALL_COMMENTS + "/{4}?version={5}";
 
@@ -114,7 +116,7 @@ public class StashClient implements AutoCloseable {
 
   public Collection<StashComment> getPullRequestOverviewComments(PullRequestRef pr) throws StashClientException {
     return getPaged(
-        MessageFormat.format(API_ONE_PR + "/activities", baseUrl, pr.project(), pr.repository(), pr.pullRequestId()),
+        MessageFormat.format(API_ONE_PR_ACTIVITIES, baseUrl, pr.project(), pr.repository(), pr.pullRequestId()),
         "Error!"
     ).stream().map(StashCollector::extractCommentFromActivity).flatMap(StashPluginUtils::removeEmpty).collect(Collectors.toList());
   }
