@@ -437,6 +437,9 @@ public class StashRequestFacade implements IssuePathResolver {
   @Override
   public String getIssuePath(PostJobIssue issue) {
     InputComponent ip = issue.inputComponent();
+    
+    LOGGER.debug("Input component {}", ip);
+    
     if (ip == null || !ip.isFile()) {
       return null;
     }
@@ -446,6 +449,11 @@ public class StashRequestFacade implements IssuePathResolver {
         .getRepositoryRoot()
         .orElse(projectBaseDir);
 
+    LOGGER.debug("Base dir is {}", baseDir);
+    LOGGER.debug("ip file {}", inputFile.file());
+    LOGGER.debug("ip abs path {}", inputFile.absolutePath());
+    LOGGER.debug("ip path {}", inputFile.path());
+    LOGGER.debug("ip relative path {}", inputFile.relativePath());
 
     return new PathResolver().relativePath(baseDir, inputFile.file());
   }

@@ -43,14 +43,18 @@ public final class SonarQubeCollector {
   ) {
     if (!includeExistingIssues && !issue.isNew()) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Issue {} is not a new issue and so, not added to the report", issue.key());
+        LOGGER.debug("Issue {} is not a new issue and so, NOT ADDED to the report"
+                + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
+                issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
       }
       return false;
     }
 
     if (excludedRules.contains(issue.ruleKey())) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Issue {} is ignored, not added to the report", issue.key());
+        LOGGER.debug("Issue {} is ignored, NOT ADDED to the report"
+                + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
+                issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
       }
       return false;
     }
@@ -58,10 +62,16 @@ public final class SonarQubeCollector {
     String path = issuePathResolver.getIssuePath(issue);
     if (!isProjectWide(issue) && path == null) {
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Issue {} is not linked to a file, not added to the report", issue.key());
+        LOGGER.debug("Issue {} is not linked to a file, NOT ADDED to the report"
+                + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
+                issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
       }
       return false;
     }
+    
+    LOGGER.debug("Issue {} is ADDED to the report"
+            + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
+            issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
     return true;
   }
 }
