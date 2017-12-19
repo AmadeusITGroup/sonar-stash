@@ -3,7 +3,7 @@
 
   <groupId>org.sonar</groupId>
   <artifactId>sonar-stash-plugin</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
   <packaging>sonar-plugin</packaging>
   <description>Integration between Atlassian Stash (BitBucket) and SonarQube</description>
   <name>Stash</name>
