@@ -1,12 +1,13 @@
 package org.sonar.plugins.stash;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Optional;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.BatchSide;
@@ -47,9 +48,9 @@ public class StashRequestFacade implements IssuePathResolver {
     this.projectBaseDir = projectBuilder.getProjectBaseDir();
   }
 
-  public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues) {
+  public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues, StashDiffReport diffReport) {
     return SonarQubeCollector.extractIssueReport(
-        issues, this, config.includeExistingIssues(), config.excludedRules()
+        issues, this, diffReport, config.includeExistingIssues(), config.excludedRules()
     );
   }
 

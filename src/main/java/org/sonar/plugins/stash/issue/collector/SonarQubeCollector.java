@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.IssuePathResolver;
+import org.sonar.plugins.stash.issue.StashDiffReport;
 
 public final class SonarQubeCollector {
 
@@ -24,14 +25,16 @@ public final class SonarQubeCollector {
   /**
    * Create issue report according to issue list generated during SonarQube
    * analysis.
+ * @param diffReport 
    */
   public static List<PostJobIssue> extractIssueReport(
       Iterable<PostJobIssue> issues, IssuePathResolver issuePathResolver,
-      boolean includeExistingIssues, Set<RuleKey> excludedRules) {
+      StashDiffReport diffReport, boolean includeExistingIssues, Set<RuleKey> excludedRules) {
     return StreamSupport.stream(
         issues.spliterator(), false)
                         .filter(issue -> shouldIncludeIssue(
                             issue, issuePathResolver,
+                            diffReport,
                             includeExistingIssues, excludedRules
                         ))
                         .collect(Collectors.toList());
@@ -39,7 +42,7 @@ public final class SonarQubeCollector {
 
   static boolean shouldIncludeIssue(
       PostJobIssue issue, IssuePathResolver issuePathResolver,
-      boolean includeExistingIssues, Set<RuleKey> excludedRules
+      StashDiffReport diffReport, boolean includeExistingIssues, Set<RuleKey> excludedRules
   ) {
     if (!includeExistingIssues && !issue.isNew()) {
       if (LOGGER.isDebugEnabled()) {
@@ -66,6 +69,13 @@ public final class SonarQubeCollector {
                 + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
                 issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
       }
+      return false;
+    }
+    
+    if (!diffReport.hasPath(path)) {
+      LOGGER.debug("Issue {} is not linked to a diff, NOT ADDED to the report"
+            + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
+            issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
       return false;
     }
     
