@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.1.xsd">
+  <suppress>
+    <gav regex="true">org\.asynchttpclient:.*</gav>
+    <cpe>cpe:/a:netty_project:netty</cpe>
+  </suppress>
+  <suppress>
+    <gav regex="true">com\.typesafe\.netty:netty-reactive-streams:.*</gav>
+    <cve>CVE-2015-2156</cve>
+    <cve>CVE-2014-3488</cve>
+  </suppress>
+</suppressions>

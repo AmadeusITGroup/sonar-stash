@@ -19,4 +19,8 @@ elif [ "integration" = "${TEST_SUITE}" ]; then
 	# not exist
 	export RAILS_ENV=production
 	mvn -e verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
+
+elif [ "dependency-check" = "${TEST_SUITE}" ]; then
+	mvn -e org.owasp:dependency-check-maven:check
+
 fi

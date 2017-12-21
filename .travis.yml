@@ -21,6 +21,10 @@ matrix:
         - TEST_SUITE=integration
         - SONARQUBE_VERSION=5.6
 
+    - jdk: openjdk8
+      env:
+        - TEST_SUITE=dependency-check
+
 env:
   global:
     # GITHUB_TOKEN
