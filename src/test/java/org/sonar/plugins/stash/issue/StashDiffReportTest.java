@@ -1,16 +1,14 @@
 package org.sonar.plugins.stash.issue;
 
-import org.hamcrest.core.Is;
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.plugins.stash.StashPlugin;
-
-import java.util.List;
-import org.sonar.plugins.stash.StashPlugin.IssueType;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 public class StashDiffReportTest {
 
@@ -28,13 +26,13 @@ public class StashDiffReportTest {
     StashComment comment2 = mock(StashComment.class);
     when(comment2.getId()).thenReturn((long)54321);
 
-    diff1 = new StashDiff(IssueType.CONTEXT, "path/to/diff1", (long)10, (long)20);
+    diff1 = new StashDiff(IssueType.CONTEXT, "path/to/diff1", 10, 20);
     diff1.addComment(comment1);
 
-    diff2 = new StashDiff(IssueType.ADDED, "path/to/diff2", (long)20, (long)30);
+    diff2 = new StashDiff(IssueType.ADDED, "path/to/diff2", 20, 30);
     diff2.addComment(comment2);
 
-    diff3 = new StashDiff(IssueType.CONTEXT, "path/to/diff3", (long)30, (long)40);
+    diff3 = new StashDiff(IssueType.CONTEXT, "path/to/diff3", 30, 40);
 
     report1.add(diff1);
     report1.add(diff2);
@@ -131,13 +129,13 @@ public class StashDiffReportTest {
 
   @Test
   public void testGetCommentsWithDuplicatedComments() {
-    StashComment comment1 = new StashComment((long)12345, "message", "path", (long)1, mock(StashUser.class), (long)1);
+    StashComment comment1 = new StashComment(12345, "message", "path", (long)1, mock(StashUser.class), 1);
     diff1.addComment(comment1);
 
-    StashComment comment2 = new StashComment((long)12345, "message", "path", (long)1, mock(StashUser.class), (long)1);
+    StashComment comment2 = new StashComment(12345, "message", "path", (long)1, mock(StashUser.class), 1);
     diff2.addComment(comment2);
 
-    StashComment comment3 = new StashComment((long)54321, "message", "path", (long)1, mock(StashUser.class), (long)1);
+    StashComment comment3 = new StashComment(54321, "message", "path", (long)1, mock(StashUser.class), 1);
     diff3.addComment(comment3);
 
     List<StashComment> comments = report1.getComments();
@@ -145,6 +143,14 @@ public class StashDiffReportTest {
     assertEquals(2, comments.size());
     assertEquals(12345, comments.get(0).getId());
     assertEquals(54321, comments.get(1).getId());
+  }
+
+  @Test
+  public void testHasPath() {
+    assertEquals(report1.hasPath("path/to/diff1"), true);
+    assertEquals(report1.hasPath("path/to/diff2"), true);
+    assertEquals(report1.hasPath("path/to/diff3"), true);
+    assertEquals(report1.hasPath("path/to/diff4"), false);
   }
 
 }
