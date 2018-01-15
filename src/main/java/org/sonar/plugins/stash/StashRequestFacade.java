@@ -50,7 +50,7 @@ public class StashRequestFacade implements IssuePathResolver {
 
   public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues, StashDiffReport diffReport) {
     return SonarQubeCollector.extractIssueReport(
-        issues, this, diffReport, config.includeExistingIssues(), config.excludedRules()
+        issues, this, diffReport, config.includeExistingIssues(), config.excludedRules(), config.issueVicinityRange()
     );
   }
 

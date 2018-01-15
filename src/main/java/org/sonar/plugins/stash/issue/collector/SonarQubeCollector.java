@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.IssuePathResolver;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 
 public final class SonarQubeCollector {
@@ -26,23 +27,24 @@ public final class SonarQubeCollector {
    * Create issue report according to issue list generated during SonarQube
    * analysis.
  * @param diffReport 
+ * @param i 
    */
   public static List<PostJobIssue> extractIssueReport(
       Iterable<PostJobIssue> issues, IssuePathResolver issuePathResolver,
-      StashDiffReport diffReport, boolean includeExistingIssues, Set<RuleKey> excludedRules) {
+      StashDiffReport diffReport, boolean includeExistingIssues, Set<RuleKey> excludedRules, int issueVicinityRange) {
     return StreamSupport.stream(
         issues.spliterator(), false)
                         .filter(issue -> shouldIncludeIssue(
                             issue, issuePathResolver,
                             diffReport,
-                            includeExistingIssues, excludedRules
+                            includeExistingIssues, excludedRules, issueVicinityRange
                         ))
                         .collect(Collectors.toList());
   }
 
   static boolean shouldIncludeIssue(
       PostJobIssue issue, IssuePathResolver issuePathResolver,
-      StashDiffReport diffReport, boolean includeExistingIssues, Set<RuleKey> excludedRules
+      StashDiffReport diffReport, boolean includeExistingIssues, Set<RuleKey> excludedRules, int issueVicinityRange
   ) {
     if (!includeExistingIssues && !issue.isNew()) {
       if (LOGGER.isDebugEnabled()) {
@@ -73,11 +75,26 @@ public final class SonarQubeCollector {
     }
     
     if (!diffReport.hasPath(path)) {
-      LOGGER.debug("Issue {} is not linked to a diff, NOT ADDED to the report"
+      LOGGER.debug("Issue {} is not linked to a diff by path, NOT ADDED to the report"
             + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
             issue, issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
       return false;
     }
+    
+    Integer issueLine = issue.line();
+    if (issueLine == null) {
+      issueLine = 0;
+    }
+
+    // check if issue belongs to the Stash diff view
+    IssueType type = diffReport.getType(path, issueLine, issueVicinityRange);
+    if (type == null) {
+      LOGGER.debug("Issue {} is not linked to a diff, NOT ADDED to the report"
+            + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}", issue,
+            issue.componentKey(), issue.key(), issue.ruleKey(), issue.message(), issue.line());
+      return false;
+    }
+
     
     LOGGER.debug("Issue {} is ADDED to the report"
             + ", issue.componentKey = {}, issue.key = {}, issue.ruleKey = {}, issue.message = {}, issue.line = {}",
