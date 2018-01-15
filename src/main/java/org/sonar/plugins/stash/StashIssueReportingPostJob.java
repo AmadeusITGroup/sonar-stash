@@ -74,9 +74,6 @@ public class StashIssueReportingPostJob implements PostJob {
       int issueThreshold = stashRequestFacade.getIssueThreshold();
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
-      // SonarQube objects
-      List<PostJobIssue> issueReport = stashRequestFacade.extractIssueReport(issues);
-
       StashUser stashUser = stashRequestFacade
           .getSonarQubeReviewer(stashCredentials.getUserSlug(), stashClient);
 
@@ -91,6 +88,9 @@ public class StashIssueReportingPostJob implements PostJob {
         throw new StashMissingElementException(
             "No Stash differential report available to process the SQ analysis");
       }
+
+      // SonarQube objects
+      List<PostJobIssue> issueReport = stashRequestFacade.extractIssueReport(issues, diffReport);
 
       // if requested, reset all comments linked to the pull-request
       if (config.resetComments()) {

@@ -1,25 +1,25 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import java.util.HashSet;
-import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.sonar.api.batch.fs.FilePredicate;
-import org.sonar.api.batch.fs.FilePredicates;
-import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
@@ -28,7 +28,9 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.DefaultIssue;
 import org.sonar.plugins.stash.IssuePathResolver;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
+import org.sonar.plugins.stash.issue.StashDiffReport;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SonarQubeCollectorTest {
@@ -48,6 +50,9 @@ public class SonarQubeCollectorTest {
   Set<RuleKey> excludedRules;
 
   IssuePathResolver ipr = new DummyIssuePathResolver();
+  
+  @Mock
+  StashDiffReport stashDiffReport;
 
   @Before
   public void setUp() throws Exception {
@@ -90,7 +95,7 @@ public class SonarQubeCollectorTest {
   public void testExtractEmptyIssueReport() {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, false, excludedRules, 0);
     assertEquals(0, report.size());
   }
 
@@ -100,7 +105,11 @@ public class SonarQubeCollectorTest {
     issues.add(issue1);
     issues.add(issue2);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
+    when(stashDiffReport.hasPath("project/path1")).thenReturn(true);
+    when(stashDiffReport.hasPath("project/path2")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
+    
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, false, excludedRules, 0);
     assertEquals(2, report.size());
     assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -116,6 +125,16 @@ public class SonarQubeCollectorTest {
     assertEquals((Integer) 2, sqIssue2.line());
 
   }
+  
+  @Test
+  public void testExtractIssueReportIssuesNotInDiff() {
+    ArrayList<PostJobIssue> issues = new ArrayList<>();
+    issues.add(issue1);
+    issues.add(issue2);
+
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, false, excludedRules, 0);
+    assertEquals(0, report.size());
+  }
 
   @Test
   public void testExtractIssueReportWithNoLine() {
@@ -123,8 +142,11 @@ public class SonarQubeCollectorTest {
 
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
+    
+    when(stashDiffReport.hasPath("project/path1")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, false, excludedRules, 0);
     assertEquals(1, report.size());
     assertEquals(1, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(0, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -143,8 +165,12 @@ public class SonarQubeCollectorTest {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
+    
+    when(stashDiffReport.hasPath("project/path1")).thenReturn(true);
+    when(stashDiffReport.hasPath("project/path2")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, false, excludedRules, 0);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -157,8 +183,12 @@ public class SonarQubeCollectorTest {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
+    
+    when(stashDiffReport.hasPath("project/path1")).thenReturn(true);
+    when(stashDiffReport.hasPath("project/path2")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, false, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, false, excludedRules, 0);
     assertEquals(1, report.size());
     assertEquals(0, countIssuesBySeverity(report, Severity.BLOCKER));
     assertEquals(1, countIssuesBySeverity(report, Severity.CRITICAL));
@@ -177,8 +207,12 @@ public class SonarQubeCollectorTest {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
+    
+    when(stashDiffReport.hasPath("project/path1")).thenReturn(true);
+    when(stashDiffReport.hasPath("project/path2")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, true, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, true, excludedRules, 0);
     assertEquals(2, report.size());
   }
 
@@ -190,10 +224,14 @@ public class SonarQubeCollectorTest {
     ArrayList<PostJobIssue> issues = new ArrayList<>();
     issues.add(issue1);
     issues.add(issue2);
+    
+    when(stashDiffReport.hasPath("project/path1")).thenReturn(true);
+    when(stashDiffReport.hasPath("project/path2")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
 
     excludedRules.add(RuleKey.of("foo", "bar"));
 
-    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, true, excludedRules);
+    List<PostJobIssue> report = SonarQubeCollector.extractIssueReport(issues, ipr, stashDiffReport, true, excludedRules, 0);
     assertEquals(1, report.size());
     assertEquals("key2", report.get(0).key());
   }
@@ -202,25 +240,28 @@ public class SonarQubeCollectorTest {
   public void testShouldIncludeIssue() {
     Set<RuleKey> er = new HashSet<>();
     InputComponent ic = new DefaultInputFile("module", "some/path");
+    
+    when(stashDiffReport.hasPath("some/path")).thenReturn(true);
+    when(stashDiffReport.getType(anyString(), anyLong(), anyInt())).thenReturn(IssueType.CONTEXT);
 
     assertFalse(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false).setInputComponent(ic), ipr, false, er
+            new DefaultIssue().setNew(false).setInputComponent(ic), ipr, stashDiffReport, false, er, 0
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(false).setInputComponent(ic), ipr, true, er
+            new DefaultIssue().setNew(false).setInputComponent(ic), ipr, stashDiffReport, true, er, 0
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true).setInputComponent(ic), ipr, false, er
+            new DefaultIssue().setNew(true).setInputComponent(ic), ipr, stashDiffReport, false, er, 0
         )
     );
     assertTrue(
         SonarQubeCollector.shouldIncludeIssue(
-            new DefaultIssue().setNew(true).setInputComponent(ic), ipr, true, er
+            new DefaultIssue().setNew(true).setInputComponent(ic), ipr, stashDiffReport, true, er, 0
         )
     );
   }

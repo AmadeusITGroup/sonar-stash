@@ -2,6 +2,7 @@ package org.sonar.plugins.stash;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -84,7 +85,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
     when(config.includeAnalysisOverview()).thenReturn(Boolean.TRUE);
 
     when(report.size()).thenReturn(10);
-    when(stashRequestFacade.extractIssueReport(eq(report)))
+    when(stashRequestFacade.extractIssueReport(eq(report), anyObject()))
         .thenReturn(report);
     when(context.issues()).thenReturn(report);
 
@@ -130,7 +131,7 @@ public class StashIssueReportingPostJobTest extends StashTest {
 
     List<PostJobIssue> report = mock(ArrayList.class);
     when(report.size()).thenReturn(55);
-    when(stashRequestFacade.extractIssueReport(eq(report)))
+    when(stashRequestFacade.extractIssueReport(eq(report), anyObject()))
         .thenReturn(report);
 
     myJob = new StashIssueReportingPostJob(config, stashRequestFacade, server);

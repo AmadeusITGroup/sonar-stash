@@ -1,12 +1,12 @@
 package org.sonar.plugins.stash.issue;
 
-import com.google.common.collect.Range;
-import java.util.Objects;
-import org.sonar.plugins.stash.StashPlugin;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import org.sonar.plugins.stash.StashPlugin.IssueType;
+
+import com.google.common.collect.Range;
 
 /**
  * This class is a representation of the Stash Diff view.
@@ -103,5 +103,15 @@ public class StashDiffReport {
       }
     }
     return result;
+  }
+
+  public boolean hasPath(String path) {
+    for (StashDiff diff : diffs) {
+        if (Objects.equals(diff.getPath(), path)) {
+            return true;
+        }
+    }
+    
+    return false;
   }
 }
