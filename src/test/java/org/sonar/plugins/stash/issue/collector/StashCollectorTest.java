@@ -203,8 +203,8 @@ public class StashCollectorTest {
 
     StashComment comment2 = diff3.getComments().get(0);
     assertEquals(54321, comment2.getId());
-    assertEquals(comment2.getMessage(), "Test comment 2");
-    assertEquals(comment2.getVersion(), 1);
+    assertEquals("Test comment 2", comment2.getMessage());
+    assertEquals(1, comment2.getVersion());
 
     StashUser author2 = comment2.getAuthor();
     assertEquals(54321, author2.getId());
