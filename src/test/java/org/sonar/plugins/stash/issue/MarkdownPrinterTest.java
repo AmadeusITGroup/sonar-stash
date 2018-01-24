@@ -22,16 +22,8 @@ public class MarkdownPrinterTest {
   List<PostJobIssue> report = new ArrayList<>();
 
   private static final String SONAR_URL = "sonarqube/URL";
-  private static final String STASH_URL = "stash/URL";
   private MarkdownPrinter printer;
   private int issueThreshold;
-  private DummyIssuePathResolver ipr;
-
-  PullRequestRef pr = PullRequestRef.builder()
-      .setProject("stashProject")
-      .setRepository("stashRepo")
-      .setPullRequestId(1)
-      .build();
 
   @Before
   public void setUp() {
@@ -61,9 +53,8 @@ public class MarkdownPrinterTest {
     issue = issueBlocker;
 
     issueThreshold = 100;
-    ipr = new DummyIssuePathResolver();
 
-    printer = new MarkdownPrinter(ipr, STASH_URL, pr, issueThreshold, SONAR_URL);
+    printer = new MarkdownPrinter(issueThreshold, SONAR_URL);
   }
 
   @Test
@@ -131,7 +122,7 @@ public class MarkdownPrinterTest {
 
   @Test
   public void testPrintReportMarkdownWithIssueLimitation() {
-    printer = new MarkdownPrinter(ipr, STASH_URL, pr, 3, SONAR_URL);
+    printer = new MarkdownPrinter( 3, SONAR_URL);
     String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
         + "### Too many issues detected (3/3): Issues cannot be displayed in Diff view.\n\n"

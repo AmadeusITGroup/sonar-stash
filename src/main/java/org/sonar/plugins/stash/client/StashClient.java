@@ -19,7 +19,6 @@ import org.slf4j.MDC;
 import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.StashPluginUtils;
 import org.sonar.plugins.stash.exceptions.StashClientException;

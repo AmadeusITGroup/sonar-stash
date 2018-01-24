@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import org.json.simple.JsonArray;
 import org.json.simple.JsonObject;
 import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashPlugin;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;

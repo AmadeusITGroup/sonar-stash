@@ -99,7 +99,6 @@ public class StashRequestFacadeTest extends StashTest {
 
   List<PostJobIssue> report;
 
-  IssuePathResolver ipr;
   StashProjectBuilder spr;
 
   private static final String STASH_PROJECT = "Project";
@@ -134,7 +133,6 @@ public class StashRequestFacadeTest extends StashTest {
 
     ActiveRules activeRules = new ActiveRulesBuilder().build();
 
-    ipr = new DummyIssuePathResolver();
     spr = new DummyStashProjectBuilder(new File("/basedir"));
 
     StashRequestFacade facade = new StashRequestFacade(config, spr);
@@ -152,8 +150,7 @@ public class StashRequestFacadeTest extends StashTest {
     stashUser = mock(StashUser.class);
     when(stashUser.getId()).thenReturn((long) 1234);
 
-    MarkdownPrinter printer = new MarkdownPrinter(ipr, "http://stash/url", pr, 100,
-        SONARQUBE_URL);
+    MarkdownPrinter printer = new MarkdownPrinter( 100, SONARQUBE_URL);
 
     report = new ArrayList<PostJobIssue>();
 

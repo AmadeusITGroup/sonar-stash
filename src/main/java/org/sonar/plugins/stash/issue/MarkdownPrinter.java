@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -12,32 +11,22 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.plugins.stash.IssuePathResolver;
-import org.sonar.plugins.stash.PullRequestRef;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
-import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 
 public final class MarkdownPrinter {
 
   private static final String NEW_LINE = "\n";
   private static final String CODING_RULES_RULE_KEY = "coding_rules#rule_key=";
 
-  private String stashURL;
-  private PullRequestRef pr;
   private int issueThreshold;
   private String sonarQubeURL;
-  private IssuePathResolver issuePathResolver;
 
   private Severity[] orderedSeverities;
 
-  public MarkdownPrinter(IssuePathResolver issuePathResolver, String stashURL, PullRequestRef pr, int issueThreshold, String sonarQubeURL) {
-    this.issuePathResolver = issuePathResolver;
-    this.stashURL = stashURL;
-    this.pr = pr;
+  public MarkdownPrinter(int issueThreshold, String sonarQubeURL) {
     this.issueThreshold = issueThreshold;
     this.sonarQubeURL = sonarQubeURL;
 

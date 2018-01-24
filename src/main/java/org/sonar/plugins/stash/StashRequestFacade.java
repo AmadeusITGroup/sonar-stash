@@ -54,7 +54,7 @@ public class StashRequestFacade implements IssuePathResolver {
   }
 
   private MarkdownPrinter getMarkdownPrinter() throws StashConfigurationException {
-    return new MarkdownPrinter(this, config.getStashURL(), getPullRequest(), getIssueThreshold(), config.getSonarQubeURL());
+    return new MarkdownPrinter(getIssueThreshold(), config.getSonarQubeURL());
   }
 
   /**

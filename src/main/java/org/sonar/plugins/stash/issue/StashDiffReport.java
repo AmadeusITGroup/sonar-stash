@@ -2,7 +2,6 @@ package org.sonar.plugins.stash.issue;
 
 import com.google.common.collect.Range;
 import java.util.Objects;
-import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
