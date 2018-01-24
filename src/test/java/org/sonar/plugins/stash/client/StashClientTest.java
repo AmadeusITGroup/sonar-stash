@@ -45,7 +45,9 @@ import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 
@@ -83,12 +85,12 @@ public class StashClientTest extends StashTest {
 
   @Test
   public void testGetBaseUrl() {
-    Assert.assertEquals("http://127.0.0.1:" + wireMock.port(), client.getBaseUrl());
+    assertEquals("http://127.0.0.1:" + wireMock.port(), client.getBaseUrl());
   }
 
   @Test
   public void testGetLogin() {
-    Assert.assertEquals("login@email.com", client.getLogin());
+    assertEquals("login@email.com", client.getLogin());
   }
 
   @Test
@@ -98,13 +100,13 @@ public class StashClientTest extends StashTest {
     try {
       client.postCommentOnPullRequest(pr, "Report");
 
-      Assert.fail("Wrong HTTP result should raised StashClientException");
+      fail("Wrong HTTP result should raised StashClientException");
 
     } catch (StashClientException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString(
+      assertThat(e.getMessage(), CoreMatchers.containsString(
           String.valueOf(HttpURLConnection.HTTP_NOT_IMPLEMENTED)));
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
+      assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
+      assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
     }
   }
 
@@ -126,7 +128,7 @@ public class StashClientTest extends StashTest {
     StashCommentReport report = client.getPullRequestComments(pr, "path");
 
     assertTrue(report.contains("message", "path", 5));
-    assertEquals(report.size(), 1);
+    assertEquals(1, report.size());
   }
 
   @Test(expected = StashClientException.class)
@@ -164,7 +166,7 @@ public class StashClientTest extends StashTest {
     StashCommentReport report = client.getPullRequestComments(pr, "path");
     assertTrue(report.contains("message1", "path", 1));
     assertTrue(report.contains("message2", "path", 2));
-    assertEquals(report.size(), 2);
+    assertEquals(2, report.size());
   }
 
   @Test
@@ -186,7 +188,7 @@ public class StashClientTest extends StashTest {
     StashCommentReport report = client.getPullRequestComments(pr, "path");
     assertTrue(report.contains("message1", "path", 5));
     assertFalse(report.contains("message2", "path", 10));
-    assertEquals(report.size(), 1);
+    assertEquals(1, report.size());
   }
 
   @Test(expected = StashClientException.class)
@@ -213,7 +215,7 @@ public class StashClientTest extends StashTest {
                                                              .withBody(DiffReportSample.baseReport)));
 
     StashDiffReport report = client.getPullRequestDiffs(pr);
-    assertEquals(report.getDiffs().size(), 4);
+    assertEquals(4, report.getDiffs().size());
   }
 
   @Test(expected = StashClientException.class)
@@ -253,10 +255,10 @@ public class StashClientTest extends StashTest {
 
     try {
       client.postCommentLineOnPullRequest(pr, "message", "path", 5, IssueType.CONTEXT);
-      Assert.fail("Wrong HTTP result should raised StashClientException");
+      fail("Wrong HTTP result should raised StashClientException");
     } catch (StashClientException e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
+      assertThat(e.getMessage(), CoreMatchers.containsString("detailed error"));
+      assertThat(e.getMessage(), CoreMatchers.containsString("seriousException"));
     }
   }
 
@@ -273,10 +275,10 @@ public class StashClientTest extends StashTest {
 
     StashUser user = client.getUser("sonarqube");
 
-    assertEquals(user.getId(), 1);
-    assertEquals(user.getName(), "SonarQube");
-    assertEquals(user.getEmail(), "sq@email.com");
-    assertEquals(user.getSlug(), "sonarqube");
+    assertEquals(1, user.getId());
+    assertEquals("SonarQube", user.getName());
+    assertEquals("sq@email.com", user.getEmail());
+    assertEquals("sonarqube", user.getSlug());
 
   }
 
@@ -301,10 +303,10 @@ public class StashClientTest extends StashTest {
 
     StashPullRequest pullRequest = client.getPullRequest(pr);
 
-    assertEquals(pullRequest.getId(), 1);
-    assertEquals(pullRequest.getProject(), "Project");
-    assertEquals(pullRequest.getRepository(), "Repository");
-    assertEquals(pullRequest.getVersion(), 1);
+    assertEquals(1, pullRequest.getId());
+    assertEquals("Project", pullRequest.getProject());
+    assertEquals("Repository", pullRequest.getRepository());
+    assertEquals(1, pullRequest.getVersion());
   }
 
 

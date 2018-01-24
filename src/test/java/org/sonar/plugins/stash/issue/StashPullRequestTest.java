@@ -30,46 +30,46 @@ public class StashPullRequestTest {
 
   @Test
   public void testGetProject() {
-    assertEquals(myPullRequest.getProject(), "Project");
+    assertEquals("Project", myPullRequest.getProject());
   }
 
   @Test
   public void testGetRepository() {
-    assertEquals(myPullRequest.getRepository(), "Repository");
+    assertEquals("Repository", myPullRequest.getRepository());
   }
 
   @Test
   public void testGetId() {
-    assertEquals(myPullRequest.getId(), 123);
+    assertEquals(123, myPullRequest.getId());
   }
 
   @Test
   public void testGetVersion() {
-    assertEquals(myPullRequest.getVersion(), 0);
+    assertEquals(0, myPullRequest.getVersion());
     myPullRequest.setVersion(5);
-    assertEquals(myPullRequest.getVersion(), 5);
+    assertEquals(5, myPullRequest.getVersion());
   }
 
   @Test
   public void testAddReviewer() {
-    assertEquals(myPullRequest.getReviewers().size(), 0);
+    assertEquals(0, myPullRequest.getReviewers().size());
 
     myPullRequest.addReviewer(stashUser1);
 
-    assertEquals(myPullRequest.getReviewers().size(), 1);
-    assertEquals(myPullRequest.getReviewers().get(0).getId(), 1);
+    assertEquals(1, myPullRequest.getReviewers().size());
+    assertEquals(1, myPullRequest.getReviewers().get(0).getId());
   }
 
   @Test
   public void testAddReviewerTwice() {
-    assertEquals(myPullRequest.getReviewers().size(), 0);
+    assertEquals(0, myPullRequest.getReviewers().size());
 
     myPullRequest.addReviewer(stashUser1);
     myPullRequest.addReviewer(stashUser2);
 
-    assertEquals(myPullRequest.getReviewers().size(), 2);
-    assertEquals(myPullRequest.getReviewers().get(0).getId(), 1);
-    assertEquals(myPullRequest.getReviewers().get(1).getId(), 2);
+    assertEquals(2, myPullRequest.getReviewers().size());
+    assertEquals(1, myPullRequest.getReviewers().get(0).getId());
+    assertEquals(2, myPullRequest.getReviewers().get(1).getId());
   }
 
   @Test
@@ -79,45 +79,45 @@ public class StashPullRequestTest {
     myPullRequest.addReviewer(stashUser1);
     myPullRequest.addReviewer(stashUser1);
 
-    assertEquals(myPullRequest.getReviewers().size(), 2);
-    assertEquals(myPullRequest.getReviewers().get(0).getId(), 1);
-    assertEquals(myPullRequest.getReviewers().get(1).getId(), 1);
+    assertEquals(2, myPullRequest.getReviewers().size());
+    assertEquals(1, myPullRequest.getReviewers().get(0).getId());
+    assertEquals(1, myPullRequest.getReviewers().get(1).getId());
   }
 
   @Test
   public void testGetReviewer() {
-    assertEquals(myPullRequest.getReviewers().size(), 0);
-    assertEquals(myPullRequest.getReviewer("sonarqube1"), null);
-    assertEquals(myPullRequest.getReviewer("sonarqube2"), null);
+    assertEquals(0, myPullRequest.getReviewers().size());
+    assertEquals(null, myPullRequest.getReviewer("sonarqube1"));
+    assertEquals(null, myPullRequest.getReviewer("sonarqube2"));
 
     myPullRequest.addReviewer(stashUser1);
 
-    assertEquals(myPullRequest.getReviewers().size(), 1);
-    assertEquals(myPullRequest.getReviewer("sonarqube1").getId(), 1);
-    assertEquals(myPullRequest.getReviewer("sonarqube2"), null);
+    assertEquals(1, myPullRequest.getReviewers().size());
+    assertEquals(1, myPullRequest.getReviewer("sonarqube1").getId());
+    assertEquals(null, myPullRequest.getReviewer("sonarqube2"));
 
     myPullRequest.addReviewer(stashUser2);
 
-    assertEquals(myPullRequest.getReviewers().size(), 2);
-    assertEquals(myPullRequest.getReviewer("sonarqube1").getId(), 1);
-    assertEquals(myPullRequest.getReviewer("sonarqube2").getId(), 2);
+    assertEquals(2, myPullRequest.getReviewers().size());
+    assertEquals(1, myPullRequest.getReviewer("sonarqube1").getId());
+    assertEquals(2, myPullRequest.getReviewer("sonarqube2").getId());
   }
 
   @Test
   public void testContainsReviewer() {
-    assertEquals(myPullRequest.getReviewers().size(), 0);
+    assertEquals(0, myPullRequest.getReviewers().size());
     assertFalse(myPullRequest.containsReviewer(stashUser1));
     assertFalse(myPullRequest.containsReviewer(stashUser2));
 
     myPullRequest.addReviewer(stashUser1);
 
-    assertEquals(myPullRequest.getReviewers().size(), 1);
+    assertEquals(1, myPullRequest.getReviewers().size());
     assertTrue(myPullRequest.containsReviewer(stashUser1));
     assertFalse(myPullRequest.containsReviewer(stashUser2));
 
     myPullRequest.addReviewer(stashUser2);
 
-    assertEquals(myPullRequest.getReviewers().size(), 2);
+    assertEquals(2, myPullRequest.getReviewers().size());
     assertTrue(myPullRequest.containsReviewer(stashUser1));
     assertTrue(myPullRequest.containsReviewer(stashUser2));
   }

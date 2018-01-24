@@ -17,22 +17,22 @@ public class StashUserTest {
 
   @Test
   public void testGetId() {
-    assertEquals(myUser.getId(), 1);
+    assertEquals(1, myUser.getId());
   }
 
   @Test
   public void testGetName() {
-    assertEquals(myUser.getName(), "SonarQube");
+    assertEquals("SonarQube", myUser.getName());
   }
 
   @Test
   public void testGetSlug() {
-    assertEquals(myUser.getSlug(), "sonarqube");
+    assertEquals("sonarqube", myUser.getSlug());
   }
 
   @Test
   public void testGetEmail() {
-    assertEquals(myUser.getEmail(), "sq@email.com");
+    assertEquals("sq@email.com", myUser.getEmail());
   }
 
 

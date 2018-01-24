@@ -17,13 +17,13 @@ public class StashCommentTest {
   @Test
   public void testGetLine() {
     StashComment comment = new StashComment(1, "message", "path", (long)123456, stashUser, 0);
-    assertEquals(comment.getLine(), 123456);
+    assertEquals(123456, comment.getLine());
   }
 
   @Test
   public void testGetNoLine() {
     StashComment comment = new StashComment(1, "message", "path", null, stashUser, 0);
-    assertEquals(comment.getLine(), 0);
+    assertEquals(0, comment.getLine());
   }
 
   @Test

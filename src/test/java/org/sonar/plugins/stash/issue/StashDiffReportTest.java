@@ -1,9 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
-import org.hamcrest.core.Is;
 import org.junit.Before;
 import org.junit.Test;
-import org.sonar.plugins.stash.StashPlugin;
 
 import java.util.List;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
@@ -44,10 +42,10 @@ public class StashDiffReportTest {
   @Test
   public void testAdd() {
     StashDiffReport report = new StashDiffReport();
-    assertEquals(report.getDiffs().size(), 0);
+    assertEquals(0, report.getDiffs().size());
 
     report.add(diff1);
-    assertEquals(report.getDiffs().size(), 1);
+    assertEquals(1, report.getDiffs().size());
 
     StashDiff result1 = report.getDiffs().get(0);
     assertEquals("path/to/diff1", result1.getPath());

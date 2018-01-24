@@ -265,8 +265,8 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getStashPassword()).thenReturn("password");
 
     StashCredentials credentials = myFacade.getCredentials();
-    assertEquals(credentials.getLogin(), "login");
-    assertEquals(credentials.getPassword(), "password");
+    assertEquals("login", credentials.getLogin());
+    assertEquals("password", credentials.getPassword());
   }
 
   @Test
@@ -286,11 +286,11 @@ public class StashRequestFacadeTest extends StashTest {
     environmentVariables.set("SONAR_STASH_PASSWORD", "envPassword");
 
     StashCredentials credentials = myFacade.getCredentials();
-    assertEquals(credentials.getPassword(), "envPassword");
+    assertEquals("envPassword", credentials.getPassword());
 
     when(config.getStashPassword()).thenReturn("password");
     credentials = myFacade.getCredentials();
-    assertEquals(credentials.getPassword(), "envPassword");
+    assertEquals("envPassword", credentials.getPassword());
   }
 
   @Test(expected = StashConfigurationException.class)
@@ -304,7 +304,7 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testGetIssueThreshold() throws StashConfigurationException {
     when(config.getIssueThreshold()).thenReturn(1);
-    assertEquals(myFacade.getIssueThreshold(), 1);
+    assertEquals(1, myFacade.getIssueThreshold());
   }
 
   @Test(expected = StashConfigurationException.class)
@@ -316,10 +316,10 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testGetStashURL() throws StashConfigurationException {
     when(config.getStashURL()).thenReturn("http://url");
-    assertEquals(myFacade.getStashURL(), "http://url");
+    assertEquals("http://url", myFacade.getStashURL());
 
     when(config.getStashURL()).thenReturn("http://url/");
-    assertEquals(myFacade.getStashURL(), "http://url");
+    assertEquals("http://url", myFacade.getStashURL());
   }
 
   @Test(expected = StashConfigurationException.class)
@@ -331,7 +331,7 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testGetStashProject() throws StashConfigurationException {
     when(config.getStashProject()).thenReturn("project");
-    assertEquals(myFacade.getStashProject(), "project");
+    assertEquals("project", myFacade.getStashProject());
   }
 
   @Test(expected = StashConfigurationException.class)
@@ -343,7 +343,7 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testGetStashRepository() throws StashConfigurationException {
     when(config.getStashRepository()).thenReturn("repository");
-    assertEquals(myFacade.getStashRepository(), "repository");
+    assertEquals("repository", myFacade.getStashRepository());
   }
 
   @Test(expected = StashConfigurationException.class)
@@ -355,7 +355,7 @@ public class StashRequestFacadeTest extends StashTest {
   @Test
   public void testGetStashPullRequestId() throws StashConfigurationException {
     when(config.getPullRequestId()).thenReturn(12345);
-    assertEquals(myFacade.getStashPullRequestId(), 12345);
+    assertEquals(12345, myFacade.getStashPullRequestId());
   }
 
   @Test(expected = StashConfigurationException.class)
@@ -666,7 +666,7 @@ public class StashRequestFacadeTest extends StashTest {
     when(stashClient.getUser(STASH_USER)).thenReturn(stashUser);
 
     StashUser reviewer = myFacade.getSonarQubeReviewer(STASH_USER, stashClient);
-    assertEquals(reviewer.getId(), 1234);
+    assertEquals(1234, reviewer.getId());
   }
 
   @Test
@@ -674,7 +674,7 @@ public class StashRequestFacadeTest extends StashTest {
     doThrow(new StashClientException("StashClientException for Test")).when(stashClient).getUser(STASH_USER);
 
     StashUser reviewer = myFacade.getSonarQubeReviewer(STASH_USER, stashClient);
-    assertEquals(reviewer, null);
+    assertEquals(null, reviewer);
   }
 
   @Test
@@ -683,9 +683,9 @@ public class StashRequestFacadeTest extends StashTest {
 
     StashDiffReport result = myFacade.getPullRequestDiffReport(pr, stashClient);
 
-    assertEquals(result.getLine(FILE_PATH_1, 1), 1);
-    assertEquals(result.getLine(FILE_PATH_1, 2), 2);
-    assertEquals(result.getLine(FILE_PATH_2, 1), 1);
+    assertEquals(1, result.getLine(FILE_PATH_1, 1));
+    assertEquals(2, result.getLine(FILE_PATH_1, 2));
+    assertEquals(1, result.getLine(FILE_PATH_2, 1));
   }
 
   @Test
@@ -694,7 +694,7 @@ public class StashRequestFacadeTest extends StashTest {
                                                                       .getPullRequestDiffs(pr);
 
     StashDiffReport result = myFacade.getPullRequestDiffReport(pr, stashClient);
-    assertEquals(result, null);
+    assertEquals(null, result);
   }
 
   @Test

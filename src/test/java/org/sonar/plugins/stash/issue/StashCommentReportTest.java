@@ -63,16 +63,16 @@ public class StashCommentReportTest {
     StashCommentReport report = new StashCommentReport();
 
     report.add(comment1);
-    assertEquals(report.size(), 1);
+    assertEquals(1, report.size());
 
     report.add(comment2);
-    assertEquals(report.size(), 2);
+    assertEquals(2, report.size());
   }
 
   @Test
   public void testSizeOfEmptyReport() {
     StashCommentReport report = new StashCommentReport();
-    assertEquals(report.size(), 0);
+    assertEquals(0, report.size());
   }
 
   @Test
@@ -90,7 +90,7 @@ public class StashCommentReportTest {
     report2.add(comment3);
 
     report2.add(report1);
-    assertEquals(report2.size(), 3);
+    assertEquals(3, report2.size());
 
     assertTrue(report2.contains("message1", "path1", (long)1));
     assertTrue(report2.contains("message2", "path2", (long)2));
@@ -106,7 +106,7 @@ public class StashCommentReportTest {
 
     StashCommentReport report2 = new StashCommentReport();
     report2.add(report1);
-    assertEquals(report2.size(), 2);
+    assertEquals(2, report2.size());
   }
 
   @Test
@@ -117,7 +117,7 @@ public class StashCommentReportTest {
     report2.add(comment1);
 
     report1.add(report2);
-    assertEquals(report1.size(), 1);
+    assertEquals(1, report1.size());
   }
 
   @Test
@@ -126,7 +126,7 @@ public class StashCommentReportTest {
     StashCommentReport report2 = new StashCommentReport();
 
     report1.add(report2);
-    assertEquals(report1.size(), 0);
+    assertEquals(0, report1.size());
   }
 
   @Test
