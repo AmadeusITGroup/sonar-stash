@@ -46,6 +46,8 @@ script:
 
 sudo: false
 dist: trusty
+git:
+  depth: false
 
 notifications:
   email: false
