@@ -74,7 +74,7 @@ public class StashPullRequestTest {
 
   @Test
   public void testAddReviewerSameTwice() {
-    assertEquals(myPullRequest.getReviewers().size(), 0);
+    assertEquals(0, myPullRequest.getReviewers().size());
 
     myPullRequest.addReviewer(stashUser1);
     myPullRequest.addReviewer(stashUser1);

@@ -34,7 +34,7 @@ public class StashCollectorTest {
         + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}]}";
     StashCommentReport commentReport = StashCollector.extractComments(parse(commentString));
 
-    assertEquals(commentReport.size(), 1);
+    assertEquals(1, commentReport.size());
 
     StashComment comment = commentReport.getComments().get(0);
     assertEquals(1234, comment.getId());
@@ -197,27 +197,27 @@ public class StashCollectorTest {
     assertEquals((long)50, diff3.getDestination());
     assertEquals("stash-plugin/Test.java", diff3.getPath());
     assertEquals(IssueType.CONTEXT, diff3.getType());
-    assertEquals(diff3.getComments().size(), 1);
+    assertEquals(1, diff3.getComments().size());
     assertFalse(diff3.containsComment(12345));
     assertTrue(diff3.containsComment(54321));
 
     StashComment comment2 = diff3.getComments().get(0);
-    assertEquals(comment2.getId(), 54321);
+    assertEquals(54321, comment2.getId());
     assertEquals(comment2.getMessage(), "Test comment 2");
     assertEquals(comment2.getVersion(), 1);
 
     StashUser author2 = comment2.getAuthor();
-    assertEquals(author2.getId(), 54321);
-    assertEquals(author2.getName(), "SonarQube2");
-    assertEquals(author2.getSlug(), "sonarqube2");
-    assertEquals(author2.getEmail(), "sq2@email.com");
+    assertEquals(54321, author2.getId());
+    assertEquals("SonarQube2", author2.getName());
+    assertEquals("sonarqube2", author2.getSlug());
+    assertEquals("sq2@email.com", author2.getEmail());
 
     StashDiff diff4 = report.getDiffs().get(3);
-    assertEquals(diff4.getSource(), (long)60);
-    assertEquals(diff4.getDestination(), (long)70);
-    assertEquals(diff4.getPath(), "stash-plugin/Test.java");
-    assertEquals(diff4.getType(), IssueType.ADDED);
-    assertEquals(diff4.getComments().size(), 0);
+    assertEquals((long)60, diff4.getSource());
+    assertEquals((long)70, diff4.getDestination());
+    assertEquals("stash-plugin/Test.java", diff4.getPath());
+    assertEquals(IssueType.ADDED, diff4.getType());
+    assertEquals(0, diff4.getComments().size());
     assertFalse(diff4.containsComment(12345));
     assertFalse(diff4.containsComment(54321));
   }
@@ -225,7 +225,7 @@ public class StashCollectorTest {
   @Test
   public void testExtractDiffsWithNoComments() throws Exception {
     StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReportWithNoComments));
-    assertEquals(report.getDiffs().size(), 4);
+    assertEquals(4, report.getDiffs().size());
 
     StashDiff diff1 = report.getDiffs().get(0);
     assertEquals((long)10, diff1.getSource());
@@ -259,7 +259,7 @@ public class StashCollectorTest {
   @Test
   public void testExtractDiffsWithFileComments() throws Exception {
     StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReportWithFileComments));
-    assertEquals(report.getDiffs().size(), 5);
+    assertEquals(5, report.getDiffs().size());
 
     StashDiff diff1 = report.getDiffs().get(0);
     assertEquals(1, diff1.getComments().size());
@@ -316,7 +316,7 @@ public class StashCollectorTest {
 
     StashComment comment3 = diff5.getComments().get(0);
     assertEquals(123456, comment3.getId());
-    assertEquals(comment3.getVersion(), 1);
+    assertEquals(1, comment3.getVersion());
     assertEquals("Test File comment", comment3.getMessage());
 
     StashUser author3 = comment3.getAuthor();
@@ -340,7 +340,7 @@ public class StashCollectorTest {
   @Test
   public void testExtractDiffsWithEmptyFileComments() throws Exception {
     StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.baseReportWithEmptyFileComments));
-    assertEquals(report.getDiffs().size(), 5);
+    assertEquals(5, report.getDiffs().size());
 
     StashDiff diff1 = report.getDiffs().get(0);
     assertEquals(1, diff1.getComments().size());
@@ -397,7 +397,7 @@ public class StashCollectorTest {
   @Test
   public void testExtractDiffsWithMultipleFile() throws Exception {
     StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.multipleFileReport));
-    assertEquals(report.getDiffs().size(), 2);
+    assertEquals(2, report.getDiffs().size());
 
     StashDiff diff1 = report.getDiffs().get(0);
     assertEquals((long)10, diff1.getSource());
@@ -419,7 +419,7 @@ public class StashCollectorTest {
   @Test
   public void testExtractDiffsWithDeletedFile() throws Exception {
     StashDiffReport report = StashCollector.extractDiffs(parse(DiffReportSample.deletedFileReport));
-    assertEquals(report.getDiffs().size(), 2);
+    assertEquals(2, report.getDiffs().size());
 
     StashDiff diff1 = report.getDiffs().get(0);
     assertEquals((long)10, diff1.getSource());
@@ -550,7 +550,7 @@ public class StashCollectorTest {
     assertEquals(pullRequestId, pullRequest.getId());
     assertEquals(pullRequestVersion, pullRequest.getVersion());
 
-    assertEquals(pullRequest.getReviewers().size(), 0);
+    assertEquals(0, pullRequest.getReviewers().size());
   }
 
   @Test
