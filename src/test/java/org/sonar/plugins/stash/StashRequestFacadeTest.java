@@ -150,7 +150,7 @@ public class StashRequestFacadeTest extends StashTest {
     stashUser = mock(StashUser.class);
     when(stashUser.getId()).thenReturn((long) 1234);
 
-    MarkdownPrinter printer = new MarkdownPrinter( 100, SONARQUBE_URL);
+    MarkdownPrinter printer = new MarkdownPrinter(100, SONARQUBE_URL, 0, new DummyIssuePathResolver());
 
     report = new ArrayList<PostJobIssue>();
 

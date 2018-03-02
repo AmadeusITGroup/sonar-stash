@@ -12,7 +12,6 @@ import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.DefaultIssue;
-import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
 
 public class MarkdownPrinterTest {
@@ -31,30 +30,44 @@ public class MarkdownPrinterTest {
         .setSeverity(Severity.BLOCKER)
         .setMessage("messageBlocker")
         .setRuleKey(RuleKey.of("RepoBlocker", "RuleBlocker"))
-        .setInputComponent(new DefaultInputFile("foo1", "bar1"))
+        .setInputComponent(new DefaultInputFile("foo1", "scripts/file1.example"))
         .setLine(1);
     PostJobIssue issueCritical = new DefaultIssue().setKey("key2")
         .setSeverity(Severity.CRITICAL)
         .setMessage("messageCritical")
         .setRuleKey(RuleKey.of("RepoCritical", "RuleCritical"))
-        .setInputComponent(new DefaultInputFile("foo2", "bar2"))
+        .setInputComponent(new DefaultInputFile("foo2", "scripts/file2.example"))
         .setLine(1);
     PostJobIssue issueMajor = new DefaultIssue().setKey("key3")
         .setSeverity(Severity.MAJOR)
         .setMessage("messageMajor")
         .setRuleKey(RuleKey.of("RepoMajor", "RuleMajor"))
-        .setInputComponent(new DefaultInputFile("foo3", "bar3"))
+        .setInputComponent(new DefaultInputFile("foo3", "scripts/file3.example"))
         .setLine(1);
+    PostJobIssue issueSameFile = new DefaultIssue().setKey("key3")
+        .setSeverity(Severity.MAJOR)
+        .setMessage("messageMajor")
+        .setRuleKey(RuleKey.of("RepoMajor", "RuleMajor"))
+        .setInputComponent(new DefaultInputFile("foo3", "scripts/tests/file3.example"))
+        .setLine(5);
+    PostJobIssue issueSameFileHidden = new DefaultIssue().setKey("key3")
+        .setSeverity(Severity.MAJOR)
+        .setMessage("messageMajor")
+        .setRuleKey(RuleKey.of("RepoMajor", "RuleMajor"))
+        .setInputComponent(new DefaultInputFile("foo3", "scripts/file3.example"))
+        .setLine(15);
 
     report.add(issueBlocker);
     report.add(issueCritical);
     report.add(issueMajor);
+    report.add(issueSameFile);
+    report.add(issueSameFileHidden);
 
     issue = issueBlocker;
 
     issueThreshold = 100;
 
-    printer = new MarkdownPrinter(issueThreshold, SONAR_URL);
+    printer = new MarkdownPrinter(issueThreshold, SONAR_URL, 2, new DummyIssuePathResolver());
   }
 
   @Test
@@ -73,7 +86,7 @@ public class MarkdownPrinterTest {
     );
 
     assertEquals(
-        "| MAJOR | 1 |\n",
+        "| MAJOR | 3 |\n",
         MarkdownPrinter.printIssueNumberBySeverityMarkdown(report, Severity.MAJOR)
     );
 
@@ -103,42 +116,43 @@ public class MarkdownPrinterTest {
   public void testPrintReportMarkdown() {
     String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
-        + "| Total New Issues | 3 |\n"
+        + "| Total New Issues | 5 |\n"
         + "|-----------------|------|\n"
         + "| BLOCKER | 1 |\n"
         + "| CRITICAL | 1 |\n"
-        + "| MAJOR | 1 |\n"
+        + "| MAJOR | 3 |\n"
         + "| MINOR | 0 |\n"
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|-------------|\n"
         + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
+        + "| &nbsp;&nbsp; *Files: scripts/file1.example:1* |\n"
         + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |"
-        + "\n";
+        + "| &nbsp;&nbsp; *Files: scripts/file2.example:1* |\n"
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n"
+        + "| &nbsp;&nbsp; *Files: scripts/file3.example:1, scripts/file3.example:15, ...* |\n";
 
     assertEquals(reportString, issueReportMarkdown);
   }
 
   @Test
   public void testPrintReportMarkdownWithIssueLimitation() {
-    printer = new MarkdownPrinter( 3, SONAR_URL);
+    printer = new MarkdownPrinter(3, SONAR_URL, 0, new DummyIssuePathResolver());
     String issueReportMarkdown = printer.printReportMarkdown(report);
     String reportString = "## SonarQube analysis Overview\n"
-        + "### Too many issues detected (3/3): Issues cannot be displayed in Diff view.\n\n"
-        + "| Total New Issues | 3 |\n"
+        + "### Too many issues detected (5/3): Issues cannot be displayed in Diff view.\n\n"
+        + "| Total New Issues | 5 |\n"
         + "|-----------------|------|\n"
         + "| BLOCKER | 1 |\n"
         + "| CRITICAL | 1 |\n"
-        + "| MAJOR | 1 |\n"
+        + "| MAJOR | 3 |\n"
         + "| MINOR | 0 |\n"
         + "| INFO | 0 |\n\n\n"
         + "| Issues list |\n"
         + "|-------------|\n"
         + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
         + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
-        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |"
-        + "\n";
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n";
 
     assertEquals(reportString, issueReportMarkdown);
   }
