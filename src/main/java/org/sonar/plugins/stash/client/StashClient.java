@@ -474,6 +474,7 @@ public class StashClient implements AutoCloseable {
     // FIXME size/limit support
 
     while (!doneLastPage) {
+      requestBuilder.resetQuery();
       if (nextPageStart > 0) {
         requestBuilder.addQueryParam("start", String.valueOf(nextPageStart));
       }
