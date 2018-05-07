@@ -128,7 +128,7 @@ public class StashRequestFacade implements IssuePathResolver {
 
         // squid:S2629 : no evaluation required if the logging level is not activated
         if (LOGGER.isInfoEnabled()) {
-          LOGGER.info("User \"{}\" is now a reviewer of the pull-request {} #{}",
+          LOGGER.info("User \"{}\" is now a reviewer of the pull-request #{} in {}/{}",
               userSlug, pr.pullRequestId(), pr.project(), pr.repository());
         }
       }
