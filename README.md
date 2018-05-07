@@ -1,12 +1,12 @@
 # SonarQube Stash (BitBucket) plugin
 
 [![Build Status](https://travis-ci.org/AmadeusITGroup/sonar-stash.svg?branch=master)](https://travis-ci.org/AmadeusITGroup/sonar-stash/branches)
-[![SonarQube Quality Gate](https://sonarcloud.io/api/badges/gate?key=org.sonar:sonar-stash-plugin&template=FLAT)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
-[![Unit-Tests Overall Coverage](https://sonarcloud.io/api/badges/measure?key=org.sonar:sonar-stash-plugin&metric=coverage&template=FLAT)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
-[![Unit-Tests New Coverage](https://sonarcloud.io/api/badges/measure?key=org.sonar:sonar-stash-plugin&metric=new_coverage&template=FLAT)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
-[![SonarQube Reported Bugs](https://sonarcloud.io/api/badges/measure?key=org.sonar:sonar-stash-plugin&metric=bugs&template=FLAT)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
-[![SonarQube Reported Vulnerabilities](https://sonarcloud.io/api/badges/measure?key=org.sonar:sonar-stash-plugin&metric=vulnerabilities&template=FLAT)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
-[![Technical Debt](https://sonarcloud.io/api/badges/measure?key=org.sonar:sonar-stash-plugin&metric=sqale_debt_ratio&template=FLAT)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
+[![SonarQube Quality Gate](https://sonarcloud.io/api/project_badges/gate?project=org.sonar:sonar-stash-plugin)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
+[![Unit-Tests Overall Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.sonar:sonar-stash-plugin&metric=coverage)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
+[![Unit-Tests New Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.sonar:sonar-stash-plugin&metric=new_coverage)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
+[![SonarQube Reported Bugs](https://sonarcloud.io/api/project_badges/measure?project=org.sonar:sonar-stash-plugin&metric=bugs)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
+[![SonarQube Reported Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=org.sonar:sonar-stash-plugin&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=org.sonar:sonar-stash-plugin&metric=sqale_debt_ratio)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
 
 **SonarQube is now a real reviewer!**
 SonarQube Stash (BitBucket) plugin is a pull-request decorator which allows to integrate SonarQube violations directly into your pull-request.
