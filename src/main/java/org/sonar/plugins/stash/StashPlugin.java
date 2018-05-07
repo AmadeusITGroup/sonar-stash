@@ -39,6 +39,7 @@ public class StashPlugin implements Plugin {
   private static final String DEFAULT_STASH_THRESHOLD_VALUE = "100";
   private static final boolean DEFAULT_STASH_ANALYSIS_OVERVIEW = true;
   private static final boolean DEFAULT_STASH_INCLUDE_EXISTING_ISSUES = false;
+  private static final int DEFAULT_STASH_FILES_IN_OVERVIEW = 0;
   private static final int DEFAULT_STASH_INCLUDE_VICINITY_RANGE = StashDiffReport.VICINITY_RANGE_NONE;
   private static final String DEFAULT_STASH_EXCLUDE_RULES = "";
 
@@ -76,6 +77,7 @@ public class StashPlugin implements Plugin {
   public static final String STASH_INCLUDE_ANALYSIS_OVERVIEW = "sonar.stash.include.overview";
   public static final String STASH_REPOSITORY_ROOT = "sonar.stash.repository.root";
   public static final String STASH_INCLUDE_EXISTING_ISSUES = "sonar.stash.include.existing.issues";
+  public static final String STASH_FILES_LIMIT_IN_OVERVIEW = "sonar.stash.overview.filenames";
   public static final String STASH_INCLUDE_VICINITY_RANGE = "sonar.stash.include.vicinity.issues.range";
   public static final String STASH_EXCLUDE_RULES = "sonar.stash.exclude.rules";
 
@@ -155,11 +157,20 @@ public class StashPlugin implements Plugin {
                           .options(SEVERITY_LIST_WITH_NONE).build(),
         PropertyDefinition.builder(STASH_INCLUDE_ANALYSIS_OVERVIEW)
                           .name("Include Analysis Overview Comment")
-                          .description("Create a comment to  the Pull Request providing a overview of the results")
+                          .description("Create a comment to the Pull Request providing a overview of the results")
                           .type(PropertyType.BOOLEAN)
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
                           .defaultValue(Boolean.toString(DEFAULT_STASH_ANALYSIS_OVERVIEW)).build(),
+        PropertyDefinition.builder(STASH_FILES_LIMIT_IN_OVERVIEW)
+                          .name("Include Files in Overview")
+                          .description("Will extend the Analysis Overview comment to include the files where the " +
+                                  "issues where found. Set to any positive number to limit how many files per issue " +
+                                  "will be shown. Set to 0 to disable this feature.")
+                          .type(PropertyType.INTEGER)
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .defaultValue(String.valueOf(DEFAULT_STASH_FILES_IN_OVERVIEW)).build(),
         PropertyDefinition.builder(STASH_INCLUDE_EXISTING_ISSUES)
                           .name("Include Existing Issues")
                           .description("Set to true to include already existing issues on modified lines.")

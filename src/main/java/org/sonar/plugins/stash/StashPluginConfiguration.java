@@ -114,6 +114,10 @@ public class StashPluginConfiguration {
     return settings.getBoolean(StashPlugin.STASH_INCLUDE_EXISTING_ISSUES);
   }
 
+  public int getFilesLimitInOverview() {
+    return settings.getInt(StashPlugin.STASH_FILES_LIMIT_IN_OVERVIEW);
+  }
+
   public int issueVicinityRange() {
     return settings.getInt(StashPlugin.STASH_INCLUDE_VICINITY_RANGE);
   }

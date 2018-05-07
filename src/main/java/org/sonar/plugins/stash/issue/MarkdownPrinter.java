@@ -1,18 +1,22 @@
 package org.sonar.plugins.stash.issue;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
-
-import java.util.List;
+import org.sonar.plugins.stash.IssuePathResolver;
 
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
 
@@ -23,12 +27,18 @@ public final class MarkdownPrinter {
 
   private int issueThreshold;
   private String sonarQubeURL;
+  private int includeFilesInOverview;
+  private IssuePathResolver issuePathResolver;
 
   private Severity[] orderedSeverities;
 
-  public MarkdownPrinter(int issueThreshold, String sonarQubeURL) {
+  public MarkdownPrinter(
+    int issueThreshold, String sonarQubeURL, int includeFilesInOverview, IssuePathResolver issuePathResolver
+  ) {
     this.issueThreshold = issueThreshold;
     this.sonarQubeURL = sonarQubeURL;
+    this.includeFilesInOverview = includeFilesInOverview;
+    this.issuePathResolver = issuePathResolver;
 
     orderedSeverities = Severity.values();
     Arrays.sort(orderedSeverities, Comparator.reverseOrder());
@@ -99,19 +109,19 @@ public final class MarkdownPrinter {
               .map(this::printIssueMarkdown)
               .collect(Collectors.toList());
       sb.append(
-          formatTableList("Issues list", uniqueSortedInformation)
+          formatTableList(uniqueSortedInformation, this.getMappedIssuesToFiles(allIssues))
       );
     }
 
     return sb.toString();
   }
 
-  private String formatTableList(String caption, List<String> items) {
+  private String formatTableList(List<String> items, ListMultimap<String, String> issueToFilesMap) {
     if (items.isEmpty()) {
       return "";
     }
 
-
+    String caption = "Issues list";
     StringBuilder sb = new StringBuilder();
     sb.append(NEW_LINE).append(NEW_LINE);
     sb.append("| ").append(caption).append(" |").append(NEW_LINE);
@@ -120,10 +130,48 @@ public final class MarkdownPrinter {
     sb.append("|");
     sb.append(NEW_LINE);
     for (String item : items) {
-      sb.append("| ").append(item).append(" |").append(NEW_LINE);
+        sb.append("| ").append(item).append(" |").append(NEW_LINE);
+        if (this.includeFilesInOverview > 0 && issueToFilesMap.containsKey(item)) {
+            String files = String.join(", ", issueToFilesMap.get(item));
+            sb.append("| &nbsp;&nbsp; *Files: ").append(files).append("* |").append(NEW_LINE);
+        }
     }
 
     return sb.toString();
+  }
+
+  private ListMultimap<String, String> getMappedIssuesToFiles(Collection<PostJobIssue> allIssues) {
+    ListMultimap<String, String> issueToFilesMap = ArrayListMultimap.create();
+    if (this.includeFilesInOverview <= 0) {
+      return issueToFilesMap;
+    }
+
+    for (PostJobIssue issue : allIssues) {
+      String title = this.printIssueMarkdown(issue);
+
+      Integer issueLine = issue.line();
+      if (issueLine == null) {
+        issueLine = 0;
+      }
+
+      issueToFilesMap.get(title).add(this.issuePathResolver.getIssuePath(issue) + ":" + issueLine);
+    }
+
+    this.sortMappedIssuesToFiles(issueToFilesMap);
+
+    return issueToFilesMap;
+  }
+
+  private void sortMappedIssuesToFiles(ListMultimap<String, String> issueToFilesMap) {
+    for (String key : Lists.newArrayList(issueToFilesMap.keySet())) {
+      List<String> files = issueToFilesMap.get(key);
+      files.sort(Comparator.comparing(String::length).thenComparing(String::compareTo));
+
+      if (files.size() >= this.includeFilesInOverview) {
+        files.subList(this.includeFilesInOverview, files.size()).clear();
+        files.add("...");
+      }
+    }
   }
 
   private String repeatString(int n, String s) {
