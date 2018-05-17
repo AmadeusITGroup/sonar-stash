@@ -1,21 +1,22 @@
 package org.sonar.plugins.stash.issue;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.IssuePathResolver;
 
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
@@ -103,20 +104,20 @@ public final class MarkdownPrinter {
         sb.append(printIssueNumberBySeverityMarkdown(allIssues, severity));
       }
 
-      List<String> uniqueSortedInformation = allIssues.stream()
-              .filter(distinctByKey(PostJobIssue::ruleKey))
-              .sorted(Comparator.comparing(PostJobIssue::severity).reversed())
-              .map(this::printIssueMarkdown)
+      ListMultimap<RuleKey, PostJobIssue> uniqueInformation = allIssues.stream().collect(Multimaps.toMultimap(PostJobIssue::ruleKey, Function.identity(), ArrayListMultimap::create));
+
+      List<Map.Entry<RuleKey, List<PostJobIssue>>> uniqueSortedInformation = Multimaps.asMap(uniqueInformation)
+              .entrySet().stream()
+              .sorted(bySeverity.reversed())
               .collect(Collectors.toList());
       sb.append(
-          formatTableList(uniqueSortedInformation, this.getMappedIssuesToFiles(allIssues))
-      );
+          formatTableList(uniqueSortedInformation));
     }
 
     return sb.toString();
   }
 
-  private String formatTableList(List<String> items, ListMultimap<String, String> issueToFilesMap) {
+  private String formatTableList(List<Map.Entry<RuleKey, List<PostJobIssue>>> items) {
     if (items.isEmpty()) {
       return "";
     }
@@ -129,49 +130,29 @@ public final class MarkdownPrinter {
     sb.append(repeatString(caption.length() + 2, "-"));
     sb.append("|");
     sb.append(NEW_LINE);
-    for (String item : items) {
-        sb.append("| ").append(item).append(" |").append(NEW_LINE);
-        if (this.includeFilesInOverview > 0 && issueToFilesMap.containsKey(item)) {
-            String files = String.join(", ", issueToFilesMap.get(item));
-            sb.append("| &nbsp;&nbsp; *Files: ").append(files).append("* |").append(NEW_LINE);
+    for (Map.Entry<RuleKey, List<PostJobIssue>> item : items) {
+      List<PostJobIssue> issues = item.getValue();
+      sb.append("| ").append(printIssueMarkdown(issues.get(0))).append(" |").append(NEW_LINE);
+        if (this.includeFilesInOverview > 0) {
+            sb.append("| &nbsp;&nbsp; *Files: ").append(fileNameList(issues)).append("* |").append(NEW_LINE);
         }
     }
 
     return sb.toString();
   }
 
-  private ListMultimap<String, String> getMappedIssuesToFiles(Collection<PostJobIssue> allIssues) {
-    ListMultimap<String, String> issueToFilesMap = ArrayListMultimap.create();
-    if (this.includeFilesInOverview <= 0) {
-      return issueToFilesMap;
+  private String fileNameList(List<PostJobIssue> issues) {
+    List<String> names = new ArrayList<>();
+
+    issues.sort(issueFormatComparator);
+
+    for (PostJobIssue issue: issues.subList(0, Math.min(includeFilesInOverview, issues.size()))) {
+      names.add(String.format("%s:%s", issuePathResolver.getIssuePath(issue), issue.line()));
     }
-
-    for (PostJobIssue issue : allIssues) {
-      String title = this.printIssueMarkdown(issue);
-
-      Integer issueLine = issue.line();
-      if (issueLine == null) {
-        issueLine = 0;
-      }
-
-      issueToFilesMap.get(title).add(this.issuePathResolver.getIssuePath(issue) + ":" + issueLine);
+    if (issues.size() > includeFilesInOverview) {
+      names.add("...");
     }
-
-    this.sortMappedIssuesToFiles(issueToFilesMap);
-
-    return issueToFilesMap;
-  }
-
-  private void sortMappedIssuesToFiles(ListMultimap<String, String> issueToFilesMap) {
-    for (String key : Lists.newArrayList(issueToFilesMap.keySet())) {
-      List<String> files = issueToFilesMap.get(key);
-      files.sort(Comparator.comparing(String::length).thenComparing(String::compareTo));
-
-      if (files.size() >= this.includeFilesInOverview) {
-        files.subList(this.includeFilesInOverview, files.size()).clear();
-        files.add("...");
-      }
-    }
+    return String.join(", ", names);
   }
 
   private String repeatString(int n, String s) {
@@ -182,8 +163,21 @@ public final class MarkdownPrinter {
     return "[" + title + "](" + target + ")";
   }
 
-  private static <T> Predicate<T> distinctByKey(Function<? super T, Object> keyExtractor) {
-    Set<Object> seen = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    return t -> seen.add(keyExtractor.apply(t));
-  }
+  private static Comparator<? super Entry<RuleKey, ? extends Collection<PostJobIssue>>> bySeverity = Comparator.comparing(
+      // List invariant is guaranteed by docs
+      e -> ((List<PostJobIssue>) e.getValue()).get(0).severity());
+
+  private Comparator<PostJobIssue> fileNameLength = Comparator
+      .comparing(i -> issuePathResolver.getIssuePath(i).length());
+
+  private Comparator<PostJobIssue> issueLine = Comparator
+      .comparing(PostJobIssue::line);
+
+  private Comparator<PostJobIssue> fileNameLexical = Comparator
+      .comparing(i -> issuePathResolver.getIssuePath(i));
+
+  private Comparator<PostJobIssue> issueFormatComparator =
+      fileNameLength
+      .thenComparing(issueLine)
+      .thenComparing(fileNameLexical);
 }
