@@ -1,6 +1,8 @@
 package org.sonar.plugins.stash.issue.collector;
 
 import java.math.BigDecimal;
+import java.util.Objects;
+import java.util.Optional;
 import org.json.simple.JsonArray;
 import org.json.simple.JsonObject;
 import org.sonar.plugins.stash.PullRequestRef;
@@ -19,9 +21,7 @@ public final class StashCollector {
   private static final String AUTHOR = "author";
   private static final String VERSION = "version";
 
-  private StashCollector() {
-    // Hiding implicit public constructor with an explicit private one (squid:S1118)
-  }
+  private StashCollector() {}
 
   public static StashCommentReport extractComments(JsonObject jsonComments) throws StashReportExtractionException {
     StashCommentReport result = new StashCommentReport();
@@ -40,8 +40,11 @@ public final class StashCollector {
     return result;
   }
 
-  public static StashComment extractComment(JsonObject jsonComment, String path, Long line) {
+  public static Optional<StashComment> extractCommentFromActivity(JsonObject json) {
+    return Optional.ofNullable((JsonObject) json.get("comment")).filter(Objects::nonNull).map(j -> StashCollector.extractComment(j, null, null));
+  }
 
+  public static StashComment extractComment(JsonObject jsonComment, String path, Long line) {
     long id = getLong(jsonComment, "id");
     String message = (String)jsonComment.get("text");
 
@@ -50,7 +53,10 @@ public final class StashCollector {
     JsonObject jsonAuthor = (JsonObject)jsonComment.get(AUTHOR);
     StashUser stashUser = extractUser(jsonAuthor);
 
-    return new StashComment(id, message, path, line, stashUser, version);
+    StashComment result = new StashComment(id, message, path, line, stashUser, version);
+    // FIXME do this at some central place
+    updateCommentTasks(result, (JsonArray) jsonComment.get("tasks"));
+    return result;
   }
 
   public static StashComment extractComment(JsonObject jsonComment) throws StashReportExtractionException {

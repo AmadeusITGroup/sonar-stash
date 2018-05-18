@@ -397,40 +397,42 @@ public class StashRequestFacade implements IssuePathResolver {
    * Reset all comments linked to a pull-request.
    */
   public void resetComments(PullRequestRef pr,
-      StashDiffReport diffReport,
+      Collection<StashComment> comments,
       StashUser sonarUser,
       StashClient stashClient) {
     try {
-      // Let's call this "diffRep_loop"
-      for (StashComment comment : diffReport.getComments()) {
-
-        // delete comment only if published by the current SQ user
-        if (sonarUser.getId() != comment.getAuthor().getId()) {
-          continue;
-          // Next element in "diffRep_loop"
-
-          // comment contains tasks which cannot be deleted => do nothing
-        } else if (comment.containsPermanentTasks()) {
-          LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")"
-                  + "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
-              comment.getPath(),
-              comment.getLine());
-          continue;  // Next element in "diffRep_loop"
-        }
-
-        // delete tasks linked to the current comment
-        for (StashTask task : comment.getTasks()) {
-          stashClient.deleteTaskOnComment(task);
-        }
-
-        stashClient.deletePullRequestComment(pr, comment);
-      }
+      // FIXME delete tasks on file-wide comments
+      // resetComments(diffReport.getComments(), pr, sonarUser, stashClient);
+      resetComments(comments, pr, sonarUser, stashClient);
 
       LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset",
           sonarUser.getName());
-
     } catch (StashClientException e) {
       LOGGER.error("Unable to reset comment list", e);
+    }
+  }
+
+  private void resetComments(Collection<StashComment> comments, PullRequestRef pr, StashUser sonarUser, StashClient stashClient)
+      throws StashClientException {
+    for (StashComment comment : comments) {
+      if (sonarUser.getId() != comment.getAuthor().getId()) {
+        continue;
+      }
+
+      if (comment.containsPermanentTasks()) {
+        LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")"
+                + "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
+            comment.getPath(),
+            comment.getLine());
+        continue;  // Next element in "diffRep_loop"
+      }
+
+      // delete tasks linked to the current comment
+      for (StashTask task : comment.getTasks()) {
+        stashClient.deleteTaskOnComment(task);
+      }
+
+      stashClient.deletePullRequestComment(pr, comment);
     }
   }
 
