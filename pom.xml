@@ -40,15 +40,15 @@
 
     <test.sonarqube.dist.groupId>fixme.fixme</test.sonarqube.dist.groupId>
     <test.sonarqube.dist.artifactId>sonarqube-dist</test.sonarqube.dist.artifactId>
-    <test.sonarqube.dist.version>6.0</test.sonarqube.dist.version>
+    <test.sonarqube.dist.version>6.7</test.sonarqube.dist.version>
     <test.sonarqube.dist.outputdir>${project.build.directory}/fixtures/sonarqube</test.sonarqube.dist.outputdir>
 
     <test.sonarscanner.dist.groupId>fixme.fixme</test.sonarscanner.dist.groupId>
     <test.sonarscanner.dist.artifactId>sonarscanner-dist</test.sonarscanner.dist.artifactId>
-    <test.sonarscanner.dist.version>2.6.1</test.sonarscanner.dist.version>
+    <test.sonarscanner.dist.version>2.8</test.sonarscanner.dist.version>
     <test.sonarscanner.dist.outputdir>${project.build.directory}/fixtures/sonarscanner</test.sonarscanner.dist.outputdir>
     
-    <test.url.binaries.repo>https://sonarsource.bintray.com/Distribution</test.url.binaries.repo>
+    <test.url.binaries.repo>http://a34apvl063.devillo.no:81/software</test.url.binaries.repo>
     <test.plugin.archive>${project.build.directory}/${project.artifactId}-${project.version}.jar</test.plugin.archive>
     <test.sources.dir>${project.build.directory}/fixtures/sources</test.sources.dir>
     <sonar.coverage.exclusions>src/main/java/org/sonar/plugins/stash/StashPlugin.java,src/main/java/org/sonar/plugins/stash/StashPluginConfiguration.java</sonar.coverage.exclusions>
