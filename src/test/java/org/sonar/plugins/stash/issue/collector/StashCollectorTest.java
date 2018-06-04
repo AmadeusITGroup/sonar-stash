@@ -1,7 +1,7 @@
 package org.sonar.plugins.stash.issue.collector;
 
-import org.json.simple.JsonObject;
-import org.json.simple.Jsoner;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 import org.junit.Test;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
