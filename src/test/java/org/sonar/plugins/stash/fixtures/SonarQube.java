@@ -44,15 +44,13 @@ public class SonarQube {
       arch = "x86-64";
     }
     String binary;
-    if (os.startsWith("windows")) {
-      os = "windows";
-      binary = "StartSonar.bat";
+    if (os.equals("windows")) {
+      binary = "sonar.bat";
     } else {
       binary = "sonar.sh";
     }
 
     File exec = installDir.resolve("bin").resolve(os + "-" + arch).resolve(binary).toFile();
-    System.out.println(exec.toPath());
     if (!exec.exists()) {
       throw new IllegalArgumentException();
     }

@@ -100,14 +100,14 @@ public class StashClient implements AutoCloseable {
   }
 
   public void postCommentOnPullRequest(PullRequestRef pr, String report)
-  throws StashClientException {
+
+    throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS,
                                           baseUrl,
                                           pr.project(),
                                           pr.repository(),
                                           pr.pullRequestId());
     JsonObject json = new JsonObject();
-
     json.put("text", report);
 
     postCreate(request, json, MessageFormat.format(COMMENT_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
@@ -375,7 +375,6 @@ public class StashClient implements AutoCloseable {
 
   private static void validateResponse(Response response, int expectedStatusCode, String message)
   throws StashClientException {
-    LOGGER.info(response.getResponseBody());
     int responseCode = response.getStatusCode();
     if (responseCode != expectedStatusCode) {
       throw new StashClientException(message + " Received " + responseCode + ": " + formatStashApiError(response));
