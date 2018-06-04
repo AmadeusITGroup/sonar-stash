@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.client;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.BoundRequestBuilder;
@@ -9,10 +11,10 @@ import org.asynchttpclient.Realm;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
 import org.asynchttpclient.config.AsyncHttpClientConfigDefaults;
-import org.json.simple.DeserializationException;
-import org.json.simple.JsonArray;
-import org.json.simple.JsonObject;
-import org.json.simple.Jsoner;
+import com.github.cliftonlabs.json_simple.JsonException;
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -80,6 +82,7 @@ public class StashClient implements AutoCloseable {
   private static final String TASK_DELETION_ERROR_MESSAGE = "Unable to delete task {0,number,#}.";
 
   private static final ContentType JSON = new ContentType("application", "json", null);
+  //private static final ContentType JSON = new ContentType("application", "Content-Type: application/vnd.atl.bitbucket.bulk+json", null);
 
   public StashClient(String url, StashCredentials credentials, int stashTimeout, String sonarQubeVersion) {
     this.baseUrl = url;
@@ -97,8 +100,8 @@ public class StashClient implements AutoCloseable {
   }
 
   public void postCommentOnPullRequest(PullRequestRef pr, String report)
-  throws StashClientException {
 
+    throws StashClientException {
     String request = MessageFormat.format(API_ONE_PR_ALL_COMMENTS,
                                           baseUrl,
                                           pr.project(),
@@ -351,6 +354,7 @@ public class StashClient implements AutoCloseable {
     requestBuilder.setFollowRedirect(true);
     requestBuilder.addHeader("Content-Type", JSON.toString());
     requestBuilder.addHeader("Accept", JSON.toString());
+    requestBuilder.setCharset(StandardCharsets.UTF_8);
 
     Request request = requestBuilder.build();
     MDC.put(MDC_URL_KEY, request.getUrl());
@@ -371,7 +375,6 @@ public class StashClient implements AutoCloseable {
 
   private static void validateResponse(Response response, int expectedStatusCode, String message)
   throws StashClientException {
-
     int responseCode = response.getStatusCode();
     if (responseCode != expectedStatusCode) {
       throw new StashClientException(message + " Received " + responseCode + ": " + formatStashApiError(response));
@@ -392,7 +395,7 @@ public class StashClient implements AutoCloseable {
       Reader body = new InputStreamReader(bodyStream);
       Object obj = Jsoner.deserialize(body);
       return (JsonObject)obj;
-    } catch (DeserializationException | ClassCastException | IOException e) {
+    } catch (JsonException | ClassCastException | IOException e) {
       throw new StashClientException("Could not parse JSON response: " + e, e);
     }
   }
