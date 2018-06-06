@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash.client;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.BoundRequestBuilder;
@@ -351,6 +352,7 @@ public class StashClient implements AutoCloseable {
     requestBuilder.setFollowRedirect(true);
     requestBuilder.addHeader("Content-Type", JSON.toString());
     requestBuilder.addHeader("Accept", JSON.toString());
+    requestBuilder.setCharset(StandardCharsets.UTF_8);
 
     Request request = requestBuilder.build();
     MDC.put(MDC_URL_KEY, request.getUrl());
