@@ -43,8 +43,11 @@ public class StashDiffReport {
   }
 
   public IssueType getType(String path, long destination, int vicinityRange) {
+    boolean foundFile = false;
+
     for (StashDiff diff : diffs) {
       if (Objects.equals(diff.getPath(), path)) {
+        foundFile = true;
         // Line 0 never belongs to Stash Diff view.
         // It is a global comment with a type set to CONTEXT.
         if (destination == 0) {
@@ -55,7 +58,12 @@ public class StashDiffReport {
         }
       }
     }
-    return null;
+
+    if (foundFile) {
+      return IssueType.CONTEXT;
+    } else {
+      return null;
+    }
   }
 
   /**

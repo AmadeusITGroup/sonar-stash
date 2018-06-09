@@ -62,6 +62,10 @@ public final class MarkdownPrinter {
   }
 
   public String printIssueMarkdown(PostJobIssue issue) {
+    return printIssueMarkdown(issue, false);
+  }
+
+  public String printIssueMarkdown(PostJobIssue issue, boolean includeLineNumber) {
     StringBuilder sb = new StringBuilder();
     String message = issue.message();
 
@@ -75,6 +79,10 @@ public final class MarkdownPrinter {
         .append(link(issue.ruleKey().toString(),
             sonarQubeURL + "/" + CODING_RULES_RULE_KEY + issue.ruleKey()))
         .append("]");
+
+    if (includeLineNumber) {
+      sb.append(" (Line ").append(issue.line()).append(")");
+    }
 
     return sb.toString();
   }
