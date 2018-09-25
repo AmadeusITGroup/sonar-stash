@@ -147,7 +147,7 @@ public class StashRequestFacade implements IssuePathResolver {
     try {
       postCommentPerIssue(pr, issueReport, diffReport, stashClient);
 
-      LOGGER.info("New SonarQube issues have been reported to Stash.");
+      LOGGER.info("New SonarQube issues (if any) have been reported to Stash.");
 
     } catch (StashClientException | StashConfigurationException e) {
       LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
@@ -225,7 +225,7 @@ public class StashRequestFacade implements IssuePathResolver {
         .postCommentLineOnPullRequest(pr, commentContent, path, line, type);
 
     LOGGER
-        .debug("Comment \"{}\" has been created ({}) on file {} ({})", issueKey, type, path, line);
+        .info("Comment \"{}\" has been created ({}) on file {} ({})", issueKey, type, path, line);
 
     // Create task linked to the comment if configured
 
@@ -236,8 +236,8 @@ public class StashRequestFacade implements IssuePathResolver {
 
       stashClient.postTaskOnComment(issue.message(), comment.getId());
 
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("Comment \"{}\" has been linked to a Stash task", comment.getId());
       }
     }
   }
