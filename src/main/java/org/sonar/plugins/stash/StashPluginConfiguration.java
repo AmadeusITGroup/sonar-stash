@@ -4,8 +4,8 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.sonar.api.CoreProperties;
-import org.sonar.api.batch.BatchSide;
 import org.sonar.api.batch.InstantiationStrategy;
+import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
 import org.sonar.api.platform.Server;
 import org.sonar.api.rule.RuleKey;
 
-@BatchSide
+@ScannerSide
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration {
 
