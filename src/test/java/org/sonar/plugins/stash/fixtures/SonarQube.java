@@ -107,7 +107,7 @@ public class SonarQube {
     while (true) {
       System.out.println("Waiting for SonarQube to be available at " + getUrl());
       try {
-        HttpURLConnection conn = (HttpURLConnection)getUrl().openConnection();
+        HttpURLConnection conn = (HttpURLConnection)getUrl("/api/settings/values.protobuf").openConnection();
         conn.connect();
         int code = conn.getResponseCode();
         if (code == 200) {
@@ -125,12 +125,16 @@ public class SonarQube {
     System.out.println("SonarQube is ready");
   }
 
-  public URL getUrl() {
+  private URL getUrl(String file) {
     try {
-      return new URL("http", getHost(), getPort(), "/");
+      return new URL("http", getHost(), getPort(), file);
     } catch (MalformedURLException e) {
       return null;
     }
+  }
+
+  public URL getUrl() {
+    return getUrl("/");
   }
 
   public boolean createProject(String key, String name) throws IOException {
