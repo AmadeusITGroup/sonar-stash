@@ -64,10 +64,12 @@ public class StashClient implements AutoCloseable {
   private static final String API_ONE_PR_ALL_COMMENTS = API_ONE_PR + "/comments";
   private static final String API_ONE_PR_DIFF = API_ONE_PR + "/diff?withComments=true";
   private static final String API_ONE_PR_APPROVAL = API_ONE_PR + "/approve";
+  private static final String API_ONE_PR_NEEDS_WORK = API_ONE_PR + "/participants/{4}";
   private static final String API_ONE_PR_COMMENT_PATH = API_ONE_PR + "/comments?path={4}&start={5,number,#}";
 
   private static final String API_ONE_PR_ONE_COMMENT = API_ONE_PR_ALL_COMMENTS + "/{4}?version={5}";
 
+  private static final String PULL_REQUEST_MARK_NEEDS_WORK_PUT_ERROR_MESSAGE = "Unable to set NEEDS WORK status of pull-request {0}";
   private static final String PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE = "Unable to change status of pull-request {0}"
                                                                        + " #{1,number,#}.";
   private static final String PULL_REQUEST_GET_ERROR_MESSAGE = "Unable to retrieve pull-request {0} #{1,number,#}.";
@@ -276,6 +278,21 @@ public class StashClient implements AutoCloseable {
     delete(request,
            HttpURLConnection.HTTP_OK,
            MessageFormat.format(PULL_REQUEST_APPROVAL_POST_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
+  }
+
+  public void markPullRequestNeedsWork(PullRequestRef pr ) throws StashClientException {
+    String request = MessageFormat.format(API_ONE_PR_NEEDS_WORK,
+                                          baseUrl,
+                                          pr.project(),
+                                          pr.repository(),
+                                          pr.pullRequestId(),
+                                          credentials.getUserSlug());
+    JsonObject json = new JsonObject();
+    json.put("status", "NEEDS_WORK");
+    put(request,
+        json,
+        MessageFormat
+            .format(PULL_REQUEST_MARK_NEEDS_WORK_PUT_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
   }
 
   public void postTaskOnComment(String message, Long commentId) throws StashClientException {

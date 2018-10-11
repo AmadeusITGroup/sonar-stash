@@ -69,6 +69,7 @@ public class StashPlugin implements Plugin {
   public static final String STASH_PASSWORD = "sonar.stash.password";
   public static final String STASH_PASSWORD_ENVIRONMENT_VARIABLE = "sonar.stash.password.variable";
   public static final String STASH_REVIEWER_APPROVAL = "sonar.stash.reviewer.approval";
+  public static final String STASH_REVIEWER_MARK_NEEDS_WORK = "sonar.stash.reviewer.mark.needs.work";
   public static final String STASH_REVIEWER_APPROVAL_SEVERITY_THRESHOLD = "sonar.stash.reviewer.approval.severity.threshold";
   public static final String STASH_ISSUE_THRESHOLD = "sonar.stash.issue.threshold";
   public static final String STASH_ISSUE_SEVERITY_THRESHOLD = "sonar.stash.issue.severity.threshold";
@@ -191,7 +192,14 @@ public class StashPlugin implements Plugin {
                           .type(PropertyType.STRING)
                           .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
                           .onQualifiers(Qualifiers.PROJECT)
-                          .defaultValue(DEFAULT_STASH_EXCLUDE_RULES).build()
+                          .defaultValue(DEFAULT_STASH_EXCLUDE_RULES).build(),
+        PropertyDefinition.builder(STASH_REVIEWER_MARK_NEEDS_WORK)
+                          .name("Stash reviewer marking NEEDS WORK")
+                          .description("Does SonarQube mark the pull-request NEEDS WORK if there are new issues?")
+                          .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
+                          .onQualifiers(Qualifiers.PROJECT)
+                          .type(PropertyType.BOOLEAN)
+                          .defaultValue("false").build()
     );
   }
 }

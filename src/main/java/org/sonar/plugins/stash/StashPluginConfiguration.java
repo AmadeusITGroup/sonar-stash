@@ -89,6 +89,9 @@ public class StashPluginConfiguration {
   public boolean canApprovePullRequest() {
     return settings.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL);
   }
+  public boolean canMarkPullRequestNeedsWork() {
+    return settings.getBoolean(StashPlugin.STASH_REVIEWER_MARK_NEEDS_WORK);
+  }
 
   public boolean resetComments() {
     return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);

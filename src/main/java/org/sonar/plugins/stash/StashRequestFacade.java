@@ -94,6 +94,24 @@ public class StashRequestFacade implements IssuePathResolver {
   }
 
   /**
+   * Mark pull-request needs work
+   */
+  public void markPullRequestNeedsWork(PullRequestRef pr, StashClient stashClient) {
+    try {
+      stashClient.markPullRequestNeedsWork(pr);
+
+      // squid:S2629 : no evaluation required if the logging level is not activated
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("Pull-request {} ({}/{}) marked NEEDS WORK by user \"{}\"",
+                    pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
+      }
+
+    } catch (StashClientException e) {
+      LOGGER.error("Unable to mark pull-request NEEDS WORK", e);
+    }
+  }
+
+  /**
    * Reset pull-request approval
    */
   public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) {
