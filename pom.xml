@@ -48,7 +48,7 @@
     <test.sonarscanner.dist.version>2.6.1</test.sonarscanner.dist.version>
     <test.sonarscanner.dist.outputdir>${project.build.directory}/fixtures/sonarscanner</test.sonarscanner.dist.outputdir>
     
-    <test.url.binaries.repo>https://sonarsource.bintray.com/Distribution</test.url.binaries.repo>
+    <test.url.binaries.repo>https://binaries.sonarsource.com/Distribution</test.url.binaries.repo>
     <test.plugin.archive>${project.build.directory}/${project.artifactId}-${project.version}.jar</test.plugin.archive>
     <test.sources.dir>${project.build.directory}/fixtures/sources</test.sources.dir>
     <sonar.coverage.exclusions>src/main/java/org/sonar/plugins/stash/StashPlugin.java,src/main/java/org/sonar/plugins/stash/StashPluginConfiguration.java</sonar.coverage.exclusions>
