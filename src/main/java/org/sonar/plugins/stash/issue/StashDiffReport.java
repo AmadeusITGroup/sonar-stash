@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
 import com.google.common.collect.Range;
+import java.util.Collections;
 import java.util.Objects;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class StashDiffReport {
   }
 
   public List<StashDiff> getDiffs() {
-    return diffs;
+    return Collections.unmodifiableList(diffs);
   }
 
   public void add(StashDiff diff) {
