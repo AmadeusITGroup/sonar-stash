@@ -7,6 +7,8 @@ import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class StashPluginConfigurationTest {
 
@@ -40,7 +42,7 @@ public class StashPluginConfigurationTest {
 
     StashPluginConfiguration SPC = new StashPluginConfiguration(settings, null);
 
-    assertEquals(true, SPC.hasToNotifyStash());
+    assertTrue(SPC.hasToNotifyStash());
     assertEquals("take-over-the-world", SPC.getStashProject());
     assertEquals("death-ray", SPC.getStashRepository());
     assertEquals(SPRI, SPC.getPullRequestId());
@@ -55,10 +57,10 @@ public class StashPluginConfigurationTest {
     assertEquals(42000, SPC.getIssueThreshold());
     assertEquals(Severity.MINOR, SPC.getIssueSeverityThreshold());
     assertEquals(42, SPC.getStashTimeout());
-    assertEquals(true, SPC.canApprovePullRequest());
-    assertEquals(false, SPC.resetComments());
+    assertTrue(SPC.canApprovePullRequest());
+    assertFalse(SPC.resetComments());
     assertEquals(Optional.of(Severity.MINOR), SPC.getTaskIssueSeverityThreshold());
-    assertEquals(true, SPC.includeAnalysisOverview());
+    assertTrue(SPC.includeAnalysisOverview());
     //assertEquals(, SPC.getRepositoryRoot());
 
     settings.setProperty(StashPlugin.STASH_TASK_SEVERITY_THRESHOLD, "NONE");

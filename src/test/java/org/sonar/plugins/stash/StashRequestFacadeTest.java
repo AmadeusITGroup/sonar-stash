@@ -39,6 +39,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Matchers.anyInt;
@@ -462,7 +463,7 @@ public class StashRequestFacadeTest extends StashTest {
       myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
 
     } catch (Exception e) {
-      assertFalse("Unexpected Exception: postSonarQubeReport does not raised any StashClientException", true);
+      fail("Unexpected Exception: postSonarQubeReport does not raised any StashClientException");
     }
   }
 
@@ -657,7 +658,8 @@ public class StashRequestFacadeTest extends StashTest {
                                                                  STASH_DIFF_TYPE);
 
     } catch (StashClientException e) {
-      assertFalse("Unexpected Exception: postCommentLineOnPullRequest does not raised any StashClientException", true);
+      fail(
+          "Unexpected Exception: postCommentLineOnPullRequest does not raised any StashClientException");
     }
   }
 
@@ -674,7 +676,7 @@ public class StashRequestFacadeTest extends StashTest {
     doThrow(new StashClientException("StashClientException for Test")).when(stashClient).getUser(STASH_USER);
 
     StashUser reviewer = myFacade.getSonarQubeReviewer(STASH_USER, stashClient);
-    assertEquals(null, reviewer);
+    assertNull(reviewer);
   }
 
   @Test
@@ -694,7 +696,7 @@ public class StashRequestFacadeTest extends StashTest {
                                                                       .getPullRequestDiffs(pr);
 
     StashDiffReport result = myFacade.getPullRequestDiffReport(pr, stashClient);
-    assertEquals(null, result);
+    assertNull(result);
   }
 
   @Test
