@@ -7,6 +7,7 @@ import java.util.List;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -79,15 +80,15 @@ public class StashDiffReportTest {
     assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE));
     assertEquals(IssueType.ADDED, report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE));
 
-    assertEquals(null, report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE));
-    assertEquals(null, report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE));
-    assertEquals(null, report1.getType("path/to/diff4", 60, StashDiffReport.VICINITY_RANGE_NONE));
+    assertNull(report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE));
+    assertNull(report1.getType("path/to/diff1", 30, StashDiffReport.VICINITY_RANGE_NONE));
+    assertNull(report1.getType("path/to/diff4", 60, StashDiffReport.VICINITY_RANGE_NONE));
   }
 
   @Test
   public void testGetTypeWithNoDestination() {
     assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE));
-    assertEquals(null, report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE));
+    assertNull(report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE));
   }
 
   @Test
@@ -108,7 +109,7 @@ public class StashDiffReportTest {
     assertEquals(20, diff1.getDestination());
 
     StashDiff diff2 = report1.getDiffByComment(123456);
-    assertEquals(null, diff2);
+    assertNull(diff2);
   }
 
   @Test

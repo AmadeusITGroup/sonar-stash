@@ -5,6 +5,7 @@ import org.mockito.Mock;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -31,10 +32,10 @@ public class StashCommentTest {
     StashComment comment1 = new StashComment(1, "message", "path", (long)1, stashUser, 0);
     StashComment comment2 = new StashComment(2, "message", "path", (long)1, stashUser, 0);
 
-    assertFalse(comment1.equals(comment2));
+    assertNotEquals(comment1, comment2);
 
     StashComment comment3 = new StashComment(1, "message", "path", (long)1, stashUser, 0);
-    assertTrue(comment1.equals(comment3));
+    assertEquals(comment1, comment3);
   }
 
   @Test
@@ -50,12 +51,12 @@ public class StashCommentTest {
 
     comment.addTask(task1);
     assertEquals(1, comment.getTasks().size());
-    assertTrue(comment.getTasks().get(0).getId() == 1111);
+    assertEquals(1111, (long) comment.getTasks().get(0).getId());
 
     comment.addTask(task2);
     assertEquals(2, comment.getTasks().size());
-    assertTrue(comment.getTasks().get(0).getId() == 1111);
-    assertTrue(comment.getTasks().get(1).getId() == 2222);
+    assertEquals(1111, (long) comment.getTasks().get(0).getId());
+    assertEquals(2222, (long) comment.getTasks().get(1).getId());
   }
 
   @Test

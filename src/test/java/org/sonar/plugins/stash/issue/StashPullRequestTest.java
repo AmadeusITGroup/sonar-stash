@@ -6,6 +6,7 @@ import org.sonar.plugins.stash.PullRequestRef;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class StashPullRequestTest {
@@ -87,14 +88,14 @@ public class StashPullRequestTest {
   @Test
   public void testGetReviewer() {
     assertEquals(0, myPullRequest.getReviewers().size());
-    assertEquals(null, myPullRequest.getReviewer("sonarqube1"));
-    assertEquals(null, myPullRequest.getReviewer("sonarqube2"));
+    assertNull(myPullRequest.getReviewer("sonarqube1"));
+    assertNull(myPullRequest.getReviewer("sonarqube2"));
 
     myPullRequest.addReviewer(stashUser1);
 
     assertEquals(1, myPullRequest.getReviewers().size());
     assertEquals(1, myPullRequest.getReviewer("sonarqube1").getId());
-    assertEquals(null, myPullRequest.getReviewer("sonarqube2"));
+    assertNull(myPullRequest.getReviewer("sonarqube2"));
 
     myPullRequest.addReviewer(stashUser2);
 

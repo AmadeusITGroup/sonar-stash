@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -132,7 +133,7 @@ public class SonarQubeCollectorTest {
     PostJobIssue sqIssue1 = report.get(0);
     assertEquals("message1", sqIssue1.message());
     assertEquals("project/path1", ipr.getIssuePath(sqIssue1));
-    assertEquals(null, sqIssue1.line());
+    assertNull(sqIssue1.line());
   }
 
   @Test

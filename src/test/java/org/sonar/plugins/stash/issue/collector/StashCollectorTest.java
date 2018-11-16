@@ -17,6 +17,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class StashCollectorTest {
 
@@ -105,7 +106,7 @@ public class StashCollectorTest {
     try {
       StashCollector.extractComment(parse(commentString));
 
-      assertFalse("No anchor tag: extraction should raised StashReportExtractionException exception", true);
+      fail("No anchor tag: extraction should raised StashReportExtractionException exception");
 
     } catch (StashReportExtractionException e) {
       assertTrue("No anchor tag: extraction has raised StashReportExtractionException exception as expected", true);
@@ -601,7 +602,7 @@ public class StashCollectorTest {
     assertEquals(id, (long)task.getId());
     assertEquals(text, task.getText());
     assertEquals(state, task.getState());
-    assertEquals(true, task.isDeletable());
+    assertTrue(task.isDeletable());
   }
 
   private static JsonObject parse(String s) throws Exception {
