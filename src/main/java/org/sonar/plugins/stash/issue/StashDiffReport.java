@@ -40,7 +40,9 @@ public class StashDiffReport {
     if (range <= 0) {
       return false;
     }
-    return Range.closed(diff.getSource() - range, diff.getDestination() + range).contains(destination);
+    long lower = Math.min(diff.getSource(), diff.getDestination());
+    long upper = Math.max(diff.getSource(), diff.getDestination());
+    return Range.closed(lower - range, upper + range).contains(destination);
   }
 
   public IssueType getType(String path, long destination, int vicinityRange) {

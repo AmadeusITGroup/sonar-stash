@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash.issue;
 
+import com.google.common.collect.Range;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -146,4 +147,14 @@ public class StashDiffReportTest {
     assertEquals(54321, comments.get(1).getId());
   }
 
+  @Test
+  public void testVicinitySourceBeforeDestination() {
+    // https://github.com/AmadeusITGroup/sonar-stash/issues/189
+    final String path = "some/path";
+    StashDiffReport report = new StashDiffReport();
+    report.add(
+        new StashDiff(IssueType.REMOVED, path, 165, 132)
+    );
+    report.getType("some/path", 12, 4);
+  }
 }
