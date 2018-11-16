@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash.issue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 
@@ -41,7 +42,7 @@ public class StashDiff {
   }
 
   public List<StashComment> getComments() {
-    return comments;
+    return Collections.unmodifiableList(comments);
   }
 
   public boolean containsComment(long commentId) {
