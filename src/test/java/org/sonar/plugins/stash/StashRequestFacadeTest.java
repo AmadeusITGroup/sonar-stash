@@ -451,23 +451,6 @@ public class StashRequestFacadeTest extends StashTest {
   }
 
   @Test
-  public void testPostSonarQubeReportWithException()
-      throws StashClientException, StashConfigurationException {
-    doThrow(new StashClientException("StashClientException for Test")).when(myFacade)
-                                                                      .postCommentPerIssue(eq(pr),
-                                                                                           anyCollectionOf(PostJobIssue.class),
-                                                                                           eq(diffReport),
-                                                                                           eq(stashClient));
-
-    try {
-      myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
-
-    } catch (Exception e) {
-      fail("Unexpected Exception: postSonarQubeReport does not raised any StashClientException");
-    }
-  }
-
-  @Test
   public void testPostTaskOnComment() throws Exception {
     when(config.getTaskIssueSeverityThreshold()).thenReturn(Optional.of(Severity.INFO));
 
@@ -626,57 +609,11 @@ public class StashRequestFacadeTest extends StashTest {
   }
 
   @Test
-  public void testPostSonarQubeReportWithExceptions() throws Exception {
-    when(stashCommentsReport1.contains(stashCommentMessage1, FILE_PATH_1, 1)).thenReturn(false);
-    when(stashCommentsReport1.contains(stashCommentMessage2, FILE_PATH_1, 2)).thenReturn(false);
-    when(stashCommentsReport2.contains(stashCommentMessage3, FILE_PATH_2, 1)).thenReturn(false);
-
-    doThrow(new StashClientException("StashClientException for Test")).when(stashClient)
-                                                                      .postCommentLineOnPullRequest(pr,
-                                                                                                    stashCommentMessage2,
-                                                                                                    FILE_PATH_1,
-                                                                                                    2,
-                                                                                                    STASH_DIFF_TYPE);
-
-    try {
-      myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
-
-      verify(stashClient, times(1)).postCommentLineOnPullRequest(pr,
-                                                                 stashCommentMessage1,
-                                                                 FILE_PATH_1,
-                                                                 1,
-                                                                 STASH_DIFF_TYPE);
-      verify(stashClient, times(1)).postCommentLineOnPullRequest(pr,
-                                                                 stashCommentMessage2,
-                                                                 FILE_PATH_1,
-                                                                 2,
-                                                                 STASH_DIFF_TYPE);
-      verify(stashClient, times(0)).postCommentLineOnPullRequest(pr,
-                                                                 stashCommentMessage3,
-                                                                 FILE_PATH_2,
-                                                                 1,
-                                                                 STASH_DIFF_TYPE);
-
-    } catch (StashClientException e) {
-      fail(
-          "Unexpected Exception: postCommentLineOnPullRequest does not raised any StashClientException");
-    }
-  }
-
-  @Test
   public void testGetSonarQubeReviewer() throws Exception {
     when(stashClient.getUser(STASH_USER)).thenReturn(stashUser);
 
     StashUser reviewer = myFacade.getSonarQubeReviewer(STASH_USER, stashClient);
     assertEquals(1234, reviewer.getId());
-  }
-
-  @Test
-  public void testGetSonarQubeReviewerWithException() throws Exception {
-    doThrow(new StashClientException("StashClientException for Test")).when(stashClient).getUser(STASH_USER);
-
-    StashUser reviewer = myFacade.getSonarQubeReviewer(STASH_USER, stashClient);
-    assertNull(reviewer);
   }
 
   @Test
@@ -688,15 +625,6 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals(1, result.getLine(FILE_PATH_1, 1));
     assertEquals(2, result.getLine(FILE_PATH_1, 2));
     assertEquals(1, result.getLine(FILE_PATH_2, 1));
-  }
-
-  @Test
-  public void testGetPullRequestDiffReportWithException() throws Exception {
-    doThrow(new StashClientException("StashClientException for Test")).when(stashClient)
-                                                                      .getPullRequestDiffs(pr);
-
-    StashDiffReport result = myFacade.getPullRequestDiffReport(pr, stashClient);
-    assertNull(result);
   }
 
   @Test
@@ -756,49 +684,17 @@ public class StashRequestFacadeTest extends StashTest {
 
 
   @Test
-  public void testResetCommentException() throws Exception {
-    when(comment1.getTasks()).thenReturn(new ArrayList<StashTask>());
-
-    StashClient StaCli = mock(StashClient.class);
-    doThrow(StashClientException.class).when(StaCli).deletePullRequestComment(any(), any());
-
-    myFacade.resetComments(pr, diffReport, stashUser, StaCli);
-  }
-
-
-  @Test
   public void testApprovePullRequest() throws Exception {
 
     myFacade.approvePullRequest(pr, stashClient);
     verify(stashClient, times(1)).approvePullRequest(pr);
   }
 
-
-  @Test
-  public void testApprovePullRequestException() throws Exception {
-
-    StashClient StaCli = mock(StashClient.class);
-    doThrow(StashClientException.class).when(StaCli).approvePullRequest(any());
-
-    myFacade.approvePullRequest(pr, StaCli);
-  }
-
-
   @Test
   public void addResetPullRequestApproval() throws Exception {
 
     myFacade.resetPullRequestApproval(pr, stashClient);
     verify(stashClient, times(1)).resetPullRequestApproval(pr);
-  }
-
-
-  @Test
-  public void addResetPullRequestApprovalException() throws Exception {
-
-    StashClient StaCli = mock(StashClient.class);
-    doThrow(StashClientException.class).when(StaCli).resetPullRequestApproval(any());
-
-    myFacade.resetPullRequestApproval(pr, StaCli);
   }
 
 
@@ -818,16 +714,6 @@ public class StashRequestFacadeTest extends StashTest {
     myFacade.addPullRequestReviewer(pr, STASH_USER, stashClient);
 
     verify(stashClient, times(1)).addPullRequestReviewer(pr, 1, reviewers);
-  }
-
-
-  @Test
-  public void testAddPullRequestReviewerException() throws Exception {
-
-    StashClient StaCli = mock(StashClient.class);
-    doThrow(StashClientException.class).when(StaCli).getPullRequest(any());
-
-    myFacade.addPullRequestReviewer(pr, STASH_USER, StaCli);
   }
 
 

@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Optional;
 import java.util.List;
 import org.slf4j.Logger;
@@ -41,9 +42,16 @@ public class StashIssueReportingPostJob implements PostJob {
       LOGGER.info("{} not enabled, skipping", this);
       return;
     }
-
     try {
-      // Stash MANDATORY options
+      executeThrowing(context);
+    } catch (StashConfigurationException e) {
+      LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
+      LOGGER.debug(STACK_TRACE, e);
+    }
+  }
+
+  @VisibleForTesting
+  public void executeThrowing(PostJobContext context) throws StashConfigurationException {
       String stashURL = stashRequestFacade.getStashURL();
       int stashTimeout = config.getStashTimeout();
 
@@ -57,10 +65,6 @@ public class StashIssueReportingPostJob implements PostJob {
         // Down the rabbit hole...
         updateStashWithSonarInfo(stashClient, stashCredentials, context.issues());
       }
-    } catch (StashConfigurationException e) {
-      LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
-    }
   }
 
 
@@ -109,8 +113,7 @@ public class StashIssueReportingPostJob implements PostJob {
       LOGGER.debug(STACK_TRACE, e);
 
     } catch (StashMissingElementException e) {
-      LOGGER.error("Process stopped: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
+      LOGGER.error("Process stopped", e);
     }
   }
 

@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 import java.text.MessageFormat;
@@ -35,7 +36,6 @@ public class StashRequestFacade implements IssuePathResolver {
   private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
 
   private static final String EXCEPTION_STASH_CONF = "Unable to get {0} from plugin configuration (value is null)";
-  private static final String STACK_TRACE = "Exception stack trace";
 
   private StashPluginConfiguration config;
 
@@ -62,78 +62,57 @@ public class StashRequestFacade implements IssuePathResolver {
    */
   public void postAnalysisOverview(PullRequestRef pr,
       Collection<PostJobIssue> issueReport,
-      StashClient stashClient) {
+      StashClient stashClient) throws StashClientException {
 
-    try {
-      String report = getMarkdownPrinter().printReportMarkdown(issueReport);
-      stashClient.postCommentOnPullRequest(pr, report);
+    String report = getMarkdownPrinter().printReportMarkdown(issueReport);
+    stashClient.postCommentOnPullRequest(pr, report);
 
-      LOGGER.info("SonarQube analysis overview has been reported to Stash.");
-
-    } catch (StashClientException | StashConfigurationException e) {
-      LOGGER.error("Unable to push SonarQube analysis overview to Stash", e);
-    }
+    LOGGER.info("SonarQube analysis overview has been reported to Stash.");
   }
 
   /**
    * Approve pull-request
    */
-  public void approvePullRequest(PullRequestRef pr, StashClient stashClient) {
-    try {
-      stashClient.approvePullRequest(pr);
+  public void approvePullRequest(PullRequestRef pr, StashClient stashClient) throws StashClientException {
+    stashClient.approvePullRequest(pr);
 
-      // squid:S2629 : no evaluation required if the logging level is not activated
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
-            pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
-      }
-
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to approve pull-request", e);
+    // squid:S2629 : no evaluation required if the logging level is not activated
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
+          pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
     }
   }
 
   /**
    * Reset pull-request approval
    */
-  public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) {
-    try {
-      stashClient.resetPullRequestApproval(pr);
+  public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) throws StashClientException {
+    stashClient.resetPullRequestApproval(pr);
 
-      // squid:S2629 : no evaluation required if the logging level is not activated
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
-            pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
-      }
-
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to reset pull-request approval", e);
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
+          pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
     }
   }
 
   /**
    * Add a reviewer to the current pull-request.
    */
-  public void addPullRequestReviewer(PullRequestRef pr, String userSlug, StashClient stashClient) {
-    try {
-      StashPullRequest pullRequest = stashClient.getPullRequest(pr);
+  public void addPullRequestReviewer(PullRequestRef pr, String userSlug, StashClient stashClient) throws StashClientException {
+    StashPullRequest pullRequest = stashClient.getPullRequest(pr);
 
-      // user not yet in reviewer list
-      StashUser reviewer = pullRequest.getReviewer(userSlug);
-      if (reviewer == null) {
-        List<StashUser> reviewers = pullRequest.getReviewers();
-        reviewers.add(stashClient.getUser(userSlug));
+    // user not yet in reviewer list
+    StashUser reviewer = pullRequest.getReviewer(userSlug);
+    if (reviewer == null) {
+      List<StashUser> reviewers = pullRequest.getReviewers();
+      reviewers.add(stashClient.getUser(userSlug));
 
-        stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);
+      stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);
 
-        // squid:S2629 : no evaluation required if the logging level is not activated
-        if (LOGGER.isInfoEnabled()) {
-          LOGGER.info("User \"{}\" is now a reviewer of the pull-request #{} in {}/{}",
-              userSlug, pr.pullRequestId(), pr.project(), pr.repository());
-        }
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("User \"{}\" is now a reviewer of the pull-request #{} in {}/{}",
+            userSlug, pr.pullRequestId(), pr.project(), pr.repository());
       }
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to add a new reviewer to the pull-request", e);
     }
   }
 
@@ -143,16 +122,9 @@ public class StashRequestFacade implements IssuePathResolver {
   public void postSonarQubeReport(PullRequestRef pr,
       Iterable<PostJobIssue> issueReport,
       StashDiffReport diffReport,
-      StashClient stashClient) {
-    try {
-      postCommentPerIssue(pr, issueReport, diffReport, stashClient);
-
-      LOGGER.info("New SonarQube issues (if any) have been reported to Stash.");
-
-    } catch (StashClientException | StashConfigurationException e) {
-      LOGGER.error("Unable to link SonarQube issues to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
-    }
+      StashClient stashClient) throws StashClientException, StashConfigurationException {
+    postCommentPerIssue(pr, issueReport, diffReport, stashClient);
+    LOGGER.info("New SonarQube issues (if any) have been reported to Stash.");
   }
 
   /**
@@ -356,38 +328,24 @@ public class StashRequestFacade implements IssuePathResolver {
   /**
    * Get user who published the SQ analysis in Stash.
    */
-  public StashUser getSonarQubeReviewer(String userSlug, StashClient stashClient) {
+  public StashUser getSonarQubeReviewer(String userSlug, StashClient stashClient) throws StashClientException {
     StashUser result = null;
 
-    try {
-      result = stashClient.getUser(userSlug);
+    result = stashClient.getUser(userSlug);
 
-      LOGGER.debug("SonarQube reviewer {} identified in Stash", userSlug);
-
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to get SonarQube reviewer from Stash", e);
-    }
-
+    LOGGER.debug("SonarQube reviewer {} identified in Stash", userSlug);
     return result;
   }
 
   /**
    * Get all changes exposed through the Stash pull-request.
    */
-  public StashDiffReport getPullRequestDiffReport(PullRequestRef pr, StashClient stashClient) {
-    StashDiffReport result = null;
+  public StashDiffReport getPullRequestDiffReport(PullRequestRef pr, StashClient stashClient) throws StashClientException {
+    StashDiffReport result = stashClient.getPullRequestDiffs(pr);
 
-    try {
-      result = stashClient.getPullRequestDiffs(pr);
-
-      // squid:S2629 : no evaluation required if the logging level is not activated
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("Stash differential report retrieved from pull request {} #{}",
-            pr.repository(), pr.pullRequestId());
-      }
-
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to get Stash differential report from Stash", e);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Stash differential report retrieved from pull request {} #{}",
+          pr.repository(), pr.pullRequestId());
     }
 
     return result;
@@ -399,39 +357,34 @@ public class StashRequestFacade implements IssuePathResolver {
   public void resetComments(PullRequestRef pr,
       StashDiffReport diffReport,
       StashUser sonarUser,
-      StashClient stashClient) {
-    try {
-      // Let's call this "diffRep_loop"
-      for (StashComment comment : diffReport.getComments()) {
+      StashClient stashClient) throws StashClientException {
+    // Let's call this "diffRep_loop"
+    for (StashComment comment : diffReport.getComments()) {
 
-        // delete comment only if published by the current SQ user
-        if (sonarUser.getId() != comment.getAuthor().getId()) {
-          continue;
-          // Next element in "diffRep_loop"
+      // delete comment only if published by the current SQ user
+      if (sonarUser.getId() != comment.getAuthor().getId()) {
+        continue;
+        // Next element in "diffRep_loop"
 
-          // comment contains tasks which cannot be deleted => do nothing
-        } else if (comment.containsPermanentTasks()) {
-          LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")"
-                  + "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
-              comment.getPath(),
-              comment.getLine());
-          continue;  // Next element in "diffRep_loop"
-        }
-
-        // delete tasks linked to the current comment
-        for (StashTask task : comment.getTasks()) {
-          stashClient.deleteTaskOnComment(task);
-        }
-
-        stashClient.deletePullRequestComment(pr, comment);
+        // comment contains tasks which cannot be deleted => do nothing
+      } else if (comment.containsPermanentTasks()) {
+        LOGGER.debug("Comment \"{}\" (path:\"{}\", line:\"{}\")"
+                + "CANNOT be deleted because one of its tasks is not deletable.", comment.getId(),
+            comment.getPath(),
+            comment.getLine());
+        continue;  // Next element in "diffRep_loop"
       }
 
-      LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset",
-          sonarUser.getName());
+      // delete tasks linked to the current comment
+      for (StashTask task : comment.getTasks()) {
+        stashClient.deleteTaskOnComment(task);
+      }
 
-    } catch (StashClientException e) {
-      LOGGER.error("Unable to reset comment list", e);
+      stashClient.deletePullRequestComment(pr, comment);
     }
+
+    LOGGER.info("SonarQube issues reported to Stash by user \"{}\" have been reset",
+        sonarUser.getName());
   }
 
   @Override
@@ -442,11 +395,11 @@ public class StashRequestFacade implements IssuePathResolver {
     }
     InputFile inputFile = (InputFile) ip;
 
-    File baseDir = config
+    Path baseDir = config
         .getRepositoryRoot()
-        .orElse(projectBaseDir);
+        .orElse(projectBaseDir).toPath();
 
 
-    return new PathResolver().relativePath(baseDir, inputFile.file());
+    return new PathResolver().relativePath(baseDir, inputFile.path());
   }
 }

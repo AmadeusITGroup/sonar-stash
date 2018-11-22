@@ -1,6 +1,6 @@
 package org.sonar.plugins.stash.exceptions;
 
-public class StashException extends Exception {
+public class StashException extends RuntimeException {
 
   private static final long serialVersionUID = -4529815924057418321L;
 
