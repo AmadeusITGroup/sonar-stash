@@ -1,10 +1,14 @@
 package org.sonar.plugins.stash.issue;
 
+import java.io.FileReader;
+import org.json.simple.JsonObject;
+import org.json.simple.Jsoner;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
+import org.sonar.plugins.stash.issue.collector.StashCollector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -145,5 +149,4 @@ public class StashDiffReportTest {
     assertEquals(12345, comments.get(0).getId());
     assertEquals(54321, comments.get(1).getId());
   }
-
 }

@@ -48,6 +48,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.sonar.plugins.stash.TestUtils.primeWireMock;
 
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 
@@ -69,7 +70,7 @@ public class StashClientTest extends StashTest {
 
   @Before
   public void setUp() throws Exception {
-    primeWireMock();
+    primeWireMock(wireMock);
     client = new StashClient("http://127.0.0.1:" + wireMock.port(),
                              new StashCredentials("login@email.com", "password", "login"),
                              timeout,
@@ -432,18 +433,5 @@ public class StashClientTest extends StashTest {
   public static ResponseDefinitionBuilder aXMLResponse() {
     return aResponse().withHeader("Content-Type", "application/xml")
                       .withBody("<?xml version=\"1.0\" encoding=\"UTF-8\"?><empty/>");
-  }
-
-  // The first request to wiremock may be slow.
-  // We could increase the timeout on our StashClient but then all the timeout test take longer.
-  // So instead we perform a dummy request on each test invocation with a high timeout.
-  // We now have many more request than before, but are faster anyways.
-  private void primeWireMock() throws Exception {
-    HttpURLConnection conn = (HttpURLConnection)new URL("http://127.0.0.1:" + wireMock.port()).openConnection();
-    conn.setConnectTimeout(1000);
-    conn.setConnectTimeout(1000);
-    conn.connect();
-    conn.getResponseCode();
-    wireMock.resetRequests();
   }
 }

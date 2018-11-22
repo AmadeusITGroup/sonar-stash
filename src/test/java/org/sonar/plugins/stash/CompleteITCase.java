@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.junit.Assert.assertTrue;
 import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
 
 public class CompleteITCase {
@@ -37,6 +39,8 @@ public class CompleteITCase {
   @ClassRule
   public static SonarQubeRule sonarqube = new SonarQubeRule(MavenSonarFixtures.getSonarqube(9000));
 
+  private static final String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@example.com\", \"id\":1, \"slug\":\"sonarqube\"}";
+
   @BeforeClass
   public static void setUpClass() throws Exception {
     sonarqube.get().installPlugin(new File(System.getProperty("test.plugin.archive")));
@@ -46,20 +50,23 @@ public class CompleteITCase {
     sonarScanner = MavenSonarFixtures.getSonarScanner();
 
     sourcesDir = new File(System.getProperty("test.sources.dir"));
-    sourcesDir.mkdirs();
+    assertTrue(sourcesDir.mkdirs());
+  }
+
+  @Before
+  public void setUp() throws Exception {
+    wireMock.stubFor(
+        WireMock.get(WireMock.urlPathEqualTo(
+            urlPath("rest", "api", "1.0", "users", stashUser)))
+            .willReturn(aJsonResponse()
+                .withBody(jsonUser)
+            )
+    );
   }
 
   @Test
   public void basicTest() throws Exception {
-    String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@email.com\", \"id\":1, \"slug\":\"sonarqube\"}";
     String jsonPullRequest = DiffReportSample.baseReport;
-    wireMock.stubFor(
-        WireMock.get(WireMock.urlPathEqualTo(
-            urlPath("rest", "api", "1.0", "users", stashUser)))
-                .willReturn(aJsonResponse()
-                                .withBody(jsonUser)
-                )
-    );
     wireMock.stubFor(
         WireMock.get(WireMock.urlPathEqualTo(
             repoPath(stashProject, stashRepo, "pull-requests", String.valueOf(stashPullRequest), "diff")))
@@ -89,6 +96,12 @@ public class CompleteITCase {
                             .withHeader("User-Agent", WireMock.matching("^(.*)Stash/[0-9.]+(.*)$")));
     wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl())
                             .withHeader("User-Agent", WireMock.matching("^(.*)SonarQube/[0-9.]+(.*)$")));
+  }
+
+  // https://github.com/AmadeusITGroup/sonar-stash/issues/194
+  @Test
+  public void testIssue194() throws Exception {
+
   }
 
   private String repoPath(String project, String repo, String... parts) {

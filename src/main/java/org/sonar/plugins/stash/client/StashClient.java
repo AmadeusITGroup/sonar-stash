@@ -161,8 +161,6 @@ public class StashClient implements AutoCloseable {
 
   public StashDiffReport getPullRequestDiffs(PullRequestRef pr)
   throws StashClientException {
-    StashDiffReport result = null;
-
     String request = MessageFormat.format(API_ONE_PR_DIFF,
         baseUrl,
         pr.project(),
@@ -170,9 +168,7 @@ public class StashClient implements AutoCloseable {
         pr.pullRequestId());
     JsonObject jsonDiffs = get(request,
         MessageFormat.format(COMMENT_GET_ERROR_MESSAGE, pr.repository(), pr.pullRequestId()));
-    result = StashCollector.extractDiffs(jsonDiffs);
-
-    return result;
+    return StashCollector.extractDiffs(jsonDiffs);
   }
 
   public StashComment postCommentLineOnPullRequest(PullRequestRef pr,
@@ -364,7 +360,7 @@ public class StashClient implements AutoCloseable {
       return extractResponse(response);
 
     } catch (ExecutionException | TimeoutException | InterruptedException e) {
-      throw new StashClientException(e);
+      throw new StashClientException(request.getUrl(), e);
     } finally {
       MDC.remove(MDC_URL_KEY);
       MDC.remove(MDC_METHOD_KEY);
