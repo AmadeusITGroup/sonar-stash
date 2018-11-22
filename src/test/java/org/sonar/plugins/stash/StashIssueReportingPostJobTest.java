@@ -31,7 +31,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 @RunWith(MockitoJUnitRunner.class)
 public class StashIssueReportingPostJobTest extends StashTest {
 
-  StashIssueReportingPostJob myJob;
+  private StashIssueReportingPostJob myJob;
 
   @Mock
   StashUser stashUser;

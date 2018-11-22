@@ -1,5 +1,6 @@
 package org.sonar.plugins.stash.issue;
 
+import com.google.common.base.MoreObjects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -99,5 +100,18 @@ public class StashComment {
   @Override
   public int hashCode() {
     return (int)this.getId();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("id", id)
+        .add("message", message)
+        .add("author", author)
+        .add("version", version)
+        .add("line", line)
+        .add("path", path)
+        .add("tasks", tasks)
+        .toString();
   }
 }
