@@ -36,27 +36,40 @@ public class StashDiffReport {
     diffs.addAll(report.getDiffs());
   }
 
-  private static boolean includeVicinityIssuesForDiff(StashDiff diff, long destination, int range) {
+  private static boolean inVicinityOfChangedDiff(StashDiff diff, long destination, int range) {
     if (range <= 0) {
       return false;
     }
     return Range.closed(diff.getSource() - range, diff.getDestination() + range).contains(destination);
   }
 
+  private static boolean isChangedDiff(StashDiff diff, long destination) {
+    return diff.getDestination() == destination;
+  }
+
   public IssueType getType(String path, long destination, int vicinityRange) {
+    boolean isInContextDiff = false;
     for (StashDiff diff : diffs) {
       if (Objects.equals(diff.getPath(), path)) {
         // Line 0 never belongs to Stash Diff view.
         // It is a global comment with a type set to CONTEXT.
         if (destination == 0) {
           return IssueType.CONTEXT;
-        } else if (destination == diff.getDestination() || includeVicinityIssuesForDiff(diff,
-            destination, vicinityRange)) {
+        } else if (!lineIsChangedDiff(diff)) {
+          // We only care about changed diff
+          continue;
+        } else if (isChangedDiff(diff, destination)) {
           return diff.getType();
+        } else if (inVicinityOfChangedDiff(diff, destination, vicinityRange)) {
+          isInContextDiff = true;
         }
       }
     }
-    return null;
+    return isInContextDiff ? IssueType.CONTEXT : null;
+  }
+
+  private static boolean lineIsChangedDiff(StashDiff diff) {
+    return !diff.getType().equals(IssueType.CONTEXT);
   }
 
   /**

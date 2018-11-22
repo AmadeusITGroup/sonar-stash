@@ -20,8 +20,14 @@ public class StashDiffReportTest {
   StashDiff diff1;
   StashDiff diff2;
   StashDiff diff3;
+  StashDiff diff4;
+  StashDiff diff5;
+  StashDiff diff6;
 
   StashDiffReport report1 = new StashDiffReport();
+  StashDiffReport report2 = new StashDiffReport();
+
+  private static final String FILE_PATH = "path/to/diff";
 
   @Before
   public void setUp() {
@@ -42,6 +48,13 @@ public class StashDiffReportTest {
     report1.add(diff1);
     report1.add(diff2);
     report1.add(diff3);
+
+    diff4 = new StashDiff(IssueType.CONTEXT, FILE_PATH, (long)10, (long)10);
+    diff5 = new StashDiff(IssueType.ADDED, FILE_PATH, (long)11, (long)11);
+    diff6 = new StashDiff(IssueType.CONTEXT, FILE_PATH, (long)11, (long)12);
+    report2.add(diff4);
+    report2.add(diff5);
+    report2.add(diff6);
   }
 
   @Test
@@ -81,7 +94,7 @@ public class StashDiffReportTest {
 
   @Test
   public void testGetType() {
-    assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE));
+    assertNull(report1.getType("path/to/diff1", 20, StashDiffReport.VICINITY_RANGE_NONE));
     assertEquals(IssueType.ADDED, report1.getType("path/to/diff2", 30, StashDiffReport.VICINITY_RANGE_NONE));
 
     assertNull(report1.getType("path/to/diff2", 20, StashDiffReport.VICINITY_RANGE_NONE));
@@ -93,6 +106,15 @@ public class StashDiffReportTest {
   public void testGetTypeWithNoDestination() {
     assertEquals(IssueType.CONTEXT, report1.getType("path/to/diff1", 0, StashDiffReport.VICINITY_RANGE_NONE));
     assertNull(report1.getType("path/to/diff", 0, StashDiffReport.VICINITY_RANGE_NONE));
+  }
+
+  @Test
+  public void testGetTypeVicinity() {
+    assertEquals(IssueType.CONTEXT, report2.getType(FILE_PATH, 10, 1));
+    assertNull(report2.getType(FILE_PATH, 10, StashDiffReport.VICINITY_RANGE_NONE));
+    assertEquals(IssueType.ADDED, report2.getType(FILE_PATH, 11, 1));
+    assertEquals(IssueType.CONTEXT, report2.getType(FILE_PATH, 12, 1));
+    assertNull(report2.getType(FILE_PATH, 12, StashDiffReport.VICINITY_RANGE_NONE));
   }
 
   @Test
