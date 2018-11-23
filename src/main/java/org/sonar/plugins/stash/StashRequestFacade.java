@@ -53,7 +53,7 @@ public class StashRequestFacade implements IssuePathResolver {
     );
   }
 
-  private MarkdownPrinter getMarkdownPrinter() throws StashConfigurationException {
+  private MarkdownPrinter getMarkdownPrinter() {
     return new MarkdownPrinter(getIssueThreshold(), config.getSonarQubeURL(), config.getFilesLimitInOverview(), this);
   }
 
@@ -62,7 +62,7 @@ public class StashRequestFacade implements IssuePathResolver {
    */
   public void postAnalysisOverview(PullRequestRef pr,
       Collection<PostJobIssue> issueReport,
-      StashClient stashClient) throws StashClientException {
+      StashClient stashClient) {
 
     String report = getMarkdownPrinter().printReportMarkdown(issueReport);
     stashClient.postCommentOnPullRequest(pr, report);
@@ -73,7 +73,7 @@ public class StashRequestFacade implements IssuePathResolver {
   /**
    * Approve pull-request
    */
-  public void approvePullRequest(PullRequestRef pr, StashClient stashClient) throws StashClientException {
+  public void approvePullRequest(PullRequestRef pr, StashClient stashClient) {
     stashClient.approvePullRequest(pr);
 
     // squid:S2629 : no evaluation required if the logging level is not activated
@@ -86,7 +86,7 @@ public class StashRequestFacade implements IssuePathResolver {
   /**
    * Reset pull-request approval
    */
-  public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) throws StashClientException {
+  public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) {
     stashClient.resetPullRequestApproval(pr);
 
     if (LOGGER.isInfoEnabled()) {
@@ -98,7 +98,7 @@ public class StashRequestFacade implements IssuePathResolver {
   /**
    * Add a reviewer to the current pull-request.
    */
-  public void addPullRequestReviewer(PullRequestRef pr, String userSlug, StashClient stashClient) throws StashClientException {
+  public void addPullRequestReviewer(PullRequestRef pr, String userSlug, StashClient stashClient) {
     StashPullRequest pullRequest = stashClient.getPullRequest(pr);
 
     // user not yet in reviewer list
@@ -122,7 +122,7 @@ public class StashRequestFacade implements IssuePathResolver {
   public void postSonarQubeReport(PullRequestRef pr,
       Iterable<PostJobIssue> issueReport,
       StashDiffReport diffReport,
-      StashClient stashClient) throws StashClientException, StashConfigurationException {
+      StashClient stashClient) {
     postCommentPerIssue(pr, issueReport, diffReport, stashClient);
     LOGGER.info("New SonarQube issues (if any) have been reported to Stash.");
   }
@@ -131,8 +131,7 @@ public class StashRequestFacade implements IssuePathResolver {
    * Post one comment by found issue on Stash.
    */
   void postCommentPerIssue(PullRequestRef pr, Iterable<PostJobIssue> issues,
-      StashDiffReport diffReport, StashClient stashClient)
-      throws StashClientException, StashConfigurationException {
+      StashDiffReport diffReport, StashClient stashClient) {
 
     // to optimize request to Stash, builds comment match ordered by filepath
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
@@ -163,8 +162,8 @@ public class StashRequestFacade implements IssuePathResolver {
                                 StashDiffReport diffReport,
                                 StashClient stashClient,
                                 Optional<Severity> taskSeverityThreshold
-  ) throws StashClientException, StashConfigurationException {
-    
+  ) {
+
     String issueKey = issue.key();
     String path = getIssuePath(issue);
     StashCommentReport comments = commentsByFile.get(path);
@@ -214,7 +213,7 @@ public class StashRequestFacade implements IssuePathResolver {
     }
   }
 
-  public StashCredentials getCredentials() throws StashConfigurationException {
+  public StashCredentials getCredentials() {
     String passwordEnvVariable = config.getStashPasswordEnvironmentVariable();
     String password = config.getStashPassword();
     String userSlug = config.getStashUserSlug();
@@ -240,7 +239,7 @@ public class StashRequestFacade implements IssuePathResolver {
    *
    * @throws StashConfigurationException if unable to get parameter as Integer
    */
-  public int getIssueThreshold() throws StashConfigurationException {
+  public int getIssueThreshold() {
     int result = 0;
     try {
       result = config.getIssueThreshold();
@@ -256,7 +255,7 @@ public class StashRequestFacade implements IssuePathResolver {
    *
    * @throws StashConfigurationException if unable to get parameter
    */
-  public String getStashURL() throws StashConfigurationException {
+  public String getStashURL() {
     String result = config.getStashURL();
     if (result == null) {
       throw new StashConfigurationException(
@@ -272,7 +271,7 @@ public class StashRequestFacade implements IssuePathResolver {
     return result;
   }
 
-  public PullRequestRef getPullRequest() throws StashConfigurationException {
+  public PullRequestRef getPullRequest() {
     return PullRequestRef.builder()
         .setProject(getStashProject())
         .setRepository(getStashRepository())
@@ -285,7 +284,7 @@ public class StashRequestFacade implements IssuePathResolver {
    *
    * @throws StashConfigurationException if unable to get parameter
    */
-  public String getStashProject() throws StashConfigurationException {
+  public String getStashProject() {
     String result = config.getStashProject();
     if (result == null) {
       throw new StashConfigurationException(
@@ -300,7 +299,7 @@ public class StashRequestFacade implements IssuePathResolver {
    *
    * @throws StashConfigurationException if unable to get parameter
    */
-  public String getStashRepository() throws StashConfigurationException {
+  public String getStashRepository() {
     String result = config.getStashRepository();
     if (result == null) {
       throw new StashConfigurationException(
@@ -315,7 +314,7 @@ public class StashRequestFacade implements IssuePathResolver {
    *
    * @throws StashConfigurationException if unable to get parameter
    */
-  public int getStashPullRequestId() throws StashConfigurationException {
+  public int getStashPullRequestId() {
     Integer result = config.getPullRequestId();
     if (result == null) {
       throw new StashConfigurationException(MessageFormat.format(EXCEPTION_STASH_CONF,
@@ -328,7 +327,7 @@ public class StashRequestFacade implements IssuePathResolver {
   /**
    * Get user who published the SQ analysis in Stash.
    */
-  public StashUser getSonarQubeReviewer(String userSlug, StashClient stashClient) throws StashClientException {
+  public StashUser getSonarQubeReviewer(String userSlug, StashClient stashClient) {
     StashUser result = null;
 
     result = stashClient.getUser(userSlug);
@@ -340,7 +339,7 @@ public class StashRequestFacade implements IssuePathResolver {
   /**
    * Get all changes exposed through the Stash pull-request.
    */
-  public StashDiffReport getPullRequestDiffReport(PullRequestRef pr, StashClient stashClient) throws StashClientException {
+  public StashDiffReport getPullRequestDiffReport(PullRequestRef pr, StashClient stashClient) {
     StashDiffReport result = stashClient.getPullRequestDiffs(pr);
 
     if (LOGGER.isDebugEnabled()) {
@@ -357,7 +356,7 @@ public class StashRequestFacade implements IssuePathResolver {
   public void resetComments(PullRequestRef pr,
       StashDiffReport diffReport,
       StashUser sonarUser,
-      StashClient stashClient) throws StashClientException {
+      StashClient stashClient) {
     // Let's call this "diffRep_loop"
     for (StashComment comment : diffReport.getComments()) {
 

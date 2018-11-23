@@ -15,6 +15,7 @@ import org.sonar.api.platform.Server;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
+import org.sonar.plugins.stash.exceptions.StashException;
 import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
@@ -22,7 +23,6 @@ import org.sonar.plugins.stash.issue.StashUser;
 public class StashIssueReportingPostJob implements PostJob {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StashIssueReportingPostJob.class);
-  private static final String STACK_TRACE = "Exception stack trace";
 
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
@@ -44,14 +44,13 @@ public class StashIssueReportingPostJob implements PostJob {
     }
     try {
       executeThrowing(context);
-    } catch (StashConfigurationException e) {
-      LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
+    } catch (StashException e) {
+      LOGGER.error("Unable to push SonarQube report to Stash", e);
     }
   }
 
   @VisibleForTesting
-  public void executeThrowing(PostJobContext context) throws StashConfigurationException {
+  public void executeThrowing(PostJobContext context) {
       String stashURL = stashRequestFacade.getStashURL();
       int stashTimeout = config.getStashTimeout();
 
@@ -74,7 +73,6 @@ public class StashIssueReportingPostJob implements PostJob {
   private void updateStashWithSonarInfo(StashClient stashClient,
       StashCredentials stashCredentials, Iterable<PostJobIssue> issues) {
 
-    try {
       int issueThreshold = stashRequestFacade.getIssueThreshold();
       PullRequestRef pr = stashRequestFacade.getPullRequest();
 
@@ -85,14 +83,14 @@ public class StashIssueReportingPostJob implements PostJob {
           .getSonarQubeReviewer(stashCredentials.getUserSlug(), stashClient);
 
       if (stashUser == null) {
-        throw new StashMissingElementException(
+        throw new StashConfigurationException(
             "No SonarQube reviewer identified to publish to Stash the SQ analysis");
       }
 
       // Get all changes exposed from Stash differential view of the pull-request
       StashDiffReport diffReport = stashRequestFacade.getPullRequestDiffReport(pr, stashClient);
       if (diffReport == null) {
-        throw new StashMissingElementException(
+        throw new StashConfigurationException(
             "No Stash differential report available to process the SQ analysis");
       }
 
@@ -108,13 +106,6 @@ public class StashIssueReportingPostJob implements PostJob {
 
       postInfoAndPRsActions(pr, issueReport, issueThreshold, diffReport, stashClient);
 
-    } catch (StashConfigurationException e) {
-      LOGGER.error("Unable to push SonarQube report to Stash: {}", e.getMessage());
-      LOGGER.debug(STACK_TRACE, e);
-
-    } catch (StashMissingElementException e) {
-      LOGGER.error("Process stopped", e);
-    }
   }
 
 
@@ -164,18 +155,5 @@ public class StashIssueReportingPostJob implements PostJob {
   public void describe(PostJobDescriptor descriptor) {
     descriptor.requireProperty(StashPlugin.STASH_NOTIFICATION);
     descriptor.name("Stash/Bitbucket notification");
-  }
-
-
-  /*
-  *  Custom exception to keep nested if statements under control
-  */
-  private static class StashMissingElementException extends Exception {
-
-    private static final long serialVersionUID = 5917014003691827699L;
-
-    public StashMissingElementException(String exc) {
-      super(exc);
-    }
   }
 }
