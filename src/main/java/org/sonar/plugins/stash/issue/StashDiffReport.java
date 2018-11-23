@@ -47,6 +47,10 @@ public class StashDiffReport {
     return diff.getDestination() == destination;
   }
 
+  private static boolean lineIsChangedDiff(StashDiff diff) {
+    return !diff.getType().equals(IssueType.CONTEXT);
+  }
+
   public IssueType getType(String path, long destination, int vicinityRange) {
     boolean isInContextDiff = false;
     for (StashDiff diff : diffs) {
@@ -66,10 +70,6 @@ public class StashDiffReport {
       }
     }
     return isInContextDiff ? IssueType.CONTEXT : null;
-  }
-
-  private static boolean lineIsChangedDiff(StashDiff diff) {
-    return !diff.getType().equals(IssueType.CONTEXT);
   }
 
   /**
