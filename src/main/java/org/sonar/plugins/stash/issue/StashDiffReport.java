@@ -52,6 +52,7 @@ public class StashDiffReport {
   }
 
   public IssueType getType(String path, long destination, int vicinityRange) {
+    boolean isInContextDiff = false;
     for (StashDiff diff : diffs) {
       if (Objects.equals(diff.getPath(), path)) {
         // Line 0 never belongs to Stash Diff view.
@@ -64,11 +65,11 @@ public class StashDiffReport {
         } else if (isChangedDiff(diff, destination)) {
           return diff.getType();
         } else if (inVicinityOfChangedDiff(diff, destination, vicinityRange)) {
-          return IssueType.CONTEXT;
+          isInContextDiff = true;
         }
       }
     }
-    return null;
+    return isInContextDiff ? IssueType.CONTEXT : null;
   }
 
   /**
