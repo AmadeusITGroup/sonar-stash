@@ -773,6 +773,12 @@ public class StashRequestFacadeTest extends StashTest {
     verify(stashClient, times(1)).approvePullRequest(pr);
   }
 
+  @Test
+  public void testmarkPullRequestNeedsWork() throws Exception {
+
+    myFacade.markPullRequestNeedsWork(pr, stashClient);
+    verify(stashClient, times(1)).markPullRequestNeedsWork(pr);
+  }
 
   @Test
   public void testApprovePullRequestException() throws Exception {
