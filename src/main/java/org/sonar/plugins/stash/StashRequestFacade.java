@@ -19,7 +19,6 @@ import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
-import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.StashComment;

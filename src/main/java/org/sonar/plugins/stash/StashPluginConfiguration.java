@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash;
 
 import com.google.common.collect.Sets;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.sonar.api.CoreProperties;
@@ -79,7 +80,8 @@ public class StashPluginConfiguration {
   }
 
   public Severity getIssueSeverityThreshold() {
-    return Severity.valueOf(settings.getString(StashPlugin.STASH_ISSUE_SEVERITY_THRESHOLD));
+    return Severity.valueOf(
+        Objects.requireNonNull(settings.getString(StashPlugin.STASH_ISSUE_SEVERITY_THRESHOLD)));
   }
 
   public int getStashTimeout() {
@@ -134,6 +136,9 @@ public class StashPluginConfiguration {
   private Optional<Severity> getOptionalSeveritySetting(String key) {
     String setting = settings.getString(key);
     if (StashPlugin.SEVERITY_NONE.equals(setting)) {
+      return Optional.empty();
+    }
+    if (setting == null) {
       return Optional.empty();
     }
     return Optional.of(Severity.valueOf(setting));

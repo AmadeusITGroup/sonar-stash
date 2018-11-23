@@ -35,7 +35,7 @@ import org.sonar.plugins.stash.fixtures.DummyServer;
 import org.sonar.plugins.stash.fixtures.DummyStashServer;
 import org.sonar.plugins.stash.issue.StashUser;
 
-public class EndToEndTest {
+public abstract class EndToEndTest {
   @Rule
   public WireMockRule wireMock = new WireMockRule(
       DummyStashServer.extend(WireMockConfiguration.options().dynamicPort()), true);

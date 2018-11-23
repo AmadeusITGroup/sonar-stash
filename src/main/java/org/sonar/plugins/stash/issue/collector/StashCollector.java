@@ -23,7 +23,7 @@ public final class StashCollector {
     // Hiding implicit public constructor with an explicit private one (squid:S1118)
   }
 
-  public static StashCommentReport extractComments(JsonObject jsonComments) throws StashReportExtractionException {
+  public static StashCommentReport extractComments(JsonObject jsonComments) {
     StashCommentReport result = new StashCommentReport();
 
     JsonArray jsonValues = (JsonArray)jsonComments.get("values");
@@ -53,7 +53,7 @@ public final class StashCollector {
     return new StashComment(id, message, path, line, stashUser, version);
   }
 
-  public static StashComment extractComment(JsonObject jsonComment) throws StashReportExtractionException {
+  public static StashComment extractComment(JsonObject jsonComment) {
 
     JsonObject jsonAnchor = (JsonObject)jsonComment.get("anchor");
     if (jsonAnchor == null) {
