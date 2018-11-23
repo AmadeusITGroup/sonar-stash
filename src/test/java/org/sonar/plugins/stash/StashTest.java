@@ -1,8 +1,8 @@
 package org.sonar.plugins.stash;
 
-import org.junit.Rule;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public abstract class StashTest {
-  @Rule
-  public JavaUtilLoggingCaptureRule logRule = new JavaUtilLoggingCaptureRule();
+  @RegisterExtension
+  public JavaUtilLoggingCapture logRule = new JavaUtilLoggingCapture();
 }

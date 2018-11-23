@@ -1,16 +1,16 @@
 package org.sonar.plugins.stash.issue;
 
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class StashUserTest {
 
   StashUser myUser;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     myUser = new StashUser(1, "SonarQube", "sonarqube", "sq@email.com");
   }

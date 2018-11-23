@@ -1,8 +1,13 @@
 package org.sonar.plugins.stash.issue.collector;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.json.simple.JsonObject;
 import org.json.simple.Jsoner;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
@@ -13,11 +18,6 @@ import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashPullRequest;
 import org.sonar.plugins.stash.issue.StashTask;
 import org.sonar.plugins.stash.issue.StashUser;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class StashCollectorTest {
 
@@ -103,14 +103,9 @@ public class StashCollectorTest {
     String commentString = "{\"id\":1234, \"text\":\"message\", "
                            + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\":0}";
 
-    try {
-      StashCollector.extractComment(parse(commentString));
-
-      fail("No anchor tag: extraction should raised StashReportExtractionException exception");
-
-    } catch (StashReportExtractionException e) {
-      assertTrue("No anchor tag: extraction has raised StashReportExtractionException exception as expected", true);
-    }
+    assertThrows(StashReportExtractionException.class, () ->
+        StashCollector.extractComment(parse(commentString))
+    );
   }
 
   @Test

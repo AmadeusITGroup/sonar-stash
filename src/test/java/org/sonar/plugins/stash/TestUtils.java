@@ -1,6 +1,7 @@
 package org.sonar.plugins.stash;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -14,6 +15,12 @@ public class TestUtils {
   public static <T> T notNull(T t) {
     assertNotNull(t);
     return t;
+  }
+
+  public static void assertContains(String s, String expected) {
+    assertNotNull(s);
+    assertNotNull(expected);
+    assertTrue(s.contains(expected));
   }
 
   // The first request to wiremock may be slow.

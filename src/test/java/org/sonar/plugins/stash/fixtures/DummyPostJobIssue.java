@@ -1,11 +1,7 @@
 package org.sonar.plugins.stash.fixtures;
 
-import static org.junit.Assert.assertEquals;
-
-import com.google.common.base.Splitter;
 import java.nio.file.Path;
 import javax.annotation.CheckForNull;
-import org.apache.commons.lang3.StringUtils;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;

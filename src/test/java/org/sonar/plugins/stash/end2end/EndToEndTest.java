@@ -4,7 +4,6 @@ import static org.sonar.plugins.stash.TestUtils.notNull;
 import static org.sonar.plugins.stash.TestUtils.primeWireMock;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.common.io.Resources;
 import com.google.gson.JsonObject;
 import java.io.File;
@@ -12,10 +11,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.picocontainer.DefaultPicoContainer;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
@@ -33,14 +31,15 @@ import org.sonar.plugins.stash.fixtures.DummyPostJobContext;
 import org.sonar.plugins.stash.fixtures.DummyPostJobIssue;
 import org.sonar.plugins.stash.fixtures.DummyServer;
 import org.sonar.plugins.stash.fixtures.DummyStashServer;
+import org.sonar.plugins.stash.fixtures.WireMockExtension;
 import org.sonar.plugins.stash.issue.StashUser;
 
 public abstract class EndToEndTest {
-  @Rule
-  public WireMockRule wireMock = new WireMockRule(
+  @RegisterExtension
+  public WireMockExtension wireMock = new WireMockExtension(
       DummyStashServer.extend(WireMockConfiguration.options().dynamicPort()), true);
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     primeWireMock(wireMock);
   }

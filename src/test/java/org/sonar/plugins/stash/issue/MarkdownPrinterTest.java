@@ -1,12 +1,12 @@
 package org.sonar.plugins.stash.issue;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
@@ -24,7 +24,7 @@ public class MarkdownPrinterTest {
   private MarkdownPrinter printer;
   private int issueThreshold;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     PostJobIssue issueBlocker = new DefaultIssue().setKey("key1")
         .setSeverity(Severity.BLOCKER)

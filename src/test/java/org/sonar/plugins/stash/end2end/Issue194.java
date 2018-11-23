@@ -1,14 +1,13 @@
 package org.sonar.plugins.stash.end2end;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.Optional;
-import org.junit.Test;
-import org.sonar.api.rule.Severity;
+import org.junit.jupiter.api.Test;
 import org.sonar.plugins.stash.StashPlugin;
 
 public class Issue194 extends EndToEndTest {

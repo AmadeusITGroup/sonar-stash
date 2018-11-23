@@ -1,17 +1,12 @@
 package org.sonar.plugins.stash.issue;
 
-import java.io.FileReader;
-import org.json.simple.JsonObject;
-import org.json.simple.Jsoner;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
-import org.sonar.plugins.stash.issue.collector.StashCollector;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +24,7 @@ public class StashDiffReportTest {
 
   private static final String FILE_PATH = "path/to/diff";
 
-  @Before
+  @BeforeEach
   public void setUp() {
     StashComment comment1 = mock(StashComment.class);
     when(comment1.getId()).thenReturn((long)12345);

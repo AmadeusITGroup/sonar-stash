@@ -2,19 +2,17 @@ package org.sonar.plugins.stash;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
-import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
@@ -22,6 +20,7 @@ import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
+import org.sonar.plugins.stash.fixtures.EnvironmentVariablesExtension;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
@@ -35,20 +34,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollectionOf;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -56,16 +53,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class StashRequestFacadeTest extends StashTest {
-
-  @Spy
   StashRequestFacade myFacade;
-
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
-
-  @Rule
-  public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   @Mock
   StashPluginConfiguration config;
@@ -102,6 +93,9 @@ public class StashRequestFacadeTest extends StashTest {
 
   StashProjectBuilder spr;
 
+  @RegisterExtension
+  EnvironmentVariablesExtension environmentVariables = new EnvironmentVariablesExtension();
+
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
   private static final int STASH_PULLREQUEST_ID = 1;
@@ -120,7 +114,7 @@ public class StashRequestFacadeTest extends StashTest {
   private static final String FILE_PATH_1 = "path/to/file1";
   private static final String FILE_PATH_2 = "path/to/file2";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     config = mock(StashPluginConfiguration.class);
@@ -131,8 +125,6 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getStashProject()).thenReturn(STASH_PROJECT);
     when(config.getStashRepository()).thenReturn(STASH_REPOSITORY);
     when(config.getRepositoryRoot()).thenReturn(Optional.empty());
-
-    ActiveRules activeRules = new ActiveRulesBuilder().build();
 
     spr = new DummyStashProjectBuilder(new File("/basedir"));
 
@@ -256,8 +248,8 @@ public class StashRequestFacadeTest extends StashTest {
     when(stashCommentsReport2.applyDiffReport(diffReport)).thenReturn(stashCommentsReport2);
     when(stashClient.getPullRequestComments(pr, "path/to/file2")).thenReturn(stashCommentsReport2);
 
-    doNothing().when(stashClient).deletePullRequestComment(Mockito.eq(pr), (StashComment)Mockito.anyObject());
-    doNothing().when(stashClient).deleteTaskOnComment((StashTask)Mockito.anyObject());
+    doNothing().when(stashClient).deletePullRequestComment(eq(pr), any(StashComment.class));
+    doNothing().when(stashClient).deleteTaskOnComment(any(StashTask.class));
   }
 
   @Test
@@ -294,12 +286,14 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals("envPassword", credentials.getPassword());
   }
 
-  @Test(expected = StashConfigurationException.class)
+  @Test
   public void testGetPasswordFromUnconfiguredEnvironment() throws StashConfigurationException {
     when(config.getStashLogin()).thenReturn("login");
     when(config.getStashPasswordEnvironmentVariable()).thenReturn("SONAR_STASH_PASSWORD");
 
-    myFacade.getCredentials();
+    assertThrows(StashConfigurationException.class, () ->
+        myFacade.getCredentials()
+    );
   }
 
   @Test
@@ -308,10 +302,13 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals(1, myFacade.getIssueThreshold());
   }
 
-  @Test(expected = StashConfigurationException.class)
+  @Test
   public void testGetIssueThresholdThrowsException() throws StashConfigurationException {
     when(config.getIssueThreshold()).thenThrow(new NumberFormatException());
-    myFacade.getIssueThreshold();
+
+    assertThrows(StashConfigurationException.class, () ->
+        myFacade.getIssueThreshold()
+    );
   }
 
   @Test
@@ -323,10 +320,13 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals("http://url", myFacade.getStashURL());
   }
 
-  @Test(expected = StashConfigurationException.class)
+  @Test
   public void testGetStashURLThrowsException() throws StashConfigurationException {
     when(config.getStashURL()).thenReturn(null);
-    myFacade.getStashURL();
+
+    assertThrows(StashConfigurationException.class, () ->
+        myFacade.getStashURL()
+    );
   }
 
   @Test
@@ -335,10 +335,12 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals("project", myFacade.getStashProject());
   }
 
-  @Test(expected = StashConfigurationException.class)
+  @Test
   public void testGetStashProjectThrowsException() throws StashConfigurationException {
     when(config.getStashProject()).thenReturn(null);
-    myFacade.getStashProject();
+    assertThrows(StashConfigurationException.class, () ->
+        myFacade.getStashProject()
+    );
   }
 
   @Test
@@ -347,10 +349,12 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals("repository", myFacade.getStashRepository());
   }
 
-  @Test(expected = StashConfigurationException.class)
+  @Test
   public void testGetStashRepositoryThrowsException() throws StashConfigurationException {
     when(config.getStashRepository()).thenReturn(null);
-    myFacade.getStashRepository();
+    assertThrows(StashConfigurationException.class, () ->
+        myFacade.getStashRepository()
+    );
   }
 
   @Test
@@ -359,10 +363,12 @@ public class StashRequestFacadeTest extends StashTest {
     assertEquals(12345, myFacade.getStashPullRequestId());
   }
 
-  @Test(expected = StashConfigurationException.class)
+  @Test
   public void testGetStashPullRequestIdThrowsException() throws StashConfigurationException {
     when(config.getPullRequestId()).thenReturn(null);
-    myFacade.getStashPullRequestId();
+    assertThrows(StashConfigurationException.class, () ->
+        myFacade.getStashPullRequestId()
+    );
   }
 
   @Test
@@ -445,7 +451,7 @@ public class StashRequestFacadeTest extends StashTest {
   public void testPostSonarQubeReport() throws StashClientException, StashConfigurationException {
     myFacade.postSonarQubeReport(pr, report, diffReport, stashClient);
     verify(myFacade, times(1)).postCommentPerIssue(eq(pr),
-                                                   anyCollectionOf(PostJobIssue.class),
+                                                   anyCollection(),
                                                    eq(diffReport),
                                                    eq(stashClient));
   }
@@ -631,8 +637,8 @@ public class StashRequestFacadeTest extends StashTest {
   public void testResetComments() throws Exception {
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 
-    verify(stashClient, times(3)).deleteTaskOnComment((StashTask)Mockito.anyObject());
-    verify(stashClient, times(3)).deletePullRequestComment(Mockito.eq(pr), (StashComment)Mockito.anyObject());
+    verify(stashClient, times(3)).deleteTaskOnComment(any(StashTask.class));
+    verify(stashClient, times(3)).deletePullRequestComment(eq(pr), any(StashComment.class));
   }
 
   @Test
@@ -641,8 +647,8 @@ public class StashRequestFacadeTest extends StashTest {
 
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 
-    verify(stashClient, times(2)).deleteTaskOnComment((StashTask)Mockito.anyObject());
-    verify(stashClient, times(2)).deletePullRequestComment(eq(pr), (StashComment)Mockito.anyObject());
+    verify(stashClient, times(2)).deleteTaskOnComment(any(StashTask.class));
+    verify(stashClient, times(2)).deletePullRequestComment(eq(pr), any(StashComment.class));
   }
 
   @Test
@@ -651,8 +657,8 @@ public class StashRequestFacadeTest extends StashTest {
 
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 
-    verify(stashClient, times(2)).deleteTaskOnComment((StashTask)Mockito.anyObject());
-    verify(stashClient, times(3)).deletePullRequestComment(eq(pr), (StashComment)Mockito.anyObject());
+    verify(stashClient, times(2)).deleteTaskOnComment(any(StashTask.class));
+    verify(stashClient, times(3)).deletePullRequestComment(eq(pr), any(StashComment.class));
   }
 
   @Test
@@ -670,7 +676,7 @@ public class StashRequestFacadeTest extends StashTest {
 
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 
-    verify(stashClient, times(0)).deletePullRequestComment(eq(pr), (StashComment)Mockito.anyObject());
+    verify(stashClient, times(0)).deletePullRequestComment(eq(pr), any(StashComment.class));
   }
 
   @Test
@@ -679,7 +685,7 @@ public class StashRequestFacadeTest extends StashTest {
 
     myFacade.resetComments(pr, diffReport, stashUser, stashClient);
 
-    verify(stashClient, times(0)).deletePullRequestComment(eq(pr), (StashComment)Mockito.anyObject());
+    verify(stashClient, times(0)).deletePullRequestComment(eq(pr), any(StashComment.class));
   }
 
 

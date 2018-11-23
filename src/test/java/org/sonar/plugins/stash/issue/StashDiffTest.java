@@ -1,14 +1,13 @@
 package org.sonar.plugins.stash.issue;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.plugins.stash.StashPlugin;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -18,7 +17,7 @@ public class StashDiffTest {
   StashDiff diff2;
   StashDiff diff3;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     StashComment comment1 = mock(StashComment.class);
     when(comment1.getId()).thenReturn((long)12345);

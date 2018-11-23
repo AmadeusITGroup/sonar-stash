@@ -1,13 +1,13 @@
 package org.sonar.plugins.stash.issue;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.sonar.plugins.stash.PullRequestRef;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.sonar.plugins.stash.PullRequestRef;
 
 public class StashPullRequestTest {
 
@@ -16,7 +16,7 @@ public class StashPullRequestTest {
   StashUser stashUser1;
   StashUser stashUser2;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     PullRequestRef pr = PullRequestRef.builder()
                                       .setProject("Project")

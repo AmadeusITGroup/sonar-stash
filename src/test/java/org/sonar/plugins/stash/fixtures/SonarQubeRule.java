@@ -1,10 +1,14 @@
 package org.sonar.plugins.stash.fixtures;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class SonarQubeRule implements TestRule {
+public class SonarQubeRule implements BeforeAllCallback, AfterAllCallback {
+  private static final Logger LOGGER = LoggerFactory.getLogger(SonarQubeRule.class);
+
   private SonarQube sonarqube;
 
   public SonarQubeRule(SonarQube sonarqube) {
@@ -21,18 +25,12 @@ public class SonarQubeRule implements TestRule {
   }
 
   @Override
-  public Statement apply(final Statement base, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        try {
-          sonarqube.setUp();
-          base.evaluate();
-        } finally {
-          sonarqube.stop();
-        }
-      }
+  public void beforeAll(ExtensionContext context) throws Exception {
+    sonarqube.setUp();
+  }
 
-    };
+  @Override
+  public void afterAll(ExtensionContext context) throws Exception {
+    sonarqube.stop();
   }
 }

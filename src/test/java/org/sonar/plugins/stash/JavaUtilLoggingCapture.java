@@ -1,9 +1,5 @@
 package org.sonar.plugins.stash;
 
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
@@ -13,7 +9,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.logging.MemoryHandler;
 
-public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule {
+public class JavaUtilLoggingCapture extends TestWatcherExtension {
   private boolean gobbleOnSuccess;
   private List<Handler> originalHandlers = new ArrayList<>();
   private Level originalLevel;
@@ -21,7 +17,7 @@ public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule 
   private MemoryHandler spool = new MemoryHandler(console, 10000, Level.OFF);
   private Logger logger;
 
-  public JavaUtilLoggingCaptureRule(boolean gobbleOnSuccess) {
+  public JavaUtilLoggingCapture(boolean gobbleOnSuccess) {
     this.gobbleOnSuccess = gobbleOnSuccess;
 
     logger = Logger.getGlobal();
@@ -31,24 +27,24 @@ public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule 
     }
   }
 
-  public JavaUtilLoggingCaptureRule() {
+  public JavaUtilLoggingCapture() {
     this(true);
   }
 
   @Override
-  protected void succeeded(Description description) {
+  protected void succeeded() {
     if (!gobbleOnSuccess) {
       emit();
     }
   }
 
   @Override
-  protected void failed(Throwable t, Description description) {
+  protected void failed() {
     emit();
   }
 
   @Override
-  protected void finished(Description description) {
+  protected void finished() {
     logger.removeHandler(spool);
 
     for (Handler h : originalHandlers) {
@@ -58,7 +54,7 @@ public class JavaUtilLoggingCaptureRule extends TestWatcher implements TestRule 
   }
 
   @Override
-  protected void starting(Description description) {
+  protected void starting() {
     for (Handler h : logger.getHandlers()) {
       originalHandlers.add(h);
       logger.removeHandler(h);

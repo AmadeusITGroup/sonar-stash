@@ -2,16 +2,16 @@ package org.sonar.plugins.stash;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.sonar.check.Rule;
 import org.sonar.plugins.stash.fixtures.MavenSonarFixtures;
 import org.sonar.plugins.stash.fixtures.SonarQubeRule;
 import org.sonar.plugins.stash.fixtures.SonarScanner;
+import org.sonar.plugins.stash.fixtures.WireMockExtension;
 import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
 import java.io.File;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
 
 public class CompleteITCase {
@@ -34,14 +34,15 @@ public class CompleteITCase {
   protected static final String sonarQubeName = "Integration test project";
   protected static final int stashPullRequest = 42;
 
-  @Rule
-  public WireMockRule wireMock = new WireMockRule(WireMockConfiguration.options().dynamicPort());
-  @ClassRule
+  @RegisterExtension
+  public WireMockExtension wireMock = new WireMockExtension(WireMockConfiguration.options().dynamicPort());
+
+  @RegisterExtension
   public static SonarQubeRule sonarqube = new SonarQubeRule(MavenSonarFixtures.getSonarqube(9000));
 
   private static final String jsonUser = "{\"name\":\"SonarQube\", \"email\":\"sq@example.com\", \"id\":1, \"slug\":\"sonarqube\"}";
 
-  @BeforeClass
+  @BeforeAll
   public static void setUpClass() throws Exception {
     sonarqube.get().installPlugin(new File(System.getProperty("test.plugin.archive")));
     sonarqube.start();
@@ -50,10 +51,10 @@ public class CompleteITCase {
     sonarScanner = MavenSonarFixtures.getSonarScanner();
 
     sourcesDir = new File(System.getProperty("test.sources.dir"));
-    assertTrue(sourcesDir.mkdirs());
+    sourcesDir.mkdirs();
   }
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     wireMock.stubFor(
         WireMock.get(WireMock.urlPathEqualTo(
@@ -96,12 +97,6 @@ public class CompleteITCase {
                             .withHeader("User-Agent", WireMock.matching("^(.*)Stash/[0-9.]+(.*)$")));
     wireMock.verify(WireMock.getRequestedFor(WireMock.anyUrl())
                             .withHeader("User-Agent", WireMock.matching("^(.*)SonarQube/[0-9.]+(.*)$")));
-  }
-
-  // https://github.com/AmadeusITGroup/sonar-stash/issues/194
-  @Test
-  public void testIssue194() throws Exception {
-
   }
 
   private String repoPath(String project, String repo, String... parts) {

@@ -1,17 +1,17 @@
 package org.sonar.plugins.stash.issue;
 
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StashTaskTest {
 
   StashTask myTask;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     myTask = new StashTask((long)1111, "Text", "State", true);
   }

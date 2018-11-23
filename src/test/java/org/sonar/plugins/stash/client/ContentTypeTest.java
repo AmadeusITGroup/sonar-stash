@@ -1,31 +1,36 @@
 package org.sonar.plugins.stash.client;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 public class ContentTypeTest {
 
   @Test
   public void testContentType() {
     ContentType json = new ContentType("application", "json", null);
-    Assert.assertTrue(json.match("application/json"));
-    Assert.assertTrue(json.match("application/json;charset=utf-8"));
-    Assert.assertTrue(json.match("APPLICATION/JSON"));
-    Assert.assertTrue(json.match("ApPlIcAtIoN/jSoN"));
+    assertTrue(json.match("application/json"));
+    assertTrue(json.match("application/json;charset=utf-8"));
+    assertTrue(json.match("APPLICATION/JSON"));
+    assertTrue(json.match("ApPlIcAtIoN/jSoN"));
 
-    Assert.assertFalse(json.match(""));
-    Assert.assertFalse(json.match("/"));
-    Assert.assertFalse(json.match(";"));
-    Assert.assertFalse(json.match("/;"));
-    Assert.assertFalse(json.match("foo"));
-    Assert.assertFalse(json.match("12!4"));
-    Assert.assertFalse(json.match("foo/json"));
-    Assert.assertFalse(json.match("application/foo"));
-    Assert.assertFalse(json.match("application/foo;charset=utf-8"));
+    assertFalse(json.match(""));
+    assertFalse(json.match("/"));
+    assertFalse(json.match(";"));
+    assertFalse(json.match("/;"));
+    assertFalse(json.match("foo"));
+    assertFalse(json.match("12!4"));
+    assertFalse(json.match("foo/json"));
+    assertFalse(json.match("application/foo"));
+    assertFalse(json.match("application/foo;charset=utf-8"));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testConstructorFailure() {
-    ContentType json = new ContentType("application", "json", "what-is-the-point-if-I-must-be-null?");
+    assertThrows(IllegalArgumentException.class, () ->
+        new ContentType("application", "json", "what-is-the-point-if-I-must-be-null?")
+    );
   }
 }
