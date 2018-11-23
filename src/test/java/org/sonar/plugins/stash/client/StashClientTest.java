@@ -13,6 +13,7 @@ import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.StashTest;
 import org.sonar.plugins.stash.exceptions.StashClientException;
+import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
 import org.sonar.plugins.stash.issue.StashDiffReport;
@@ -132,7 +133,7 @@ public class StashClientTest extends StashTest {
     assertEquals(1, report.size());
   }
 
-  @Test(expected = StashClientException.class)
+  @Test(expected = StashReportExtractionException.class)
   public void testGetPullRequestCommentsWithoutAuthor() throws Exception {
     String stashJsonComment = "{\"values\": [{\"id\":1234, \"text\":\"message\","
                               + "\"author\": {\"id\":1, \"name\":\"SonarQube\", \"slug\":\"sonarqube\", \"email\":\"sq@email.com\"}, \"version\": 0}]}";
