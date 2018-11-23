@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.StashPlugin;
 
-public class Issue190 extends EndToEndTest {
+public class Issue194 extends EndToEndTest {
   @Test
   public void testWithVicinitiyRange() throws Exception {
     run(0);
@@ -23,7 +23,7 @@ public class Issue190 extends EndToEndTest {
   }
 
   private void run(int vicinityRange) throws Exception {
-    RunResults results = run("issue190_stash_diff",
+    RunResults results = run("issue194_stash_diff",
         (settings) -> settings.setProperty(StashPlugin.STASH_INCLUDE_VICINITY_RANGE, vicinityRange),
         Arrays.asList(
             issue("01673981387EDCCDB0", "ModifiersOrderCheck", "com.gdn.package:module-api-client", "aModule-api-client", "src/main/java/com/gdn/package/aModule/client/aModuleClient.java", 56),
