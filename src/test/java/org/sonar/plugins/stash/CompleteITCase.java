@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.sonar.plugins.stash.TestUtils.primeWireMock;
 import static org.sonar.plugins.stash.client.StashClientTest.aJsonResponse;
 
 public class CompleteITCase {
@@ -55,6 +56,7 @@ public class CompleteITCase {
 
   @BeforeEach
   public void setUp() throws Exception {
+    primeWireMock(wireMock);
     wireMock.stubFor(
         WireMock.get(WireMock.urlPathEqualTo(
             urlPath("rest", "api", "1.0", "users", stashUser)))
@@ -65,7 +67,7 @@ public class CompleteITCase {
   }
 
   @Test
-  public void basicTest() throws Exception {
+  public void testBasic() throws Exception {
     String jsonPullRequest = DiffReportSample.baseReport;
     wireMock.stubFor(
         WireMock.get(WireMock.urlPathEqualTo(

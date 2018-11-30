@@ -62,7 +62,7 @@ public class StashClientTest extends StashTest {
                                     .build();
 
   @RegisterExtension
-  public WireMockExtension wireMock = new WireMockExtension(new WireMockConfiguration().dynamicPort());
+  public WireMockExtension wireMock = new WireMockExtension(WireMockConfiguration.options().dynamicPort());
 
   StashClient client;
   StashUser testUser = new StashUser(1, "userName", "userSlug", "email");
