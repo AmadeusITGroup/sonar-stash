@@ -147,7 +147,13 @@ public final class MarkdownPrinter {
     issues.sort(issueFormatComparator);
 
     for (PostJobIssue issue: issues.subList(0, Math.min(includeFilesInOverview, issues.size()))) {
-      names.add(String.format("%s:%s", issuePathResolver.getIssuePath(issue), issue.line()));
+      String path = issuePathResolver.getIssuePath(issue);
+      Integer line = issue.line();
+      if (line == null) {
+        names.add(path);
+      } else {
+        names.add(String.format("%s:%s", path, line));
+      }
     }
     if (issues.size() > includeFilesInOverview) {
       names.add("...");
@@ -171,7 +177,8 @@ public final class MarkdownPrinter {
       .comparing(i -> issuePathResolver.getIssuePath(i).length());
 
   private Comparator<PostJobIssue> issueLine = Comparator
-      .comparing(PostJobIssue::line);
+      // -1 sorts before all issues with lines
+      .comparing(issue -> firstNonNull(issue.line(), -1));
 
   private Comparator<PostJobIssue> fileNameLexical = Comparator
       .comparing(i -> issuePathResolver.getIssuePath(i));
@@ -179,5 +186,16 @@ public final class MarkdownPrinter {
   private Comparator<PostJobIssue> issueFormatComparator =
       fileNameLength
       .thenComparing(issueLine)
-      .thenComparing(fileNameLexical);
+      .thenComparing(fileNameLexical)
+      ;
+
+  @SafeVarargs
+  private static <T> T firstNonNull(T... args) {
+    for (T t: args) {
+      if (t != null) {
+        return t;
+      }
+    }
+    throw new IllegalStateException("At least one of the arguments should have been non-null");
+  }
 }
