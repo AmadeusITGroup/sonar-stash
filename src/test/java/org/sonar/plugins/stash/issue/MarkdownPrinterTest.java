@@ -158,6 +158,38 @@ public class MarkdownPrinterTest {
   }
 
   @Test
+  public void testPrintReportMarkdownWithFileWideIssues() {
+    PostJobIssue issueWithoutLine = new DefaultIssue().setKey("key36")
+        .setSeverity(Severity.CRITICAL)
+        .setMessage("messageCritical")
+        .setRuleKey(RuleKey.of("RepoCritical", "RuleCritical"))
+        .setInputComponent(new DefaultInputFile("foo2", "scripts/file2.example"))
+        .setLine(null);
+    report.add(issueWithoutLine);
+    printer = new MarkdownPrinter(100, SONAR_URL, 100, new DummyIssuePathResolver());
+    String issueReportMarkdown = printer.printReportMarkdown(report);
+    String reportString = "## SonarQube analysis Overview\n"
+        + "| Total New Issues | 6 |\n"
+        + "|-----------------|------|\n"
+        + "| BLOCKER | 1 |\n"
+        + "| CRITICAL | 2 |\n"
+        + "| MAJOR | 3 |\n"
+        + "| MINOR | 0 |\n"
+        + "| INFO | 0 |\n\n\n"
+        + "| Issues list |\n"
+        + "|-------------|\n"
+        + "| *BLOCKER* - messageBlocker [[RepoBlocker:RuleBlocker](sonarqube/URL/coding_rules#rule_key=RepoBlocker:RuleBlocker)] |\n"
+        + "| &nbsp;&nbsp; *Files: scripts/file1.example:1* |\n"
+        + "| *CRITICAL* - messageCritical [[RepoCritical:RuleCritical](sonarqube/URL/coding_rules#rule_key=RepoCritical:RuleCritical)] |\n"
+        + "| &nbsp;&nbsp; *Files: scripts/file2.example, scripts/file2.example:1* |\n"
+        + "| *MAJOR* - messageMajor [[RepoMajor:RuleMajor](sonarqube/URL/coding_rules#rule_key=RepoMajor:RuleMajor)] |\n"
+        + "| &nbsp;&nbsp; *Files: scripts/file3.example:1, scripts/file3.example:15, scripts/tests/file3.example:5* |\n";
+
+    assertEquals(reportString, issueReportMarkdown);
+
+  }
+
+  @Test
   public void testPrintEmptyReportMarkdown() {
     report = new ArrayList<>();
 
