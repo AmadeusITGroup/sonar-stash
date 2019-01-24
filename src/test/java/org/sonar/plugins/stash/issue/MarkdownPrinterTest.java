@@ -79,6 +79,17 @@ public class MarkdownPrinterTest {
   }
 
   @Test
+  public void testPrintIssueMarkdownWithEmptyMessage() {
+    assertEquals(
+        "No message",
+        printer.printIssueMarkdown(new DefaultIssue()
+            .setMessage(null)
+            .setSeverity(Severity.MINOR)
+            .setRuleKey(RuleKey.of("foo", "bar")))
+    );
+  }
+
+  @Test
   public void testPrintIssueNumberBySeverityMarkdown() {
     assertEquals(
         "| BLOCKER | 1 |\n",
