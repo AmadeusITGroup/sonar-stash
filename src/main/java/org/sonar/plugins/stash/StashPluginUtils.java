@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
 import org.sonar.api.batch.fs.InputComponent;
-import org.sonar.api.batch.fs.InputModule;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import org.sonar.api.batch.rule.Severity;
+import org.sonar.api.scanner.fs.InputProject;
 
 public final class StashPluginUtils {
 
@@ -42,10 +42,10 @@ public final class StashPluginUtils {
 
   public static boolean isProjectWide(PostJobIssue issue) {
     InputComponent ic = issue.inputComponent();
-    if (!(ic instanceof InputModule)) {
+    if (!(ic instanceof InputProject)) {
       return false;
     }
-    InputModule im = (InputModule) ic;
+    InputProject im = (InputProject) ic;
     if (im.key() == null) {
       return false;
     }

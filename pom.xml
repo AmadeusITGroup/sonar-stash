@@ -3,7 +3,7 @@
 
   <groupId>org.sonar</groupId>
   <artifactId>sonar-stash-plugin</artifactId>
-  <version>1.6.0-SNAPSHOT</version>
+  <version>1.7.0-SNAPSHOT</version>
   <packaging>sonar-plugin</packaging>
   <description>Integration between Atlassian Stash (BitBucket) and SonarQube</description>
   <name>Stash</name>
@@ -33,19 +33,19 @@
   </ciManagement>
 
   <properties>
-    <sonar.version>6.0</sonar.version>
+    <sonar.version>7.6</sonar.version>
     <sonar.pluginName>Stash</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.stash.StashPlugin</sonar.pluginClass>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <test.sonarqube.dist.groupId>fixme.fixme</test.sonarqube.dist.groupId>
     <test.sonarqube.dist.artifactId>sonarqube-dist</test.sonarqube.dist.artifactId>
-    <test.sonarqube.dist.version>7.3</test.sonarqube.dist.version>
+    <test.sonarqube.dist.version>7.6</test.sonarqube.dist.version>
     <test.sonarqube.dist.outputdir>${project.build.directory}/fixtures/sonarqube</test.sonarqube.dist.outputdir>
 
     <test.sonarscanner.dist.groupId>fixme.fixme</test.sonarscanner.dist.groupId>
     <test.sonarscanner.dist.artifactId>sonarscanner-dist</test.sonarscanner.dist.artifactId>
-    <test.sonarscanner.dist.version>2.6.1</test.sonarscanner.dist.version>
+    <test.sonarscanner.dist.version>3.3.0.1492</test.sonarscanner.dist.version>
     <test.sonarscanner.dist.outputdir>${project.build.directory}/fixtures/sonarscanner</test.sonarscanner.dist.outputdir>
     
     <test.url.binaries.repo>https://binaries.sonarsource.com/Distribution</test.url.binaries.repo>
@@ -86,7 +86,7 @@
     <dependency>
       <groupId>org.asynchttpclient</groupId>
       <artifactId>async-http-client</artifactId>
-      <version>2.0.38</version>
+      <version>2.7.0</version>
       <exclusions>
         <exclusion>
           <groupId>io.netty</groupId>
@@ -94,10 +94,11 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>25.0-jre</version>
+      <version>27.0.1-jre</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -137,7 +138,7 @@
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
-      <version>2.19.0</version>
+      <version>2.21.0</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -227,7 +228,7 @@
               <goal>wget</goal>
             </goals>
             <configuration>
-              <url>${test.url.binaries.repo}/sonar-scanner-cli/sonar-scanner-${test.sonarscanner.dist.version}.zip</url>
+              <url>${test.url.binaries.repo}/sonar-scanner-cli/sonar-scanner-cli-${test.sonarscanner.dist.version}.zip</url>
               <unpack>true</unpack>
               <outputDirectory>${test.sonarscanner.dist.outputdir}</outputDirectory>
             </configuration>
@@ -303,7 +304,7 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.7.9</version>
+            <version>0.8.1</version>
             <executions>
               <execution>
                 <id>prepare-agent</id>
@@ -316,10 +317,11 @@
         </plugins>
       </build>
       <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.sonarsource.java/sonar-jacoco-listeners -->
         <dependency>
-          <groupId>org.codehaus.sonar-plugins.java</groupId>
+          <groupId>org.sonarsource.java</groupId>
           <artifactId>sonar-jacoco-listeners</artifactId>
-          <version>2.4</version>
+          <version>5.10.2.17019</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

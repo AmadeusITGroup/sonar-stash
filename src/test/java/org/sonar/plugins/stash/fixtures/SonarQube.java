@@ -12,7 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
-import org.sonar.api.CoreProperties;
 
 public class SonarQube {
   protected Path installDir;
