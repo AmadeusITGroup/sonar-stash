@@ -1,14 +1,13 @@
 package org.sonar.plugins.stash;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class StashPluginConfigurationTest {
 
@@ -18,7 +17,7 @@ public class StashPluginConfigurationTest {
 
     Integer SPRI = 1337;
 
-    Settings settings = new Settings();
+    MapSettings settings = new MapSettings();
     settings.setProperty(StashPlugin.STASH_NOTIFICATION, true);
     settings.setProperty(StashPlugin.STASH_PROJECT, "take-over-the-world");
     settings.setProperty(StashPlugin.STASH_REPOSITORY, "death-ray");
@@ -40,7 +39,7 @@ public class StashPluginConfigurationTest {
     settings.setProperty(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW, true);
     //Optional getRepositoryRoot() ???
 
-    StashPluginConfiguration SPC = new StashPluginConfiguration(settings, null);
+    StashPluginConfiguration SPC = new StashPluginConfiguration(settings.asConfig(), null);
 
     assertTrue(SPC.hasToNotifyStash());
     assertEquals("take-over-the-world", SPC.getStashProject());

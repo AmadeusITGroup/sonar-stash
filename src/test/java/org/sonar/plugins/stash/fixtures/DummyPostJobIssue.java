@@ -3,6 +3,7 @@ package org.sonar.plugins.stash.fixtures;
 import java.nio.file.Path;
 import javax.annotation.CheckForNull;
 import org.sonar.api.batch.fs.InputComponent;
+import org.sonar.api.batch.fs.internal.DefaultIndexedFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
@@ -25,7 +26,7 @@ public class DummyPostJobIssue implements PostJobIssue {
     this.line = line;
     this.message = message;
     this.severity = severity;
-    component = new DefaultInputFile(componentKey, relativePath).setModuleBaseDir(moduleBaseDir);
+    component = new DefaultInputFile(new DefaultIndexedFile(componentKey, moduleBaseDir, relativePath, "de_DE"), x -> x.hash());
   }
 
   @Override

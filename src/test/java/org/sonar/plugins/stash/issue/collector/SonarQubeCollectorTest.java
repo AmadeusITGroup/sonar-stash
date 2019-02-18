@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.issue.collector;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.internal.DefaultIndexedFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
@@ -54,15 +57,14 @@ public class SonarQubeCollectorTest {
   public void setUp() throws Exception {
 
     ///////// SonarQube issues /////////
-
+    Path baseDir = Paths.get("./src/test/java");
     when(issue1.line()).thenReturn(1);
     when(issue1.message()).thenReturn("message1");
     when(issue1.key()).thenReturn("key1");
     when(issue1.severity()).thenReturn(Severity.BLOCKER);
     when(issue1.componentKey()).thenReturn("module1:component1");
     when(issue1.isNew()).thenReturn(true);
-    when(issue1.inputComponent()).thenReturn(new DefaultInputFile("module1", "file1"));
-
+    when(issue1.inputComponent()).thenReturn(new DefaultInputFile(new DefaultIndexedFile("module1", baseDir, "file1", "de_DE"), x -> x.hash()));
     RuleKey rule1 = mock(RuleKey.class);
     when(rule1.toString()).thenReturn("rule1");
     when(issue1.ruleKey()).thenReturn(rule1);
@@ -73,14 +75,14 @@ public class SonarQubeCollectorTest {
     when(issue2.severity()).thenReturn(Severity.CRITICAL);
     when(issue2.componentKey()).thenReturn("module2:component2");
     when(issue2.isNew()).thenReturn(true);
-    when(issue2.inputComponent()).thenReturn(new DefaultInputFile("module2", "file2"));
+    when(issue2.inputComponent()).thenReturn(new DefaultInputFile(new DefaultIndexedFile("module2", baseDir, "file2", "de_DE"), x -> x.hash()));
 
     RuleKey rule2 = mock(RuleKey.class);
     when(rule2.toString()).thenReturn("rule2");
     when(issue2.ruleKey()).thenReturn(rule2);
 
-    inputFile1 = new DefaultInputFile("module1", "project/path1");
-    inputFile2 = new DefaultInputFile("module2", "project/path2");
+    inputFile1 = new DefaultInputFile(new DefaultIndexedFile("module1", baseDir, "project/path1", "de_DE"), x -> x.hash());
+    inputFile2 = new DefaultInputFile(new DefaultIndexedFile("module2", baseDir, "project/path2", "de_DE"), x -> x.hash());
     when(issue1.inputComponent()).thenReturn(inputFile1);
     when(issue2.inputComponent()).thenReturn(inputFile2);
 
@@ -202,7 +204,7 @@ public class SonarQubeCollectorTest {
   @Test
   public void testShouldIncludeIssue() {
     Set<RuleKey> er = new HashSet<>();
-    InputComponent ic = new DefaultInputFile("module", "some/path");
+    InputComponent ic = new DefaultInputFile(new DefaultIndexedFile("module2", Paths.get("./src/test/java"), "project/path2", "de_DE"), x -> x.hash());
 
     assertFalse(
         SonarQubeCollector.shouldIncludeIssue(

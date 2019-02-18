@@ -1,38 +1,31 @@
 package org.sonar.plugins.stash.end2end;
 
-import static org.sonar.plugins.stash.TestUtils.notNull;
-import static org.sonar.plugins.stash.TestUtils.primeWireMock;
-
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.google.common.io.Resources;
 import com.google.gson.JsonObject;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.picocontainer.DefaultPicoContainer;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.sensor.internal.MockAnalysisMode;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
-import org.sonar.plugins.stash.DummyStashProjectBuilder;
-import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashIssueReportingPostJob;
-import org.sonar.plugins.stash.StashPlugin;
-import org.sonar.plugins.stash.StashPluginConfiguration;
-import org.sonar.plugins.stash.StashRequestFacade;
-import org.sonar.plugins.stash.fixtures.DummyPostJobContext;
-import org.sonar.plugins.stash.fixtures.DummyPostJobIssue;
-import org.sonar.plugins.stash.fixtures.DummyServer;
-import org.sonar.plugins.stash.fixtures.DummyStashServer;
-import org.sonar.plugins.stash.fixtures.WireMockExtension;
+import org.sonar.plugins.stash.*;
+import org.sonar.plugins.stash.fixtures.*;
 import org.sonar.plugins.stash.issue.StashUser;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+
+import static org.sonar.plugins.stash.TestUtils.notNull;
+import static org.sonar.plugins.stash.TestUtils.primeWireMock;
 
 public abstract class EndToEndTest {
   @RegisterExtension
@@ -46,7 +39,7 @@ public abstract class EndToEndTest {
 
   private File repoRoot = new File("/invalid/");
 
-  protected RunResults run(String fixtureName, Consumer<Settings> settingsCustomizer, Collection<PostJobIssue> issues) throws Exception {
+  protected RunResults run(String fixtureName, Consumer<MapSettings> settingsCustomizer, Collection<PostJobIssue> issues) throws Exception {
     StashUser user = new StashUser(
         // has to match data in fixture
         1,"some.user", "some.user", "some.user@example.org"
@@ -61,7 +54,7 @@ public abstract class EndToEndTest {
     sqServer.noCommentsFor(pr);
     sqServer.expectCommentsUpdateFor(pr);
 
-    Settings settings = new Settings();
+    MapSettings settings = new MapSettings();
     settings.setProperty(StashPlugin.STASH_NOTIFICATION, true);
     settings.setProperty(StashPlugin.STASH_URL, "http://127.0.0.1:" + wireMock.port());
     settings.setProperty(StashPlugin.STASH_TIMEOUT, 400);
@@ -79,7 +72,7 @@ public abstract class EndToEndTest {
     mode.setPreviewOrIssue(true);
 
     DefaultPicoContainer container = new DefaultPicoContainer();
-    container.addComponent(settings);
+    container.addComponent(settings.asConfig());
     container.addComponent(DummyServer.class);
     container.addComponent(new DummyStashProjectBuilder(repoRoot));
     container.addComponent(StashPluginConfiguration.class);

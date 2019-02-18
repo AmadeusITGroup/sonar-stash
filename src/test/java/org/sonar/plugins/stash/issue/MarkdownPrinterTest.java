@@ -2,11 +2,13 @@ package org.sonar.plugins.stash.issue;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.sonar.api.batch.fs.internal.DefaultIndexedFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
@@ -19,7 +21,7 @@ public class MarkdownPrinterTest {
   PostJobIssue issue;
 
   List<PostJobIssue> report = new ArrayList<>();
-
+  private File baseDir= new File("./src/test/java");
   private static final String SONAR_URL = "sonarqube/URL";
   private MarkdownPrinter printer;
   private int issueThreshold;
@@ -30,31 +32,31 @@ public class MarkdownPrinterTest {
         .setSeverity(Severity.BLOCKER)
         .setMessage("messageBlocker")
         .setRuleKey(RuleKey.of("RepoBlocker", "RuleBlocker"))
-        .setInputComponent(new DefaultInputFile("foo1", "scripts/file1.example"))
+        .setInputComponent(new DefaultInputFile(new DefaultIndexedFile("foo1", baseDir.toPath(), "scripts/file1.example", "de_DE"), x -> x.hash()))
         .setLine(1);
     PostJobIssue issueCritical = new DefaultIssue().setKey("key2")
         .setSeverity(Severity.CRITICAL)
         .setMessage("messageCritical")
         .setRuleKey(RuleKey.of("RepoCritical", "RuleCritical"))
-        .setInputComponent(new DefaultInputFile("foo2", "scripts/file2.example"))
+        .setInputComponent(new DefaultInputFile(new DefaultIndexedFile("foo2", baseDir.toPath(), "scripts/file2.example", "de_DE"), x -> x.hash()))
         .setLine(1);
     PostJobIssue issueMajor = new DefaultIssue().setKey("key3")
         .setSeverity(Severity.MAJOR)
         .setMessage("messageMajor")
         .setRuleKey(RuleKey.of("RepoMajor", "RuleMajor"))
-        .setInputComponent(new DefaultInputFile("foo3", "scripts/file3.example"))
+        .setInputComponent(new DefaultInputFile(new DefaultIndexedFile("foo3", baseDir.toPath(), "scripts/file3.example", "de_DE"), x -> x.hash()))
         .setLine(1);
     PostJobIssue issueSameFile = new DefaultIssue().setKey("key3")
         .setSeverity(Severity.MAJOR)
         .setMessage("messageMajor")
         .setRuleKey(RuleKey.of("RepoMajor", "RuleMajor"))
-        .setInputComponent(new DefaultInputFile("foo3", "scripts/tests/file3.example"))
+            .setInputComponent(new DefaultInputFile(new DefaultIndexedFile("foo3", baseDir.toPath(), "scripts/tests/file3.example", "de_DE"), x -> x.hash()))
         .setLine(5);
     PostJobIssue issueSameFileHidden = new DefaultIssue().setKey("key3")
         .setSeverity(Severity.MAJOR)
         .setMessage("messageMajor")
         .setRuleKey(RuleKey.of("RepoMajor", "RuleMajor"))
-        .setInputComponent(new DefaultInputFile("foo3", "scripts/file3.example"))
+            .setInputComponent(new DefaultInputFile(new DefaultIndexedFile("foo3", baseDir.toPath(), "scripts/file3.example", "de_DE"), x -> x.hash()))
         .setLine(15);
 
     report.add(issueBlocker);
@@ -174,7 +176,7 @@ public class MarkdownPrinterTest {
         .setSeverity(Severity.CRITICAL)
         .setMessage("messageCritical")
         .setRuleKey(RuleKey.of("RepoCritical", "RuleCritical"))
-        .setInputComponent(new DefaultInputFile("foo2", "scripts/file2.example"))
+        .setInputComponent(new DefaultInputFile(new DefaultIndexedFile("foo2", baseDir.toPath(), "scripts/file2.example", "de_DE"), x -> x.hash()))
         .setLine(null);
     report.add(issueWithoutLine);
     printer = new MarkdownPrinter(100, SONAR_URL, 100, new DummyIssuePathResolver());

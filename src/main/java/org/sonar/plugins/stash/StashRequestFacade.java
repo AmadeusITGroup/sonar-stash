@@ -1,33 +1,24 @@
 package org.sonar.plugins.stash;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Optional;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
-import org.sonar.plugins.stash.issue.MarkdownPrinter;
-import org.sonar.plugins.stash.issue.StashComment;
-import org.sonar.plugins.stash.issue.StashCommentReport;
-import org.sonar.plugins.stash.issue.StashDiffReport;
-import org.sonar.plugins.stash.issue.StashPullRequest;
-import org.sonar.plugins.stash.issue.StashTask;
-import org.sonar.plugins.stash.issue.StashUser;
+import org.sonar.plugins.stash.issue.*;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.text.MessageFormat;
+import java.util.*;
 
 @ScannerSide
 public class StashRequestFacade implements IssuePathResolver {

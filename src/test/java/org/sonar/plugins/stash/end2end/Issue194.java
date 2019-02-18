@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.gson.JsonObject;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Test;
 import org.sonar.plugins.stash.StashPlugin;
 
@@ -34,7 +37,7 @@ public class Issue194 extends EndToEndTest {
             issue("01673981387EDCCDB6", "S00117", "com.gdn.package:module-api-client", "aModule-api-client", "src/main/java/com/gdn/package/aModule/client/aModuleClient.java", 106),
             issue("01673981387EDCCDB7", "S00117", "com.gdn.package:module-api-client", "aModule-api-client", "src/main/java/com/gdn/package/aModule/client/aModuleClient.java", 119)
         ));
-
+    results.comments = results.comments.stream().filter(o -> o.has("anchor")).collect(Collectors.toList());
     assertEquals(6, results.comments.size());
     Optional<JsonObject> comment1 = results.comments.stream().filter((c) -> c.get("text").getAsString().contains("S1481")).findFirst();
     assertTrue(comment1.isPresent());

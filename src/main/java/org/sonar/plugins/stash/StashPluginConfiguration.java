@@ -1,99 +1,104 @@
 package org.sonar.plugins.stash;
 
 import com.google.common.collect.Sets;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.InstantiationStrategy;
-import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.rule.Severity;
-import org.sonar.api.config.Settings;
-
-import java.io.File;
-import java.util.Optional;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.platform.Server;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.scanner.ScannerSide;
+
+import java.io.File;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.sonar.plugins.stash.StashPlugin.SEVERITY_NONE;
 
 @ScannerSide
 @InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashPluginConfiguration {
 
-  private Settings settings;
   private Server server;
+  private Configuration configuration;
 
-  public StashPluginConfiguration(Settings settings, Server server) {
-    this.settings = settings;
+  public StashPluginConfiguration(Configuration configuration, Server server) {
+    this.configuration = configuration;
     this.server = server;
   }
 
   public boolean hasToNotifyStash() {
-    return settings.getBoolean(StashPlugin.STASH_NOTIFICATION);
+    return configuration.getBoolean(StashPlugin.STASH_NOTIFICATION).orElse(false);
   }
 
   public String getStashProject() {
-    return settings.getString(StashPlugin.STASH_PROJECT);
+    return configuration.get(StashPlugin.STASH_PROJECT).orElse(null);
   }
 
   public String getStashRepository() {
-    return settings.getString(StashPlugin.STASH_REPOSITORY);
+    return configuration.get(StashPlugin.STASH_REPOSITORY).orElse(null);
   }
 
   public Integer getPullRequestId() {
-    return settings.getInt(StashPlugin.STASH_PULL_REQUEST_ID);
+    return configuration.getInt(StashPlugin.STASH_PULL_REQUEST_ID).orElse(null);
   }
 
   public String getStashURL() {
-    return settings.getString(StashPlugin.STASH_URL);
+    return configuration.get(StashPlugin.STASH_URL).orElse(null);
   }
 
   public String getStashLogin() {
-    return settings.getString(StashPlugin.STASH_LOGIN);
+    return configuration.get(StashPlugin.STASH_LOGIN).orElse(null);
   }
 
   public String getStashUserSlug() {
-    return settings.getString(StashPlugin.STASH_USER_SLUG);
+    return configuration.get(StashPlugin.STASH_USER_SLUG).orElse(null);
   }
 
   public String getStashPassword() {
-    return settings.getString(StashPlugin.STASH_PASSWORD);
+    return configuration.get(StashPlugin.STASH_PASSWORD).orElse(null);
   }
 
   public String getStashPasswordEnvironmentVariable() {
-    return settings.getString(StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE);
+    return configuration.get(StashPlugin.STASH_PASSWORD_ENVIRONMENT_VARIABLE).orElse(null);
   }
 
   public String getSonarQubeURL() {
-    return server.getURL();
+    return server.getPublicRootUrl();
   }
 
   public String getSonarQubeLogin() {
-    return settings.getString(CoreProperties.LOGIN);
+    return configuration.get(CoreProperties.LOGIN).orElse(null);
   }
 
   public String getSonarQubePassword() {
-    return settings.getString(CoreProperties.PASSWORD);
+    return configuration.get(CoreProperties.PASSWORD).orElse(null);
   }
 
   public int getIssueThreshold() {
-    return settings.getInt(StashPlugin.STASH_ISSUE_THRESHOLD);
+    return configuration
+        .getInt(StashPlugin.STASH_ISSUE_THRESHOLD)
+        .orElse(StashPlugin.DEFAULT_STASH_THRESHOLD_VALUE);
   }
 
   public Severity getIssueSeverityThreshold() {
     return Severity.valueOf(
-        Objects.requireNonNull(settings.getString(StashPlugin.STASH_ISSUE_SEVERITY_THRESHOLD)));
+        Objects.requireNonNull(
+            configuration.get(StashPlugin.STASH_ISSUE_SEVERITY_THRESHOLD).orElse(SEVERITY_NONE)));
   }
 
   public int getStashTimeout() {
-    return settings.getInt(StashPlugin.STASH_TIMEOUT);
+    return configuration.getInt(StashPlugin.STASH_TIMEOUT).orElse(StashPlugin.DEFAULT_STASH_TIMEOUT_VALUE);
   }
 
   public boolean canApprovePullRequest() {
-    return settings.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL);
+    return configuration.getBoolean(StashPlugin.STASH_REVIEWER_APPROVAL).orElse(false);
   }
 
   public boolean resetComments() {
-    return settings.getBoolean(StashPlugin.STASH_RESET_COMMENTS);
+    return configuration.getBoolean(StashPlugin.STASH_RESET_COMMENTS).orElse(false);
   }
 
   public Optional<Severity> getTaskIssueSeverityThreshold() {
@@ -105,37 +110,35 @@ public class StashPluginConfiguration {
   }
 
   public boolean includeAnalysisOverview() {
-    return settings.getBoolean(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW);
+    return configuration.getBoolean(StashPlugin.STASH_INCLUDE_ANALYSIS_OVERVIEW).orElse(StashPlugin.DEFAULT_STASH_ANALYSIS_OVERVIEW);
   }
 
   public Optional<File> getRepositoryRoot() {
-    return Optional.ofNullable(settings.getString(StashPlugin.STASH_REPOSITORY_ROOT)).map(File::new);
+    return Optional.ofNullable(configuration.get(StashPlugin.STASH_REPOSITORY_ROOT).orElse(null)).map(File::new);
   }
 
   public boolean includeExistingIssues() {
-    return settings.getBoolean(StashPlugin.STASH_INCLUDE_EXISTING_ISSUES);
+    return configuration.getBoolean(StashPlugin.STASH_INCLUDE_EXISTING_ISSUES).orElse(StashPlugin.DEFAULT_STASH_INCLUDE_EXISTING_ISSUES);
   }
 
   public int getFilesLimitInOverview() {
-    return settings.getInt(StashPlugin.STASH_FILES_LIMIT_IN_OVERVIEW);
+    return configuration.getInt(StashPlugin.STASH_FILES_LIMIT_IN_OVERVIEW).orElse(StashPlugin.DEFAULT_STASH_FILES_IN_OVERVIEW);
   }
 
   public int issueVicinityRange() {
-    return settings.getInt(StashPlugin.STASH_INCLUDE_VICINITY_RANGE);
+    return configuration.getInt(StashPlugin.STASH_INCLUDE_VICINITY_RANGE).orElse(StashPlugin.DEFAULT_STASH_INCLUDE_VICINITY_RANGE);
   }
 
   public Set<RuleKey> excludedRules() {
-    return Sets.newHashSet(
-        settings.getStringArray(StashPlugin.STASH_EXCLUDE_RULES)
-    ).stream()
+    return Sets.newHashSet(configuration.getStringArray(StashPlugin.STASH_EXCLUDE_RULES)).stream()
         .map(String::trim)
         .map(RuleKey::parse)
         .collect(Collectors.toSet());
   }
 
   private Optional<Severity> getOptionalSeveritySetting(String key) {
-    String setting = settings.getString(key);
-    if (StashPlugin.SEVERITY_NONE.equals(setting)) {
+    String setting = configuration.get(key).orElse(SEVERITY_NONE);
+    if (SEVERITY_NONE.equals(setting)) {
       return Optional.empty();
     }
     if (setting == null) {
