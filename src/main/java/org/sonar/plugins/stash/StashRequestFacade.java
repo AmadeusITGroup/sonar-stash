@@ -8,6 +8,7 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
@@ -31,6 +32,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 
 @ScannerSide
+@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashRequestFacade implements IssuePathResolver {
 
   private static final Logger LOGGER = Loggers.get(StashRequestFacade.class);

@@ -40,7 +40,7 @@
 
     <test.sonarqube.dist.groupId>fixme.fixme</test.sonarqube.dist.groupId>
     <test.sonarqube.dist.artifactId>sonarqube-dist</test.sonarqube.dist.artifactId>
-    <test.sonarqube.dist.version>7.3</test.sonarqube.dist.version>
+    <test.sonarqube.dist.version>7.6</test.sonarqube.dist.version>
     <test.sonarqube.dist.outputdir>${project.build.directory}/fixtures/sonarqube</test.sonarqube.dist.outputdir>
 
     <test.sonarscanner.dist.groupId>fixme.fixme</test.sonarscanner.dist.groupId>

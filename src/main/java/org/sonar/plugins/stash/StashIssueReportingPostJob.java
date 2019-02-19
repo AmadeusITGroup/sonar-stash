@@ -3,6 +3,7 @@ package org.sonar.plugins.stash;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Optional;
 import java.util.List;
+import org.sonar.api.batch.InstantiationStrategy;
 import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.postjob.PostJob;
 import org.sonar.api.batch.postjob.PostJobContext;
@@ -20,6 +21,7 @@ import org.sonar.plugins.stash.issue.StashDiffReport;
 import org.sonar.plugins.stash.issue.StashUser;
 
 @ScannerSide
+@InstantiationStrategy(InstantiationStrategy.PER_BATCH)
 public class StashIssueReportingPostJob implements PostJob {
 
   private static final Logger LOGGER = Loggers.get(StashIssueReportingPostJob.class);
