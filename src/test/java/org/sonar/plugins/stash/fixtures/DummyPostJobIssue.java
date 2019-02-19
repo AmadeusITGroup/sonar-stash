@@ -1,5 +1,7 @@
 package org.sonar.plugins.stash.fixtures;
 
+import static org.sonar.plugins.stash.TestUtils.inputFile;
+
 import java.nio.file.Path;
 import javax.annotation.CheckForNull;
 import org.sonar.api.batch.fs.InputComponent;
@@ -25,7 +27,7 @@ public class DummyPostJobIssue implements PostJobIssue {
     this.line = line;
     this.message = message;
     this.severity = severity;
-    component = new DefaultInputFile(componentKey, relativePath).setModuleBaseDir(moduleBaseDir);
+    component = inputFile(componentKey, moduleBaseDir, relativePath);
   }
 
   @Override

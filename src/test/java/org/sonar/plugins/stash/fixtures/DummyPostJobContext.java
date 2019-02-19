@@ -5,7 +5,9 @@ import java.util.Collections;
 import org.sonar.api.batch.AnalysisMode;
 import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.ConfigurationBridge;
 
 public class DummyPostJobContext implements PostJobContext {
   private final Settings settings;
@@ -22,6 +24,11 @@ public class DummyPostJobContext implements PostJobContext {
   @Override
   public Settings settings() {
     return settings;
+  }
+
+  @Override
+  public Configuration config() {
+    return new ConfigurationBridge(settings);
   }
 
   @Override
