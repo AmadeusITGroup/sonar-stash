@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.sonar.plugins.stash.StashPluginUtils.countIssuesBySeverity;
+import static org.sonar.plugins.stash.TestUtils.inputFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,7 @@ public class SonarQubeCollectorTest {
     when(issue1.severity()).thenReturn(Severity.BLOCKER);
     when(issue1.componentKey()).thenReturn("module1:component1");
     when(issue1.isNew()).thenReturn(true);
-    when(issue1.inputComponent()).thenReturn(new DefaultInputFile("module1", "file1"));
+    when(issue1.inputComponent()).thenReturn(inputFile("module1", "file1"));
 
     RuleKey rule1 = mock(RuleKey.class);
     when(rule1.toString()).thenReturn("rule1");
@@ -73,14 +74,14 @@ public class SonarQubeCollectorTest {
     when(issue2.severity()).thenReturn(Severity.CRITICAL);
     when(issue2.componentKey()).thenReturn("module2:component2");
     when(issue2.isNew()).thenReturn(true);
-    when(issue2.inputComponent()).thenReturn(new DefaultInputFile("module2", "file2"));
+    when(issue2.inputComponent()).thenReturn(inputFile("module2", "file2"));
 
     RuleKey rule2 = mock(RuleKey.class);
     when(rule2.toString()).thenReturn("rule2");
     when(issue2.ruleKey()).thenReturn(rule2);
 
-    inputFile1 = new DefaultInputFile("module1", "project/path1");
-    inputFile2 = new DefaultInputFile("module2", "project/path2");
+    inputFile1 = inputFile("module1", "project/path1");
+    inputFile2 = inputFile("module2", "project/path2");
     when(issue1.inputComponent()).thenReturn(inputFile1);
     when(issue2.inputComponent()).thenReturn(inputFile2);
 
@@ -202,7 +203,7 @@ public class SonarQubeCollectorTest {
   @Test
   public void testShouldIncludeIssue() {
     Set<RuleKey> er = new HashSet<>();
-    InputComponent ic = new DefaultInputFile("module", "some/path");
+    InputComponent ic = inputFile("module", "some/path");
 
     assertFalse(
         SonarQubeCollector.shouldIncludeIssue(

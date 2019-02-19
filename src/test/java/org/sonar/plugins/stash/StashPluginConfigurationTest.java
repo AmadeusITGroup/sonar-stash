@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.sonar.api.CoreProperties;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 
 public class StashPluginConfigurationTest {
 
@@ -18,7 +19,7 @@ public class StashPluginConfigurationTest {
 
     Integer SPRI = 1337;
 
-    Settings settings = new Settings();
+    Settings settings = new MapSettings();
     settings.setProperty(StashPlugin.STASH_NOTIFICATION, true);
     settings.setProperty(StashPlugin.STASH_PROJECT, "take-over-the-world");
     settings.setProperty(StashPlugin.STASH_REPOSITORY, "death-ray");

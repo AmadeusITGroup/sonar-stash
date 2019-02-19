@@ -51,6 +51,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.sonar.plugins.stash.TestUtils.inputFile;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -155,8 +156,7 @@ public class StashRequestFacadeTest extends StashTest {
                                      .setSeverity(Severity.CRITICAL)
                                      .setMessage("message1")
                                      .setRuleKey(RuleKey.of("foo", "rule1"))
-                                     .setInputComponent(new DefaultInputFile("module1", "/basedir/" + FILE_PATH_1)
-                                         .setModuleBaseDir(moduleBaseDir))
+                                     .setInputComponent(inputFile("module1", moduleBaseDir, "/basedir/" + FILE_PATH_1))
                                      .setLine(1);
     stashCommentMessage1 = printer.printIssueMarkdown(issue1);
     report.add(issue1);
@@ -165,8 +165,7 @@ public class StashRequestFacadeTest extends StashTest {
                                      .setSeverity(Severity.MAJOR)
                                      .setMessage("message2")
                                      .setRuleKey(RuleKey.of("foo", "rule2"))
-                                     .setInputComponent(new DefaultInputFile("module2", "/basedir/" + FILE_PATH_1)
-                                         .setModuleBaseDir(moduleBaseDir))
+                                     .setInputComponent(inputFile("module2", moduleBaseDir, "/basedir/" + FILE_PATH_1))
                                      .setLine(2);
     stashCommentMessage2 = printer.printIssueMarkdown(issue2);
     report.add(issue2);
@@ -176,8 +175,7 @@ public class StashRequestFacadeTest extends StashTest {
                                      .setSeverity(Severity.INFO)
                                      .setMessage("message3")
                                      .setRuleKey(RuleKey.of("foo", "rule3"))
-                                     .setInputComponent(new DefaultInputFile("module3", "/basedir/" + FILE_PATH_2)
-                                         .setModuleBaseDir(moduleBaseDir))
+                                     .setInputComponent(inputFile("module3", moduleBaseDir, "/basedir/" + FILE_PATH_2))
                                      .setLine(1);
     stashCommentMessage3 = printer.printIssueMarkdown(issue3);
     report.add(issue3);

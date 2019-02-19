@@ -14,8 +14,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import org.sonar.api.batch.fs.InputFile;
+import org.sonar.api.batch.fs.internal.TestInputFileBuilder;
 
 public class TestUtils {
   private TestUtils() {}
@@ -133,6 +136,7 @@ public class TestUtils {
   }
 
   private static class ForwarderThread extends Thread implements AutoCloseable {
+
     private final String prefix;
     private final InputStream input;
 
@@ -153,14 +157,22 @@ public class TestUtils {
           }
         }
       } catch (IOException e) {
-          /* ignored */
+        /* ignored */
       }
     }
 
     @Override
     public void close() throws InterruptedException {
-        interrupt();
-        join();
+      interrupt();
+      join();
     }
+  }
+
+  public static InputFile inputFile(String moduleKey, String path) {
+    return TestInputFileBuilder.create(moduleKey, path).build();
+  }
+
+  public static InputFile inputFile(String moduleKey, Path moduleBaseDir, String path) {
+    return TestInputFileBuilder.create(moduleKey, path).setModuleBaseDir(moduleBaseDir).build();
   }
 }

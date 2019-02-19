@@ -19,6 +19,7 @@ import org.sonar.api.batch.postjob.PostJobContext;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.sensor.internal.MockAnalysisMode;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.rule.Severity;
 import org.sonar.plugins.stash.DummyStashProjectBuilder;
@@ -61,7 +62,7 @@ public abstract class EndToEndTest {
     sqServer.noCommentsFor(pr);
     sqServer.expectCommentsUpdateFor(pr);
 
-    Settings settings = new Settings();
+    Settings settings = new MapSettings();
     settings.setProperty(StashPlugin.STASH_NOTIFICATION, true);
     settings.setProperty(StashPlugin.STASH_URL, "http://127.0.0.1:" + wireMock.port());
     settings.setProperty(StashPlugin.STASH_TIMEOUT, 400);
