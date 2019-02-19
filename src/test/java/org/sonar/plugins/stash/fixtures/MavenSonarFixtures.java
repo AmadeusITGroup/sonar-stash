@@ -15,7 +15,7 @@ public class MavenSonarFixtures {
       }
       String version = System.getProperty("test.sonarqube.dist.version");
       Path installationDir = FileSystems.getDefault().getPath(outputDir, "sonarqube-" + version);
-      sonarqube = new SonarQube(installationDir, port);
+      sonarqube = new SonarQube(installationDir, version, port);
     }
     return sonarqube;
   }

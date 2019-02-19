@@ -25,12 +25,14 @@ public class SonarQube {
 
   protected Path installDir;
   protected Process process;
+  protected String version;
   protected Properties config = new Properties();
   protected final static String PORT_PROPERTY = "sonar.web.port";
   protected final static String HOST_PROPERTY = "sonar.web.host";
 
-  public SonarQube(Path installDir, int port) {
+  public SonarQube(Path installDir, String version, int port) {
     this.installDir = installDir;
+    this.version = version;
     config.setProperty(PORT_PROPERTY, String.valueOf(port));
     config.setProperty(HOST_PROPERTY, "127.0.0.1");
   }
