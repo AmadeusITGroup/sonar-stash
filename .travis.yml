@@ -14,7 +14,7 @@ matrix:
     - jdk: openjdk8
       env:
         - TEST_SUITE=integration
-        - SONARQUBE_VERSION=7.3
+        - SONARQUBE_VERSION=7.6
 
     - jdk: openjdk8
       env:

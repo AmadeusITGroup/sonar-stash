@@ -32,7 +32,6 @@ public class SonarScanner {
 
   public void scan(SonarQube sonarqube,
                    File baseDir,
-                   List<File> sources,
                    String projectKey,
                    String projectName,
                    String projectVersion,
@@ -50,11 +49,10 @@ public class SonarScanner {
     command.add("-e");
     addCliProperty(command, "sonar.projectBaseDir", baseDir);
     addCliProperty(command, "sonar.host.url", sonarqube.getUrl());
-    addCliProperty(command, "sonar.sources", Joiner.on(',').join(sources));
     addCliProperty(command, "sonar.projectKey", projectKey);
     addCliProperty(command, "sonar.projectName", projectName);
     addCliProperty(command, "sonar.projectVersion", projectVersion);
-    addCliProperty(command, "sonar.analysis.mode", "issues");
+    addCliProperty(command, "sonar.scm.provider", "git");
 
     if (properties != null) {
       for (String p : properties.stringPropertyNames()) {
