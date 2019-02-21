@@ -23,7 +23,7 @@ After every run, in addition of the diff view, you may access to an overview of 
 - Git client to checkout the code
 - Maven 3.0.5+
 - JDK 1.8+
-- SonarQube 5.6 (LTS) or later
+- SonarQube 6.7 (LTS) and 7.6
 - Stash (BitBucket) REST API 1.0 (3.x, 4.x)
 
 Note: these are the versions where the plugin has been tested. Other versions may or may not work, YMMV.
@@ -57,7 +57,7 @@ Go to Stash general settings screen on SonarQube server to fill:
 
 **Stash timeout** (sonar.stash.timeout): To timeout when Stash Rest api does not replied with expected.
 
-**Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change. By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.** 
+**Stash reviewer approval** (sonar.stash.reviewer.approval): SonarQube is able to approve the pull-request if there is no new issue introduced by the change. By default, this feature is deactivated: if activated, **Stash base user must have REPO_WRITE permission for the repositories.**
 
 **Approval severity** (sonar.stash.reviewer.approval.severity.threshold): Only approve the pull-request if no issues higher than this threshold are detected.
 
