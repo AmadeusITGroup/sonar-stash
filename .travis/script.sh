@@ -18,7 +18,7 @@ elif [ "integration" = "${TEST_SUITE}" ]; then
 	# otherwise the rails bundled with sonarqube tries to load test.yml which does
 	# not exist
 	export RAILS_ENV=production
-	mvn -e verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
+	env -u SONAR_TOKEN mvn -e verify -Dtest.sonarqube.dist.version="${SONARQUBE_VERSION}"
 
 elif [ "dependency-check" = "${TEST_SUITE}" ]; then
 	mvn -e org.owasp:dependency-check-maven:check
