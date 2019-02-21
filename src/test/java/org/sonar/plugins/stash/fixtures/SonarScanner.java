@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
+import org.sonar.plugins.stash.TestUtils;
+import org.sonar.plugins.stash.TestUtils.WrappedProcessBuilder;
 
 public class SonarScanner {
   protected Path installDir;
@@ -34,9 +36,9 @@ public class SonarScanner {
                    String projectName,
                    String projectVersion,
                    Properties properties) throws IOException, InterruptedException {
-    ProcessBuilder pb = new ProcessBuilder(getBinary("sonar-scanner").toString())
+    WrappedProcessBuilder pb = TestUtils.createProcess("sonar-scanner", getBinary("sonar-scanner").toString())
         .directory(installDir.toFile())
-        .inheritIO();
+    ;
     List<String> command = pb.command();
     addCliProperty(command, "sonar.projectBaseDir", baseDir);
     addCliProperty(command, "sonar.host.url", sonarqube.getUrl());

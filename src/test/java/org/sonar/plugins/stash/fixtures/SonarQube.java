@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
 import org.sonar.api.CoreProperties;
+import org.sonar.plugins.stash.TestUtils;
 
 public class SonarQube {
   protected Path installDir;
@@ -78,9 +79,8 @@ public class SonarQube {
 
   public void startAsync() throws Exception {
     writeConfig();
-    process = new ProcessBuilder(this.getExecutable().toString(), "start")
+    process = TestUtils.createProcess("sonarqube", this.getExecutable().toString(), "start")
         .directory(installDir.toFile())
-        .inheritIO()
         .start();
     if (process.waitFor() != 0) {
       throw new Exception();
@@ -88,7 +88,7 @@ public class SonarQube {
   }
 
   public void stop() throws Exception {
-    new ProcessBuilder(this.getExecutable().toString(), "stop")
+    TestUtils.createProcess("sonarqube", this.getExecutable().toString(), "stop")
         .directory(installDir.toFile())
         .start().waitFor();
   }

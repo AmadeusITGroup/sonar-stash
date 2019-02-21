@@ -6,8 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
+import java.util.List;
+import org.sonar.api.batch.fs.InputFile;
 
 public class TestUtils {
   private TestUtils() {}
@@ -37,5 +46,118 @@ public class TestUtils {
     conn.getResponseCode();
     wireMock.removeStub(primingMapping);
     wireMock.resetRequests();
+  }
+
+  public static WrappedProcessBuilder createProcess(String prefix, String... command) {
+    ProcessBuilder pb = new ProcessBuilder(command);
+    return new WrappedProcessBuilder(prefix, pb);
+  }
+
+  public static class WrappedProcessBuilder {
+    private final String prefix;
+    private final ProcessBuilder wrapped;
+
+    private WrappedProcessBuilder(String prefix, ProcessBuilder wrapped) {
+      this.prefix = prefix;
+      this.wrapped = wrapped;
+    }
+
+    public WrappedProcessBuilder directory(File directory) {
+      wrapped.directory(directory);
+      return this;
+    }
+
+    public Process start() throws IOException {
+      return new WrappedProcess(prefix, wrapped.start());
+    }
+
+    public List<String> command() {
+      return wrapped.command();
+    }
+  }
+
+  public static class WrappedProcess extends Process {
+    private final Process wrapped;
+    private final ForwarderThread outputLogger;
+    private final ForwarderThread errorLogger;
+
+    private WrappedProcess(String prefix, Process wrapped) {
+      this.wrapped = wrapped;
+      errorLogger = new ForwarderThread(prefix, wrapped.getErrorStream());
+      errorLogger.start();
+      outputLogger = new ForwarderThread(prefix, wrapped.getInputStream());
+      outputLogger.start();
+    }
+
+    @Override
+    public OutputStream getOutputStream() {
+      return wrapped.getOutputStream();
+    }
+
+    @Override
+    public InputStream getInputStream() {
+      return wrapped.getInputStream();
+    }
+
+    @Override
+    public InputStream getErrorStream() {
+      return wrapped.getErrorStream();
+    }
+
+    @Override
+    public int waitFor() throws InterruptedException {
+      int exitCode = wrapped.waitFor();
+      stopLoggers();
+      return exitCode;
+    }
+
+    @Override
+    public int exitValue() {
+      return wrapped.exitValue();
+    }
+
+    @Override
+    public void destroy() {
+        wrapped.destroy();
+    }
+
+    private void stopLoggers() throws InterruptedException {
+      outputLogger.interrupt();
+      errorLogger.interrupt();
+      outputLogger.join();
+      errorLogger.join();
+    }
+  }
+
+  private static class ForwarderThread extends Thread implements AutoCloseable {
+    private final String prefix;
+    private final InputStream input;
+
+    private ForwarderThread(String prefix, InputStream input) {
+      this.prefix = "[" + prefix + "] ";
+      this.input = input;
+      setDaemon(true);
+    }
+
+    @Override
+    public void run() {
+      try (BufferedReader lineReader = new BufferedReader(new InputStreamReader(input))) {
+        while (!Thread.interrupted()) {
+          String line = lineReader.readLine();
+          if (line != null) {
+            System.out.println(prefix + line);
+            //logger.info(line);
+          }
+        }
+      } catch (IOException e) {
+          /* ignored */
+      }
+    }
+
+    @Override
+    public void close() throws InterruptedException {
+        interrupt();
+        join();
+    }
   }
 }
