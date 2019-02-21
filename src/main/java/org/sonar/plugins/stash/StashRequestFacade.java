@@ -136,15 +136,14 @@ public class StashRequestFacade implements IssuePathResolver {
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
     for (PostJobIssue issue : issues) {
       String path = getIssuePath(issue);
-      if (commentsByFile.get(path) == null) {
-        StashCommentReport comments = stashClient.getPullRequestComments(pr, path);
+      commentsByFile.computeIfAbsent(path, (p) -> {
+        StashCommentReport comments = stashClient.getPullRequestComments(pr, p);
 
         // According to the type of the comment
         // if type == CONTEXT, comment.line is set to source line instead of destination line
         comments.applyDiffReport(diffReport);
-
-        commentsByFile.put(path, comments);
-      }
+        return comments;
+      });
     }
 
     Severity issueSeverityThreshold = config.getIssueSeverityThreshold();
