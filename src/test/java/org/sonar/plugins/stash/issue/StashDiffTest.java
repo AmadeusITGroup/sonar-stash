@@ -37,7 +37,7 @@ public class StashDiffTest {
   @Test
   public void testIsTypeOfContext() {
     assertEquals(IssueType.CONTEXT, diff1.getType());
-    assertNotEquals(diff2.getType(), IssueType.CONTEXT);
+    assertNotEquals(IssueType.CONTEXT, diff2.getType());
   }
 
   @Test

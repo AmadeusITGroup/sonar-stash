@@ -1,29 +1,5 @@
 package org.sonar.plugins.stash.client;
 
-import com.github.tomakehurst.wiremock.client.MappingBuilder;
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.sonar.plugins.stash.PullRequestRef;
-import org.sonar.plugins.stash.StashPlugin.IssueType;
-import org.sonar.plugins.stash.StashTest;
-import org.sonar.plugins.stash.exceptions.StashClientException;
-import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
-import org.sonar.plugins.stash.fixtures.WireMockExtension;
-import org.sonar.plugins.stash.issue.StashComment;
-import org.sonar.plugins.stash.issue.StashCommentReport;
-import org.sonar.plugins.stash.issue.StashDiffReport;
-import org.sonar.plugins.stash.issue.StashPullRequest;
-import org.sonar.plugins.stash.issue.StashTask;
-import org.sonar.plugins.stash.issue.StashUser;
-import org.sonar.plugins.stash.issue.collector.DiffReportSample;
-
-import java.net.HttpURLConnection;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
@@ -41,6 +17,7 @@ import static java.net.HttpURLConnection.HTTP_MOVED_TEMP;
 import static java.net.HttpURLConnection.HTTP_NOT_IMPLEMENTED;
 import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -49,7 +26,29 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.sonar.plugins.stash.TestUtils.assertContains;
 import static org.sonar.plugins.stash.TestUtils.primeWireMock;
 
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
+import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.sonar.plugins.stash.PullRequestRef;
+import org.sonar.plugins.stash.StashPlugin.IssueType;
+import org.sonar.plugins.stash.StashTest;
+import org.sonar.plugins.stash.exceptions.StashClientException;
+import org.sonar.plugins.stash.exceptions.StashReportExtractionException;
+import org.sonar.plugins.stash.fixtures.WireMockExtension;
+import org.sonar.plugins.stash.issue.StashComment;
+import org.sonar.plugins.stash.issue.StashCommentReport;
+import org.sonar.plugins.stash.issue.StashDiffReport;
+import org.sonar.plugins.stash.issue.StashPullRequest;
+import org.sonar.plugins.stash.issue.StashTask;
+import org.sonar.plugins.stash.issue.StashUser;
+import org.sonar.plugins.stash.issue.collector.DiffReportSample;
 
 public class StashClientTest extends StashTest {
   private static final int timeout = 800;
@@ -80,7 +79,9 @@ public class StashClientTest extends StashTest {
   public void testPostCommentOnPullRequest() throws Exception {
     wireMock.stubFor(any(anyUrl()).willReturn(aJsonResponse().withStatus(HttpURLConnection.HTTP_CREATED)));
 
-    client.postCommentOnPullRequest(pr, "Report");
+    assertDoesNotThrow(() ->
+        client.postCommentOnPullRequest(pr, "Report")
+    );
   }
 
   @Test

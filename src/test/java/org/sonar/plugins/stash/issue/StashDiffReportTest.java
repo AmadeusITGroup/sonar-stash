@@ -176,6 +176,9 @@ public class StashDiffReportTest {
     report.add(
         new StashDiff(IssueType.REMOVED, path, 165, 132)
     );
-    report.getType("some/path", 12, 4);
+    assertEquals(
+        IssueType.CONTEXT,
+        report.getType("some/path", 164, 2)
+    );
   }
 }

@@ -136,7 +136,7 @@ public class StashRequestFacade implements IssuePathResolver {
     Map<String, StashCommentReport> commentsByFile = new HashMap<>();
     for (PostJobIssue issue : issues) {
       String path = getIssuePath(issue);
-      commentsByFile.computeIfAbsent(path, (p) -> {
+      commentsByFile.computeIfAbsent(path, p -> {
         StashCommentReport comments = stashClient.getPullRequestComments(pr, p);
 
         // According to the type of the comment
