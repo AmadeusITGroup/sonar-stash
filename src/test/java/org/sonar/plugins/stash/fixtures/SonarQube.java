@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,10 +13,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+import org.awaitility.Awaitility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.CoreProperties;
 import org.sonar.plugins.stash.TestUtils;
 
 public class SonarQube {
+  private final static Logger LOGGER = LoggerFactory.getLogger(SonarQube.class);
+
   protected Path installDir;
   protected Process process;
   protected Properties config = new Properties();
@@ -103,37 +110,29 @@ public class SonarQube {
                StandardCopyOption.REPLACE_EXISTING);
   }
 
-  public void waitForReady() {
-    while (true) {
-      System.out.println("Waiting for SonarQube to be available at " + getUrl());
-      try {
-        HttpURLConnection conn = (HttpURLConnection)getUrl("/api/settings/values.protobuf").openConnection();
-        conn.connect();
-        int code = conn.getResponseCode();
-        if (code == 200) {
-          break;
-        }
-      } catch (IOException e) {
-                /* noop */
-      }
-      try {
-        Thread.sleep(5000);
-      } catch (InterruptedException e) {
-                /* noop */
-      }
-    }
-    System.out.println("SonarQube is ready");
+  public void waitForReady() throws MalformedURLException {
+    LOGGER.info("Waiting for SonarQube to be available at {}", getUrl());
+    Awaitility
+        .await("SonarQube is ready")
+        .atMost(3, TimeUnit.MINUTES)
+        .pollInterval(5, TimeUnit.SECONDS)
+        .ignoreExceptionsInstanceOf(ConnectException.class)
+        .until(this::isReady)
+    ;
   }
 
-  private URL getUrl(String file) {
-    try {
-      return new URL("http", getHost(), getPort(), file);
-    } catch (MalformedURLException e) {
-      return null;
-    }
+  private boolean isReady() throws IOException {
+    HttpURLConnection conn = (HttpURLConnection) getUrl("/api/settings/values.protobuf").openConnection();
+    conn.connect();
+    int code = conn.getResponseCode();
+    return code == 200;
   }
 
-  public URL getUrl() {
+  private URL getUrl(String file) throws MalformedURLException {
+    return new URL("http", getHost(), getPort(), file);
+  }
+
+  public URL getUrl() throws MalformedURLException {
     return getUrl("/");
   }
 
