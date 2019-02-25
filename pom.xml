@@ -180,9 +180,6 @@
         <artifactId>sonar-packaging-maven-plugin</artifactId>
         <version>1.17</version>
         <extensions>true</extensions>
-        <configuration>
-          <pluginClass>org.sonar.plugins.stash.StashPlugin</pluginClass>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
