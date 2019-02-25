@@ -193,10 +193,11 @@ public class StashPlugin implements Plugin {
         PropertyDefinition.builder(STASH_EXCLUDE_RULES)
             .name("Excluded Rules")
             .description("Comma separated list of rules for which no comments should be created.")
-            .type(PropertyType.TEXT)
+            .type(PropertyType.STRING)
             .subCategory(CONFIG_PAGE_SUB_CATEGORY_STASH)
             .onQualifiers(Qualifiers.PROJECT)
             .defaultValue(DEFAULT_STASH_EXCLUDE_RULES)
+            .multiValues(true)
             .build());
   }
 
