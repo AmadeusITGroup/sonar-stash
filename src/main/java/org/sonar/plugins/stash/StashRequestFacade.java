@@ -16,6 +16,7 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.scan.filesystem.PathResolver;
+import org.sonar.api.utils.System2;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
@@ -36,14 +37,18 @@ public class StashRequestFacade implements IssuePathResolver {
 
   private static final String EXCEPTION_STASH_CONF = "Unable to get {0} from plugin configuration (value is null)";
 
-  private StashPluginConfiguration config;
+  private final StashPluginConfiguration config;
+  private final File projectBaseDir;
+  private final System2 system;
 
-  private File projectBaseDir;
-
-  public StashRequestFacade(StashPluginConfiguration stashPluginConfiguration,
-      StashProjectBuilder projectBuilder) {
+  public StashRequestFacade(
+      StashPluginConfiguration stashPluginConfiguration,
+      StashProjectBuilder projectBuilder,
+      System2 system
+  ) {
     this.config = stashPluginConfiguration;
     this.projectBaseDir = projectBuilder.getProjectBaseDir();
+    this.system = system;
   }
 
   public List<PostJobIssue> extractIssueReport(Iterable<PostJobIssue> issues) {
@@ -217,7 +222,7 @@ public class StashRequestFacade implements IssuePathResolver {
     String userSlug = config.getStashUserSlug();
 
     if (passwordEnvVariable != null) {
-      password = System.getenv(passwordEnvVariable);
+      password = system.envVariable(passwordEnvVariable);
       if (password == null) {
         throw new StashConfigurationException(
             "Unable to retrieve password from configured environment variable "

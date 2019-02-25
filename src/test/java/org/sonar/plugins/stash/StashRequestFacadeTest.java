@@ -14,13 +14,13 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.utils.System2;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashClientException;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
 import org.sonar.plugins.stash.fixtures.DummyIssuePathResolver;
-import org.sonar.plugins.stash.fixtures.EnvironmentVariablesExtension;
 import org.sonar.plugins.stash.issue.MarkdownPrinter;
 import org.sonar.plugins.stash.issue.StashComment;
 import org.sonar.plugins.stash.issue.StashCommentReport;
@@ -85,6 +85,9 @@ public class StashRequestFacadeTest extends StashTest {
   @Mock
   StashUser stashUser;
 
+  @Mock
+  System2 system;
+
   String stashCommentMessage1;
   String stashCommentMessage2;
   String stashCommentMessage3;
@@ -92,9 +95,6 @@ public class StashRequestFacadeTest extends StashTest {
   List<PostJobIssue> report;
 
   StashProjectBuilder spr;
-
-  @RegisterExtension
-  EnvironmentVariablesExtension environmentVariables = new EnvironmentVariablesExtension();
 
   private static final String STASH_PROJECT = "Project";
   private static final String STASH_REPOSITORY = "Repository";
@@ -126,9 +126,11 @@ public class StashRequestFacadeTest extends StashTest {
     when(config.getStashRepository()).thenReturn(STASH_REPOSITORY);
     when(config.getRepositoryRoot()).thenReturn(Optional.empty());
 
+    when(system.envVariable(any())).thenReturn(null);
+
     spr = new DummyStashProjectBuilder(new File("/basedir"));
 
-    StashRequestFacade facade = new StashRequestFacade(config, spr);
+    StashRequestFacade facade = new StashRequestFacade(config, spr, system);
     myFacade = spy(facade);
 
     stashClient = mock(StashClient.class);
@@ -276,7 +278,7 @@ public class StashRequestFacadeTest extends StashTest {
   public void testGetPasswordFromEnvironment() throws StashConfigurationException {
     when(config.getStashLogin()).thenReturn("login");
     when(config.getStashPasswordEnvironmentVariable()).thenReturn("SONAR_STASH_PASSWORD");
-    environmentVariables.set("SONAR_STASH_PASSWORD", "envPassword");
+    when(system.envVariable("SONAR_STASH_PASSWORD")).thenReturn("envPassword");
 
     StashCredentials credentials = myFacade.getCredentials();
     assertEquals("envPassword", credentials.getPassword());
