@@ -1,16 +1,16 @@
 package org.sonar.plugins.stash.issue;
 
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 
 public class StashCommentReport {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StashCommentReport.class);
+  private static final Logger LOGGER = Loggers.get(StashCommentReport.class);
 
   private List<StashComment> comments;
 

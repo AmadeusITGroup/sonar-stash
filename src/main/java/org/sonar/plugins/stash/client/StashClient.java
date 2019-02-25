@@ -14,9 +14,8 @@ import org.json.simple.DeserializationException;
 import org.json.simple.JsonArray;
 import org.json.simple.JsonObject;
 import org.json.simple.Jsoner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.stash.PeekableInputStream;
 import org.sonar.plugins.stash.PluginInfo;
 import org.sonar.plugins.stash.PullRequestRef;
@@ -43,9 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class StashClient implements AutoCloseable {
-  private static final Logger LOGGER = LoggerFactory.getLogger(StashClient.class);
-  private static final String MDC_URL_KEY = "url";
-  private static final String MDC_METHOD_KEY = "method";
+  private static final Logger LOGGER = Loggers.get(StashClient.class);
 
   private final String baseUrl;
   private final StashCredentials credentials;
@@ -338,8 +335,6 @@ public class StashClient implements AutoCloseable {
     requestBuilder.setCharset(StandardCharsets.UTF_8);
 
     Request request = requestBuilder.build();
-    MDC.put(MDC_URL_KEY, request.getUrl());
-    MDC.put(MDC_METHOD_KEY, request.getMethod());
 
     try {
       Response response = httpClient.executeRequest(request).get(stashTimeout, TimeUnit.MILLISECONDS);
@@ -351,9 +346,6 @@ public class StashClient implements AutoCloseable {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new StashClientException(request.getUrl(), e);
-    } finally {
-      MDC.remove(MDC_URL_KEY);
-      MDC.remove(MDC_METHOD_KEY);
     }
   }
 

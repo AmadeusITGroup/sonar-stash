@@ -7,15 +7,15 @@ import static org.sonar.plugins.stash.StashPluginUtils.isProjectWide;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.rule.RuleKey;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.stash.IssuePathResolver;
 
 public final class SonarQubeCollector {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SonarQubeCollector.class);
+  private static final Logger LOGGER = Loggers.get(SonarQubeCollector.class);
 
   private SonarQubeCollector() {
     // Hiding implicit public constructor with an explicit private one (squid:S1118)

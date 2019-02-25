@@ -100,12 +100,6 @@
       <artifactId>guava</artifactId>
       <version>25.0-jre</version>
     </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.5</version>
-      <scope>provided</scope>
-    </dependency>
 
     <!-- unit tests -->
     <dependency>

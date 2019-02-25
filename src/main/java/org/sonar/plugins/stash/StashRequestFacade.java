@@ -8,8 +8,6 @@ import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.fs.InputComponent;
 import org.sonar.api.batch.fs.InputFile;
@@ -17,6 +15,8 @@ import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.api.utils.System2;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
@@ -33,7 +33,7 @@ import org.sonar.plugins.stash.issue.collector.SonarQubeCollector;
 @ScannerSide
 public class StashRequestFacade implements IssuePathResolver {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StashRequestFacade.class);
+  private static final Logger LOGGER = Loggers.get(StashRequestFacade.class);
 
   private static final String EXCEPTION_STASH_CONF = "Unable to get {0} from plugin configuration (value is null)";
 
@@ -80,9 +80,8 @@ public class StashRequestFacade implements IssuePathResolver {
   public void approvePullRequest(PullRequestRef pr, StashClient stashClient) {
     stashClient.approvePullRequest(pr);
 
-    // squid:S2629 : no evaluation required if the logging level is not activated
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Pull-request {} ({}/{}) APPROVED by user \"{}\"",
           pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
     }
   }
@@ -93,8 +92,8 @@ public class StashRequestFacade implements IssuePathResolver {
   public void resetPullRequestApproval(PullRequestRef pr, StashClient stashClient) {
     stashClient.resetPullRequestApproval(pr);
 
-    if (LOGGER.isInfoEnabled()) {
-      LOGGER.info("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Pull-request {} ({}/{}) NOT APPROVED by user \"{}\"",
           pr.pullRequestId(), pr.project(), pr.repository(), stashClient.getLogin());
     }
   }
@@ -113,8 +112,8 @@ public class StashRequestFacade implements IssuePathResolver {
 
       stashClient.addPullRequestReviewer(pr, pullRequest.getVersion(), reviewers);
 
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("User \"{}\" is now a reviewer of the pull-request #{} in {}/{}",
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("User \"{}\" is now a reviewer of the pull-request #{} in {}/{}",
             userSlug, pr.pullRequestId(), pr.project(), pr.repository());
       }
     }
@@ -210,8 +209,8 @@ public class StashRequestFacade implements IssuePathResolver {
 
       stashClient.postTaskOnComment(issue.message(), comment.getId());
 
-      if (LOGGER.isInfoEnabled()) {
-        LOGGER.info("Comment \"{}\" has been linked to a Stash task", comment.getId());
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Comment \"{}\" has been linked to a Stash task", comment.getId());
       }
     }
   }

@@ -3,8 +3,6 @@ package org.sonar.plugins.stash;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.Optional;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.postjob.PostJob;
 import org.sonar.api.batch.postjob.PostJobContext;
@@ -12,6 +10,8 @@ import org.sonar.api.batch.postjob.PostJobDescriptor;
 import org.sonar.api.batch.postjob.issue.PostJobIssue;
 import org.sonar.api.batch.rule.Severity;
 import org.sonar.api.platform.Server;
+import org.sonar.api.utils.log.Logger;
+import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.stash.client.StashClient;
 import org.sonar.plugins.stash.client.StashCredentials;
 import org.sonar.plugins.stash.exceptions.StashConfigurationException;
@@ -22,7 +22,7 @@ import org.sonar.plugins.stash.issue.StashUser;
 @ScannerSide
 public class StashIssueReportingPostJob implements PostJob {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(StashIssueReportingPostJob.class);
+  private static final Logger LOGGER = Loggers.get(StashIssueReportingPostJob.class);
 
   private final StashPluginConfiguration config;
   private final StashRequestFacade stashRequestFacade;
