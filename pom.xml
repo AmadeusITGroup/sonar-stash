@@ -36,7 +36,6 @@
     <sonar.version>6.0</sonar.version>
     <sonar.pluginName>Stash</sonar.pluginName>
     <sonar.pluginClass>org.sonar.plugins.stash.StashPlugin</sonar.pluginClass>
-    <sonar.useChildFirstClassLoader>true</sonar.useChildFirstClassLoader>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <test.sonarqube.dist.groupId>fixme.fixme</test.sonarqube.dist.groupId>
