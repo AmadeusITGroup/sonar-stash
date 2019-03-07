@@ -9,4 +9,4 @@ if [ "${SQ_RUN}" != "yes" ]; then
 fi
 
 echo "Starting analysis by SonarQube..."
-env -u SONAR_TOKEN mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -B -e -V
+mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -B -e -V
