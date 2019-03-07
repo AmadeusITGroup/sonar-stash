@@ -14,9 +14,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.List;
-import org.sonar.api.batch.fs.InputFile;
 
 public class TestUtils {
   private TestUtils() {}

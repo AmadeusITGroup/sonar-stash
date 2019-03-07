@@ -40,6 +40,7 @@ public class SonarScanner {
         .directory(installDir.toFile())
     ;
     List<String> command = pb.command();
+    command.add("-e");
     addCliProperty(command, "sonar.projectBaseDir", baseDir);
     addCliProperty(command, "sonar.host.url", sonarqube.getUrl());
     addCliProperty(command, "sonar.sources", Joiner.on(',').join(sources));
