@@ -1,5 +1,9 @@
 package org.sonar.plugins.stash.client;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonException;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import org.asynchttpclient.AsyncHttpClient;
@@ -10,10 +14,6 @@ import org.asynchttpclient.Realm;
 import org.asynchttpclient.Request;
 import org.asynchttpclient.Response;
 import org.asynchttpclient.config.AsyncHttpClientConfigDefaults;
-import org.json.simple.DeserializationException;
-import org.json.simple.JsonArray;
-import org.json.simple.JsonObject;
-import org.json.simple.Jsoner;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.stash.PeekableInputStream;
@@ -371,7 +371,7 @@ public class StashClient implements AutoCloseable {
       Reader body = new InputStreamReader(bodyStream);
       Object obj = Jsoner.deserialize(body);
       return (JsonObject)obj;
-    } catch (DeserializationException | ClassCastException | IOException e) {
+    } catch (JsonException | ClassCastException | IOException e) {
       throw new StashClientException("Could not parse JSON response", e);
     }
   }
