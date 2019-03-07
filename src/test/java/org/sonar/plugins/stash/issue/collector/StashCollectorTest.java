@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.json.simple.JsonObject;
-import org.json.simple.Jsoner;
+import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 import org.junit.jupiter.api.Test;
 import org.sonar.plugins.stash.PullRequestRef;
 import org.sonar.plugins.stash.StashPlugin.IssueType;
