@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 public class TestUtils {
   private TestUtils() {}
@@ -71,6 +72,10 @@ public class TestUtils {
 
     public List<String> command() {
       return wrapped.command();
+    }
+
+    public Map<String, String> environment() {
+        return wrapped.environment();
     }
   }
 

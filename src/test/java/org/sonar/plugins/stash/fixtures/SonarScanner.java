@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.sonar.plugins.stash.TestUtils;
 import org.sonar.plugins.stash.TestUtils.WrappedProcessBuilder;
@@ -39,6 +40,12 @@ public class SonarScanner {
     WrappedProcessBuilder pb = TestUtils.createProcess("sonar-scanner", getBinary("sonar-scanner").toString())
         .directory(installDir.toFile())
     ;
+
+    Map<String, String> env = pb.environment();
+    env.remove("SONAR_TOKEN");
+    env.remove("SONARQUBE_SCANNER_PARAMS");
+    env.remove("SONAR_SCANNER_HOME");
+
     List<String> command = pb.command();
     command.add("-e");
     addCliProperty(command, "sonar.projectBaseDir", baseDir);
