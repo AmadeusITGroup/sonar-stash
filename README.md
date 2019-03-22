@@ -1,5 +1,12 @@
 # SonarQube Stash (BitBucket) plugin
 
+## Important note
+
+Version 7.7 of SonarQube [dropped support for the extension point sonar-stash uses](https://jira.sonarsource.com/browse/SONAR-11670).
+This means to plugin is *can not work* on SonarQube versions >= 7.7.
+Therefore the 1.6.0 release is the last feature-release of `sonar-stash`.
+
+
 [![Build Status](https://travis-ci.org/AmadeusITGroup/sonar-stash.svg?branch=master)](https://travis-ci.org/AmadeusITGroup/sonar-stash/branches)
 [![SonarQube Quality Gate](https://sonarcloud.io/api/project_badges/quality_gate?project=org.sonar:sonar-stash-plugin)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
 [![Unit-Tests Overall Coverage](https://sonarcloud.io/api/project_badges/measure?project=org.sonar:sonar-stash-plugin&metric=coverage)](https://sonarcloud.io/dashboard?id=org.sonar%3Asonar-stash-plugin)
