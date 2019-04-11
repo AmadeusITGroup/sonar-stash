@@ -3,7 +3,7 @@
 ## Important note
 
 Version 7.7 of SonarQube [dropped support for the extension point sonar-stash uses](https://jira.sonarsource.com/browse/SONAR-11670).
-This means to plugin is *can not work* on SonarQube versions >= 7.7.
+This means this plugin *can not work* on SonarQube versions >= 7.7.
 Therefore the 1.6.0 release is the last feature-release of `sonar-stash`.
 
 
